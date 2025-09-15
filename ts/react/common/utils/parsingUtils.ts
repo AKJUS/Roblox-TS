@@ -119,7 +119,8 @@ export const composeQueryString = (queryParams: Record<string, unknown>): string
   return `?${parsedQueryParams}`;
 };
 
-type GameImpressionsEventSponsoredAdData = {
+export type TGameImpressionsEventSponsoredAdData = {
+  [EventStreamMetadata.AdsPositions]: number[];
   [EventStreamMetadata.AdFlags]: number[];
   [EventStreamMetadata.AdIds]: string[];
 };
@@ -127,7 +128,7 @@ type GameImpressionsEventSponsoredAdData = {
 export const getSponsoredAdImpressionsData = (
   gameData: TGameData[],
   impressedIndexes: number[]
-): GameImpressionsEventSponsoredAdData | {} => {
+): TGameImpressionsEventSponsoredAdData | {} => {
   const hasSponsoredGame = impressedIndexes.some(index => gameData[index]?.isSponsored);
 
   if (hasSponsoredGame) {
@@ -189,7 +190,7 @@ const getThumbnailOverrideListId = (
   return gameData.primaryMediaAsset?.wideImageListId;
 };
 
-type TGameImpressionsEventThumbnailIdData = {
+export type TGameImpressionsEventThumbnailIdData = {
   [EventStreamMetadata.ThumbnailAssetIds]: string[];
   [EventStreamMetadata.ThumbnailListIds]: string[];
 };
@@ -218,7 +219,7 @@ export const getThumbnailAssetIdImpressionsData = (
   return {};
 };
 
-type TGameImpressionsEventTileBadgeContextsData = {
+export type TGameImpressionsEventTileBadgeContextsData = {
   [EventStreamMetadata.TileBadgeContexts]: string[];
 };
 

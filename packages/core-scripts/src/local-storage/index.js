@@ -1,5 +1,3 @@
-const { LocalStorage } = window.Roblox;
-
 class LocalStorageService {
   // TODO: old, migrated code
   // eslint-disable-next-line class-methods-use-this
@@ -10,6 +8,7 @@ class LocalStorageService {
   // TODO: old, migrated code
   // eslint-disable-next-line class-methods-use-this
   storage() {
+    const { LocalStorage } = window.Roblox;
     if (LocalStorage) {
       return LocalStorage.isAvailable();
     }

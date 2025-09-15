@@ -17,8 +17,12 @@ type GameInfoResponse = {
 const getPlaceIdFromUniverseId = (gameId: string): Promise<number> =>
   get<GameInfoResponse>(GameInfoUrlConfig, {
     universeIds: [gameId],
-    // TODO: old, migrated code
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
-  }).then(response => response.data.data?.[0]?.rootPlaceId!);
+  }).then(response => {
+    const rootPlaceId = response.data.data?.[0]?.rootPlaceId;
+    if (!rootPlaceId) {
+      throw new Error(`Root place ID not found for universe ID: ${gameId}`);
+    }
+    return rootPlaceId;
+  });
 
 export default getPlaceIdFromUniverseId;

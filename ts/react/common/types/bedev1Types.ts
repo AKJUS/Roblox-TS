@@ -30,6 +30,11 @@ export enum TUniverseAvatarType {
   MorphToR15 = 'MorphToR15'
 }
 
+export enum TPaginationMethod {
+  Scroll = 'Scroll',
+  Button = 'Button'
+}
+
 export type TGamePassesResponse = {
   data: TGamePass[];
 };
@@ -59,6 +64,7 @@ export type TMetaData = {
   suggestedKeyword?: string;
   correctedKeyword?: string;
   filteredKeyword?: string;
+  paginationMethod?: TPaginationMethod;
   nextPageExclusiveStartId?: number;
   featuredSearchUniverseId?: number;
   hasMoreRows: boolean;
@@ -334,4 +340,9 @@ type TAssetLocation = {
 
 export type TAssetDataResponse = {
   locations: TAssetLocation[];
+};
+
+export type TGetPlayabilityStatus = {
+  isPlayable: boolean;
+  universeId: number;
 };

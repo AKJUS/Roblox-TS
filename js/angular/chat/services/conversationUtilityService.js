@@ -5,22 +5,15 @@ import chatModule from '../chatModule';
 function conversationsUtility($log, pinGameService, dialogAttributes) {
   'ngInject';
 
-  const isUserAvatarInFriendsDict = function(userId, friendsDict) {
-    return friendsDict[userId] && angular.isDefined(friendsDict[userId].avatarHeadshot);
-  };
-
-  const isUserPresenceInFriendsDict = function(userId, friendsDict) {
+  const isUserPresenceInFriendsDict = function (userId, friendsDict) {
     return friendsDict[userId] && angular.isDefined(friendsDict[userId].userPresenceType);
   };
 
-  const isUserInfoInFriendsDict = function(userId, friendsDict) {
-    return (
-      isUserAvatarInFriendsDict(userId, friendsDict) &&
-      isUserPresenceInFriendsDict(userId, friendsDict)
-    );
+  const isUserInfoInFriendsDict = function (userId, friendsDict) {
+    return isUserPresenceInFriendsDict(userId, friendsDict);
   };
 
-  const buildPinGameInConversation = function(conversation) {
+  const buildPinGameInConversation = function (conversation) {
     if (conversation.conversationUniverse) {
       const parameters = {
         rootPlaceId: conversation.conversationUniverse.rootPlaceId,
@@ -39,10 +32,9 @@ function conversationsUtility($log, pinGameService, dialogAttributes) {
       const userIds = [];
       if (conversations && conversations.length > 0) {
         const { conversationType, dialogTypes } = dialogAttributes;
-        conversations.forEach(function(conversation) {
-          conversation.isGroupChat =
-            conversation.type === conversationType.multiUserConversation;
-          angular.forEach(conversation.participants, function(user) {
+        conversations.forEach(function (conversation) {
+          conversation.isGroupChat = conversation.type === conversationType.multiUserConversation;
+          angular.forEach(conversation.participants, function (user) {
             const userId = user.id;
             if (userIds.indexOf(userId) < 0 && !isUserInfoInFriendsDict(userId, friendsDict)) {
               userIds.push(userId);

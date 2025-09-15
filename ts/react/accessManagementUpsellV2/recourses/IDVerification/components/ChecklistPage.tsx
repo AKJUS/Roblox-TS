@@ -3,7 +3,6 @@ import React from 'react';
 import { Button, Modal } from 'react-style-guide';
 import { useSelector } from 'react-redux';
 import { TranslateFunction } from 'react-utilities';
-import { deviceMeta } from 'header-scripts';
 import { selectIDVState } from '../verificationSlice';
 import { ReportEvent, Recourse, VerificationStatusCode } from '../../../enums';
 import reportEvent from '../../../services/reportEventService';
@@ -23,12 +22,6 @@ function ChecklistPage({
   const IDVStore = useSelector(selectIDVState);
   const { status, vendorVerificationData } = IDVStore;
   const { sessionStatus } = status;
-  const { qrCode } = vendorVerificationData;
-
-  const deviceMetaData = deviceMeta.getDeviceMeta();
-  const isMobile =
-    deviceMetaData?.isPhone || deviceMetaData?.isTablet || deviceMetaData?.deviceType === 'phone';
-  const showQRImg = !isMobile && qrCode;
 
   const linkClicked = () => {
     reportEvent(ReportEvent.VerificationStarted, Recourse.GovernmentId, {
@@ -77,27 +70,16 @@ function ChecklistPage({
             ) : null
           )}
         </ul>
-
-        {showQRImg && (
-          <div className='verification-link-page-content'>
-            <div className='qr-code-wrapper'>
-              <img className='qr-code-img' src={qrCode} alt='qr' />
-            </div>
-            <div className='footer-text'>{translate(LabelConstants.HavingTroubleScanCode)}</div>
-          </div>
-        )}
-        {!showQRImg && (
-          <a href={vendorVerificationData.verificationLink} target='_blank' rel='noreferrer'>
-            <Button
-              onClick={linkClicked}
-              className='primary-link'
-              variant={Button.variants.primary}
-              size={Button.sizes.medium}
-              width={Button.widths.full}>
-              {translate(ActionConstants.RestartSession)}
-            </Button>
-          </a>
-        )}
+        <a href={vendorVerificationData.verificationLink} target='_blank' rel='noreferrer'>
+          <Button
+            onClick={linkClicked}
+            className='primary-link'
+            variant={Button.variants.primary}
+            size={Button.sizes.medium}
+            width={Button.widths.full}>
+            {translate(ActionConstants.RestartSession)}
+          </Button>
+        </a>
         <div className='footer-text'>{translate(LabelConstants.PleaseDoNotClose)}</div>
       </Modal.Body>
     </React.Fragment>

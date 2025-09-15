@@ -87,7 +87,7 @@ const useStyles = makeStyles()(theme => ({
     width: '100px',
     height: '100px',
     objectFit: 'contain',
-    border: '8px solid white',
+    border: '6px solid white',
     borderRadius: '12px'
   },
   message: {}

@@ -5,6 +5,7 @@ import chatModule from '../chatModule';
 function dialogController(
   $scope,
   $log,
+  $timeout,
   chatService,
   chatUtility,
   messageService,
@@ -18,26 +19,29 @@ function dialogController(
   analyticsService,
   eventNames,
   diagActionList,
-  guacService
+  guacService,
+  languageResource
 ) {
   'ngInject';
 
   // // ----------------------------------- PRIVATE --------------------------------
   $scope.removeFromConversation = function (conversationId, layoutId) {
-    chatService.removeFromConversation($scope.chatLibrary.userId, conversationId).then(function (data) {
-      if (data && data.status === chatUtility.resultType.SUCCESS) {
-        if (
+    chatService
+      .removeFromConversation($scope.chatLibrary.userId, conversationId)
+      .then(function (data) {
+        if (data && data.status === chatUtility.resultType.SUCCESS) {
+          if (
             $scope.chatLibrary.chatLayoutIds &&
             $scope.chatLibrary.chatLayoutIds.indexOf(layoutId) > -1
-        ) {
-          $scope.chatLibrary.conversationsDict[conversationId].remove = true;
-          $scope.closeDialog({layoutId});
+          ) {
+            $scope.chatLibrary.conversationsDict[conversationId].remove = true;
+            $scope.closeDialog({ layoutId });
+          }
         }
-      }
-    });
+      });
   };
 
-  $scope.keystrokeCollectionEnabled = false; 
+  $scope.keystrokeCollectionEnabled = false;
   $scope.isKeystrokeCollectionEnabled = function () {
     const promise = guacService.getAppPolicies();
     promise.then(guacResult => {
@@ -194,8 +198,34 @@ function dialogController(
     }
   };
 
+  const dismissConversationOverlay = function () {
+    const modalConfiguration =
+      $scope.chatLibrary.modals.conversationOverlays[$scope.dialogData.layoutId];
+    chatService.recordModalSequenceResponse({
+      ...chatUtility.getDynamicConversationId($scope.dialogData),
+      modalSequence: chatUtility.modalSequence.CONVERSATION_OVERLAY,
+      modalId: modalConfiguration?.modal_layout?.id,
+      modalVariant: modalConfiguration?.modal_variant,
+      actionType: modalConfiguration?.modal_layout?.dismissed_record_action
+    });
+    delete $scope.chatLibrary.modals.conversationOverlays[$scope.dialogData.layoutId];
+  };
+
   $scope.dismissContactCard = function () {
     $scope.dialogLayout.shouldShowContactCard = false;
+    dismissConversationOverlay();
+  };
+
+  let alertTimeout;
+  $scope.showAlert = function (alertMessageKey, durationMs = 5000) {
+    $scope.dialogLayout.alertMessage = languageResource.get(alertMessageKey);
+    $scope.dialogLayout.shouldShowAlert = true;
+    if (alertTimeout) {
+      $timeout.cancel(alertTimeout);
+    }
+    alertTimeout = $timeout(function () {
+      $scope.dialogLayout.shouldShowAlert = false;
+    }, durationMs);
   };
 
   $scope.toggleConversationEditor = function () {
@@ -296,7 +326,7 @@ function dialogController(
     return false;
   };
 
-  $scope.keystrokeData= [];
+  $scope.keystrokeData = [];
 
   $scope.buildNewMessage = function (newMessage) {
     return {
@@ -317,14 +347,13 @@ function dialogController(
   $scope.sendMessage = function () {
     if ($scope.dialogData.messageForSend.length > 0) {
       const newMessageObj = $scope.buildNewMessage($scope.dialogData.messageForSend);
-      chatUtility.sanitizeMessage(newMessageObj);
-      gameService.fetchDataForLinkCard([newMessageObj], $scope.chatLibrary);
       $scope.dialogData.messageForSend = '';
       if (angular.isUndefined($scope.dialogData.chatMessages)) {
         $scope.dialogData.chatMessages = [];
       }
       messageService.setClusterMaster($scope.dialogData, newMessageObj);
-      messageService.updatePreviewMessage($scope.dialogData, [newMessageObj]);
+      messageService.updateAndSanitizePreviewMessage($scope.dialogData, [newMessageObj]);
+      gameService.fetchDataForLinkCard([newMessageObj], $scope.chatLibrary);
       $scope.dialogLayout.scrollToBottom = true;
 
       if ($scope.dialogData.dialogType === chatUtility.dialogType.FRIEND) {
@@ -381,9 +410,12 @@ function dialogController(
     if (isConfirmed && $scope.dialogLayout.userIdForAbuseReport) {
       if ($scope.abuseReportRevampEnabled) {
         const params = new URLSearchParams({
-          targetId: $scope.dialogData.id,
+          targetId: $scope.dialogLayout.userIdForAbuseReport,
           submitterId: CurrentUser.userId,
-          abuseVector: 'chat'
+          abuseVector: 'chat',
+          custom: JSON.stringify({
+            conversationId: $scope.dialogData.id
+          })
         });
         const url = `/report-abuse/?${params.toString()}`;
         window.location.href = url;
@@ -417,21 +449,23 @@ function dialogController(
       return;
     }
     const N = Math.round(1 / chatUtility.dialogParams.keystrokeSampleRate);
-    if ((parseInt(userId) % N) != 0) {
+    if (parseInt(userId) % N != 0) {
       return;
     }
-    const now =  new Date().getTime();
+    const now = new Date().getTime();
     if ($event.type != 'keyup' && $event.type != 'keydown') {
       return;
     }
     const eventType = $event.type == 'keyup' ? 1 : 0;
-    const key = $event.key;
+    const { key } = $event;
 
     const keystrokeEvent = { key, eventType, timestamp: now };
     $scope.keystrokeData.push(keystrokeEvent);
 
     if (key == 'Enter' && eventType == 1) {
-      const { keyPressedData, eventTypeData, timestampData } = splitKeystrokeData($scope.keystrokeData);
+      const { keyPressedData, eventTypeData, timestampData } = splitKeystrokeData(
+        $scope.keystrokeData
+      );
       EventStream.SendEventWithTarget(
         'appChatKeyStrokes',
         'enterPressed',
@@ -443,9 +477,10 @@ function dialogController(
         EventStream.TargetTypes.WWW
       );
       $scope.keystrokeData = [];
-    }
-    else if ($scope.keystrokeData.length >= chatUtility.dialogParams.maxKeystrokeDataLength) {
-      const { keyPressedData, eventTypeData, timestampData } = splitKeystrokeData($scope.keystrokeData);
+    } else if ($scope.keystrokeData.length >= chatUtility.dialogParams.maxKeystrokeDataLength) {
+      const { keyPressedData, eventTypeData, timestampData } = splitKeystrokeData(
+        $scope.keystrokeData
+      );
       EventStream.SendEventWithTarget(
         'appChatKeyStrokes',
         'maxLengthReached',
@@ -457,21 +492,21 @@ function dialogController(
         EventStream.TargetTypes.WWW
       );
       $scope.keystrokeData = [];
-   }
+    }
   };
 
   function splitKeystrokeData(data) {
-      const keyPressedData = [];
-      const eventTypeData = [];
-      const timestampData = [];
+    const keyPressedData = [];
+    const eventTypeData = [];
+    const timestampData = [];
 
-      data.forEach(event => {
-          keyPressedData.push(event.key);
-          eventTypeData.push(event.eventType);
-          timestampData.push(event.timestamp);
-      });
+    data.forEach(event => {
+      keyPressedData.push(event.key);
+      eventTypeData.push(event.eventType);
+      timestampData.push(event.timestamp);
+    });
 
-      return { keyPressedData, eventTypeData, timestampData };
+    return { keyPressedData, eventTypeData, timestampData };
   }
   $scope.leaveGroupChat = function (isConfirmed) {
     if (isConfirmed) {
@@ -595,7 +630,7 @@ function dialogController(
     return $scope.dialogData.userIds[0];
   };
 
-  $scope.sendConversationMessageSentEvent = function(sendMessageResponse, isRetry) {
+  $scope.sendConversationMessageSentEvent = function (sendMessageResponse, isRetry) {
     try {
       if (!$scope.chatLibrary.shouldSendEvents) {
         return;
@@ -705,6 +740,46 @@ function dialogController(
     }
   };
 
+  let conversationOverlaySeenTimer;
+  $scope.$watch(
+    function () {
+      return (
+        $scope.dialogLayout.currentDialogScreen === 'contactCard' &&
+        !$scope.dialogLayout.collapsed &&
+        $scope.chatLibrary.dialogDict[$scope.dialogData.layoutId]?.updateStatus !==
+          chatUtility.dialogStatus.MINIMIZE
+      );
+    },
+    function (newValue, oldValue) {
+      if (oldValue && !newValue) {
+        clearTimeout(conversationOverlaySeenTimer);
+      }
+      if (newValue && !oldValue) {
+        const modalConfiguration =
+          $scope.chatLibrary.modals.conversationOverlays[$scope.dialogData.layoutId];
+        conversationOverlaySeenTimer = setTimeout(() => {
+          chatService.recordModalSequenceResponse({
+            ...chatUtility.getDynamicConversationId($scope.dialogData),
+            modalSequence: chatUtility.modalSequence.CONVERSATION_OVERLAY,
+            modalId: modalConfiguration?.modal_layout?.id,
+            modalVariant: modalConfiguration?.modal_variant,
+            actionType: modalConfiguration?.modal_layout?.seen_record_action
+          });
+        }, 3000);
+      }
+    }
+  );
+  $scope.$on('$destroy', function () {
+    if (conversationOverlaySeenTimer) {
+      clearTimeout(conversationOverlaySeenTimer);
+    }
+  });
+  $scope.$on('Roblox.Chat.MarkDialogInactive', function (event, args) {
+    if (args.layoutId === $scope.dialogData.layoutId && conversationOverlaySeenTimer) {
+      clearTimeout(conversationOverlaySeenTimer);
+    }
+  });
+
   $scope.updateShouldShowOsaContextCard = function () {
     // show the OSA context card if:
     $scope.dialogLayout.shouldShowOsaContextCard =
@@ -713,27 +788,22 @@ function dialogController(
       // 2. either
       //    a. it's a friend placeholder
       //    b. it's a channels conversation and there are no more messages to be loaded
-      (
-        $scope.dialogData.source === chatUtility.conversationSource.FRIENDS ||
-        (
-          !$scope.dialogParams.loadMoreMessages ||
-          (
-            $scope.dialogData.chatMessages &&
-            $scope.dialogData.chatMessages.length > 0 &&
-            $scope.dialogData.chatMessages.length < $scope.dialogParams.pageSizeOfGetMessages
-          )
-        )
-      ) &&
+      ($scope.dialogData.source === chatUtility.conversationSource.FRIENDS ||
+        !$scope.dialogParams.loadMoreMessages ||
+        ($scope.dialogData.chatMessages &&
+          $scope.dialogData.chatMessages.length > 0 &&
+          $scope.dialogData.chatMessages.length < $scope.dialogParams.pageSizeOfGetMessages)) &&
       // 3. the OSA acknowledgement status is "unacknowledged" or "acknowledged"
-      (
-        $scope.dialogData.osaAcknowledgementStatus === dialogAttributes.osaAcknowledgementStatus.UNACKNOWLEDGED ||
-        $scope.dialogData.osaAcknowledgementStatus === dialogAttributes.osaAcknowledgementStatus.ACKNOWLEDGED
-      );
+      ($scope.dialogData.osaAcknowledgementStatus ===
+        dialogAttributes.osaAcknowledgementStatus.UNACKNOWLEDGED ||
+        $scope.dialogData.osaAcknowledgementStatus ===
+          dialogAttributes.osaAcknowledgementStatus.ACKNOWLEDGED);
   };
 
   // // ----------------------------------- CODE TO RUN --------------------------------
   $scope.dialogLayout.currentDialogScreen = 'default';
   $scope.dialogLayout.shouldShowContactCard = false;
+  $scope.dialogLayout.shouldShowAlert = false;
   $scope.$watchGroup(
     [
       'dialogLayout.isAbuseReportConfirmationOn',
@@ -755,7 +825,7 @@ function dialogController(
       'dialogData.chatMessages',
       'dialogParams.loadMoreMessages'
     ],
-    function() {
+    function () {
       $scope.updateShouldShowOsaContextCard();
     }
   );
@@ -764,7 +834,10 @@ function dialogController(
     $scope.dialogData.dialogType !== chatUtility.dialogType.FRIEND &&
     !$scope.dialogData.isUserPending
   ) {
-    const shouldScrollFromTop = chatUtility.shouldScrollFromTop($scope.dialogData, $scope.chatLibrary);
+    const shouldScrollFromTop = chatUtility.shouldScrollFromTop(
+      $scope.dialogData,
+      $scope.chatLibrary
+    );
     const messagesTask = shouldScrollFromTop
       ? chatService.getAllMessages($scope.dialogData.id)
       : chatService.getMessages(
@@ -776,32 +849,44 @@ function dialogController(
       $scope.dialogLayout.isChatLoading = true;
     }
     messagesTask.then(function (response) {
-        const data = response.messages;
-        $scope.dialogLayout.isChatLoading = false;
-        if (data) {
-          $scope.dialogParams.getMessagesNextCursor = response.next_cursor;
-          $scope.dialogData.chatMessages = [];
-          $scope.dialogData.messagesDict = {};
-          messageService.processMessages(
-            $scope.chatLibrary,
-            $scope.dialogData,
-            data,
-            $scope.chatLibrary.friendsDict
-          );
-          gameService.fetchDataForLinkCard(data, $scope.chatLibrary);
-          $scope.dialogData.scrollBarType = chatUtility.scrollBarType.MESSAGE;
-          if (!response.next_cursor) {
-            $scope.dialogParams.loadMoreMessages = false;
-          }
-          if (shouldScrollFromTop) {
-            $scope.updateDialog();
-            $scope.$apply();
-          }
-        } else {
-          $scope.dialogData.scrollBarType = chatUtility.scrollBarType.MESSAGE;
-          $scope.updateDialog();
+      const data = response.messages;
+      $scope.dialogLayout.isChatLoading = false;
+      if (data) {
+        $scope.dialogParams.getMessagesNextCursor = response.next_cursor;
+        $scope.dialogData.chatMessages = [];
+        $scope.dialogData.messagesDict = {};
+        messageService.processMessages(
+          $scope.chatLibrary,
+          $scope.dialogData,
+          data,
+          $scope.chatLibrary.friendsDict
+        );
+        gameService.fetchDataForLinkCard(data, $scope.chatLibrary);
+        $scope.dialogData.scrollBarType = chatUtility.scrollBarType.MESSAGE;
+        if (!response.next_cursor) {
+          $scope.dialogParams.loadMoreMessages = false;
         }
-      });
+        if (shouldScrollFromTop) {
+          $scope.updateDialog();
+          $scope.$apply();
+        }
+      } else {
+        $scope.dialogData.scrollBarType = chatUtility.scrollBarType.MESSAGE;
+        $scope.updateDialog();
+      }
+    });
+  }
+
+  if ($scope.chatLibrary.isWebChatTcEnabled) {
+    $scope.$watch('dialogData.moderationType', () => $scope.getConversationOverlay());
+    $scope.$watch(
+      () => $scope.chatLibrary.modals.conversationOverlays[$scope.dialogData.layoutId],
+      conversationOverlay => {
+        const modalVariant = conversationOverlay?.modal_variant;
+        $scope.dialogLayout.shouldShowContactCard =
+          modalVariant === chatUtility.modalVariant.TRUSTED_CONNECTION_CREATED;
+      }
+    );
   }
 
   $scope.$on('elastic:resize', function (event, element, oldHeight, newHeight) {

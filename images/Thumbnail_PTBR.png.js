@@ -1,1 +1,0 @@
-module.exports = "https://images.rbxcdn.com/87803d524f6da870469a32f77af15ce0-Thumbnail_PTBR.png";

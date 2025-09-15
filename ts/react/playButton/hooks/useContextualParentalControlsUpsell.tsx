@@ -1,7 +1,12 @@
 import { useState, useCallback } from 'react';
 import { AccessManagementUpsellV2Service, Endpoints } from 'Roblox';
 import { fireEvent } from 'roblox-event-tracker';
-import { TSettingResponse } from '../types/playButtonTypes';
+import {
+  TSettingResponse,
+  TAppsFlyerReferralProperties,
+  TContentMaturityRating,
+  TAgeRestrictionSettingOptionValue
+} from '../types/playButtonTypes';
 import {
   launchGame,
   startAccessManagementUpsellFlow,
@@ -14,7 +19,7 @@ const { counterEvents, unlockPlayIntentConstants } = playButtonConstants;
 type TContextualParentalControlUpsell = {
   launchPlayButtonUpsell: (
     contentAgeRestriction: TSettingResponse | undefined,
-    minimumAge: number | undefined,
+    contentMaturityRating: TContentMaturityRating | undefined,
     hasError: boolean
   ) => void;
   isSelfUpdateSettingModalOpen: boolean;
@@ -26,7 +31,7 @@ type TContextualParentalControlUpsell = {
 
 /**
  * Returns a callback that should be called when the user clicks the play button.
- * The callback uses the experience's minimumAge and the user's contentAgeRestriction setting
+ * The callback uses the experience's contentMaturityRating and the user's contentAgeRestriction setting
  * to determine which upsell modal to display, and then displays it to the user.
  */
 const useContextualParentalControlsUpsell = (
@@ -35,7 +40,8 @@ const useContextualParentalControlsUpsell = (
   rootPlaceId?: string,
   privateServerLinkCode?: string,
   gameInstanceId?: string,
-  eventProperties?: Record<string, string | number | undefined>
+  eventProperties?: Record<string, string | number | undefined>,
+  appsFlyerReferralProperties?: TAppsFlyerReferralProperties
 ): TContextualParentalControlUpsell => {
   const [isSelfUpdateSettingModalOpen, setIsSelfUpdateSettingModalOpen] = useState<boolean>(false);
 
@@ -50,14 +56,22 @@ const useContextualParentalControlsUpsell = (
       privateServerLinkCode,
       gameInstanceId,
       eventProperties,
-      undefined
+      undefined,
+      appsFlyerReferralProperties
     );
-  }, [eventProperties, gameInstanceId, placeId, privateServerLinkCode, rootPlaceId]);
+  }, [
+    eventProperties,
+    gameInstanceId,
+    placeId,
+    privateServerLinkCode,
+    rootPlaceId,
+    appsFlyerReferralProperties
+  ]);
 
   const launchPlayButtonUpsell = useCallback(
     async (
       contentAgeRestriction: TSettingResponse | undefined,
-      minimumAge: number | undefined,
+      contentMaturityRating: TContentMaturityRating | undefined,
       hasError: boolean
     ) => {
       const sendUnlockPlayIntent = (upsellName: string) => {
@@ -68,7 +82,7 @@ const useContextualParentalControlsUpsell = (
         );
       };
 
-      if (hasError || contentAgeRestriction === undefined || minimumAge === undefined) {
+      if (hasError || contentAgeRestriction === undefined || contentMaturityRating === undefined) {
         launchGameFallback();
 
         fireEvent(counterEvents.PlayButtonUpsellUnknownSettingOrAge);
@@ -77,15 +91,30 @@ const useContextualParentalControlsUpsell = (
         return;
       }
 
-      const minimumAgeToSettingValue: Record<number, string> = {
-        '-1': 'ThirteenPlus',
-        9: 'NinePlus',
-        13: 'ThirteenPlus',
-        17: 'SeventeenPlus',
-        18: 'EighteenPlus'
+      if (contentMaturityRating === 'minimal') {
+        // if the maturity rating is minimal, we shouldn't have entered this flow because
+        // the game should be playable. show an error counter and fallback to game launch
+        launchGameFallback();
+
+        fireEvent(counterEvents.PlayButtonUpsellMinimalMaturityRating);
+
+        sendUnlockPlayIntent(unlockPlayIntentConstants.gameLaunchFallbackUpsellName);
+        return;
+      }
+
+      const maturityRatingToAgeRestrictionSetting: Record<
+        Exclude<TContentMaturityRating, 'minimal'>,
+        TAgeRestrictionSettingOptionValue
+      > = {
+        mild: 'NinePlus',
+        moderate: 'ThirteenPlus',
+        restricted: 'SeventeenPlus',
+        unrated: 'ThirteenPlus'
       };
 
-      if (!minimumAgeToSettingValue[minimumAge]) {
+      const requestedSettingValue = maturityRatingToAgeRestrictionSetting[contentMaturityRating];
+
+      if (!requestedSettingValue) {
         launchGameFallback();
 
         fireEvent(counterEvents.PlayButtonUpsellAgeNotInMapping);
@@ -93,8 +122,6 @@ const useContextualParentalControlsUpsell = (
         sendUnlockPlayIntent(unlockPlayIntentConstants.gameLaunchFallbackUpsellName);
         return;
       }
-
-      const requestedSettingValue = minimumAgeToSettingValue[minimumAge];
 
       const requestedOption = contentAgeRestriction.options.find(
         option => option?.option?.optionValue === requestedSettingValue

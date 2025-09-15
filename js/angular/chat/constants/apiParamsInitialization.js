@@ -40,17 +40,10 @@ const apiParamsInitialization = {
 
   chatUrls: {
     setConversationUniverse: '/v2/set-conversation-universe',
-    resetConversationUniverse: '/v2/reset-conversation-universe',
+    resetConversationUniverse: '/v2/reset-conversation-universe'
   },
 
   apiSets: {
-    multiGetAvatarHeadshots: {
-      url: EnvironmentUrls
-        ? `${EnvironmentUrls.thumbnailsApi}/v1/users/avatar-headshot?size=48x48&format=png`
-        : '/v1/users/avatar-headshot?size=48x48&format=png',
-      retryable: true,
-      withCredentials: true
-    },
     multiGetContacts: {
       url: EnvironmentUrls
         ? `${EnvironmentUrls.contactsApi}/v1/user/get-tags`
@@ -66,7 +59,9 @@ const apiParamsInitialization = {
       withCredentials: true
     },
     getMetaData: {
-      url: EnvironmentUrls ? `${Roblox.EnvironmentUrls.apiGatewayUrl}/platform-chat-api/v1/metadata` : '/v1/metadata',
+      url: EnvironmentUrls
+        ? `${Roblox.EnvironmentUrls.apiGatewayUrl}/platform-chat-api/v1/metadata`
+        : '/v1/metadata',
       retryable: false,
       withCredentials: true
     },

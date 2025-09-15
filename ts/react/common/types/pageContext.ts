@@ -7,7 +7,8 @@ export enum PageContext {
   HomePage = 'homePage',
   PeopleListInHomePage = 'peopleListInHomePage',
   InterestCatcher = 'interestCatcher',
-  SearchLandingPage = 'searchLandingPage'
+  SearchLandingPage = 'searchLandingPage',
+  SpotlightPage = 'spotlightPage'
 }
 
 export default {

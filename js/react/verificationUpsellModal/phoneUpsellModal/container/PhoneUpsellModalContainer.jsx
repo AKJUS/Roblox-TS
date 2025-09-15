@@ -1,7 +1,6 @@
 import PropTypes from 'prop-types';
 import React, { useEffect, useState } from 'react';
 import { Modal } from 'react-style-guide';
-import { DeviceMeta } from 'Roblox';
 import { originValues } from '../../common/constants/loggingConstants';
 import { sendVerificationUpsellEvent } from '../../common/utils/loggingUtils';
 import {
@@ -13,14 +12,14 @@ import {
 // components
 import AddPhoneNumber from '../components/AddPhoneNumber';
 import AddPhoneSuccess from '../components/AddPhoneSuccess';
-import PhoneDiscoverabilityConsent from '../components/PhoneDiscoverabilityConsent';
+import PhoneDiscoverabilityConsentV2 from '../components/PhoneDiscoverabilityConsentV2';
 import VerifyPhoneNumber from '../components/VerifyPhoneNumber';
 import DeletePhoneNumber from '../components/DeletePhoneNumber';
 // pages
 import {
   ADD_PHONE_NUMBER_PAGE,
   ADD_PHONE_SUCCESS_PAGE,
-  PHONE_DISCOVERABILITY_CONSENT_PAGE,
+  PHONE_DISCOVERABILITY_CONSENT_V2_PAGE,
   VERIFY_PHONE_NUMBER_PAGE,
   DELETE_PHONE_CONFIRM_PAGE
 } from '../constants/pageConstants';
@@ -105,19 +104,8 @@ function PhoneUpsellModalContainer({
             onHide={onHide}
           />
         );
-      case PHONE_DISCOVERABILITY_CONSENT_PAGE:
-        return (
-          <PhoneDiscoverabilityConsent
-            translate={translate}
-            onHide={onHide}
-            origin={phoneUpsellState.origin}
-            shouldPrefillAffirmativeDiscoverabilityConsent={
-              phoneUpsellState.shouldPrefillAffirmativeDiscoverabilityConsent
-            }
-            headingKey={overrideSuccessHeadingKey}
-            descriptionKey={overrideSuccessDescriptionKey}
-          />
-        );
+      case PHONE_DISCOVERABILITY_CONSENT_V2_PAGE:
+        return <PhoneDiscoverabilityConsentV2 onHide={onHide} origin={origin} />;
       default:
         return <AddPhoneNumber translate={translate} onHide={onHide} />;
     }

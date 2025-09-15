@@ -1,18 +1,19 @@
 import React, { useCallback, useMemo } from 'react';
 import { TOmniRecommendationSduiSort } from '../common/types/bedev2Types';
 import SduiComponent from '../sdui/system/SduiComponent';
-import { TOmniRecommendationSduiTree } from '../sdui/system/SduiTypes';
+import { TOmniRecommendationSduiTree, TSduiPageContextType } from '../sdui/system/SduiTypes';
 import { extractValidSduiFeedItem } from '../sdui/system/SduiParsers';
 import ErrorBoundary from '../common/components/ErrorBoundary';
 import logSduiError, { SduiErrorNames } from '../sdui/utils/logSduiError';
 import { usePageSession } from '../common/utils/PageSessionContext';
-import { PageContext } from '../common/types/pageContext';
 import { buildSessionAnalyticsData } from '../sdui/utils/analyticsParsingUtils';
+import useSduiContext from '../sdui/hooks/useSduiContext';
+import '../sdui/style/_sduiIcons.scss';
 
 type TSduiFeedItemProps = {
   sort: TOmniRecommendationSduiSort;
   sduiRoot: TOmniRecommendationSduiTree | undefined;
-  currentPage: PageContext.HomePage | PageContext.GamesPage | PageContext.SearchLandingPage;
+  currentPage: TSduiPageContextType;
 };
 
 /**
@@ -24,8 +25,10 @@ type TSduiFeedItemProps = {
 const SduiFeedItem = ({ sort, sduiRoot, currentPage }: TSduiFeedItemProps): JSX.Element => {
   const pageSessionInfo = usePageSession();
 
+  const sduiContext = useSduiContext(sduiRoot?.templates, currentPage);
+
   const content = useMemo(() => {
-    const sduiFeedItem = extractValidSduiFeedItem(sduiRoot, sort.feedItemKey);
+    const sduiFeedItem = extractValidSduiFeedItem(sduiRoot, sort.feedItemKey, sduiContext);
 
     if (!sduiFeedItem) {
       // Error logging is handled during extraction
@@ -33,7 +36,7 @@ const SduiFeedItem = ({ sort, sduiRoot, currentPage }: TSduiFeedItemProps): JSX.
     }
 
     const localAnalyticsData = {
-      ...buildSessionAnalyticsData(pageSessionInfo, currentPage)
+      ...buildSessionAnalyticsData(pageSessionInfo, sduiContext)
     };
 
     return (
@@ -42,21 +45,23 @@ const SduiFeedItem = ({ sort, sduiRoot, currentPage }: TSduiFeedItemProps): JSX.
           componentConfig={sduiFeedItem}
           parentAnalyticsContext={{}}
           localAnalyticsData={localAnalyticsData}
+          sduiContext={sduiContext}
         />
       </div>
     );
-  }, [sort, sduiRoot, pageSessionInfo, currentPage]);
+  }, [sort, sduiRoot, pageSessionInfo, sduiContext]);
 
   const logErrorBoundaryError = useCallback(
     (errorMessage: string, callstack: string) => {
       logSduiError(
         SduiErrorNames.SduiFeedItemBoundaryError,
-        `Error rendering feed item for sort ${JSON.stringify(
-          sort
-        )} with error message ${errorMessage} and callstack ${callstack}`
+        `Error rendering feed item for sort ${JSON.stringify(sort)} and sdui root ${JSON.stringify(
+          sduiRoot
+        )} with error message ${errorMessage} and callstack ${callstack}`,
+        sduiContext.pageContext
       );
     },
-    [sort]
+    [sort, sduiRoot, sduiContext.pageContext]
   );
 
   return (

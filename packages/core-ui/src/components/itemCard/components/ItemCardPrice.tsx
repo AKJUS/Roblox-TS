@@ -49,7 +49,7 @@ function ItemCardPrice({
         <span className="text text-label text-robux-tile">{priceStatus}</span>
       ) : (
         <React.Fragment>
-          <span className="icon icon-robux-16x16" />
+          <span className="icon-robux-16x16" />
           <span className="text-robux-tile">{formatNumber(getPriceForItem())}</span>
         </React.Fragment>
       )}

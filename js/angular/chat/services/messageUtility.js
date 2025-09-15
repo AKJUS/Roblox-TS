@@ -7,7 +7,7 @@ function messageUtility($log, messageHelper, dialogAttributes) {
   return {
     isMessageTypeLegal(message) {
       let isLegal = false;
-      angular.forEach(messageHelper.messageTypes, function(messageType) {
+      angular.forEach(messageHelper.messageTypes, function (messageType) {
         if (messageType === message.type) {
           isLegal = true;
           return false;
@@ -20,20 +20,20 @@ function messageUtility($log, messageHelper, dialogAttributes) {
       if (!systemMessage) {
         systemMessage = angular.copy(dialogAttributes.systemMessage);
       } else {
-        angular.forEach(dialogAttributes.systemMessage, function(value, key) {
+        angular.forEach(dialogAttributes.systemMessage, function (value, key) {
           systemMessage[key] = value;
         });
       }
       if (isErrorMsg) {
         systemMessage.isErrorMsg = true;
       }
-      let now = new Date();
+      const now = new Date();
       systemMessage.created_at = now.toISOString();
     },
 
     hasUnreadMessages(conversation, messages) {
       if (!conversation.hasUnreadMessages) {
-        messages.some(function(message) {
+        messages.some(function (message) {
           return !message.read;
         });
       }

@@ -3,7 +3,7 @@ import React from 'react';
 import { Button, Loading, Modal } from 'react-style-guide';
 import { TranslateFunction } from 'react-utilities';
 import { useSelector } from 'react-redux';
-import { deviceMeta } from 'header-scripts';
+import { DeviceMeta } from 'Roblox';
 import { selectIDVState } from '../verificationSlice';
 import { ActionConstants, LabelConstants } from '../constants/textConstants';
 
@@ -14,16 +14,12 @@ function VendorlinkPage({
   translate: TranslateFunction;
   onHide: () => void;
 }): React.ReactElement {
-  // VPC requires a in-place redirection - should explore having in-place redirection for all mobile entry
-  const mobileLinkTarget = '_self';
   const IDVStore = useSelector(selectIDVState);
   const { vendorVerificationData } = IDVStore;
-  const { loading, qrCode } = vendorVerificationData;
-  const deviceMetaData = deviceMeta.getDeviceMeta();
-
-  const isMobile =
-    deviceMetaData?.isPhone || deviceMetaData?.isTablet || deviceMetaData?.deviceType === 'phone';
-  const showQRImg = !isMobile && qrCode;
+  const { loading } = vendorVerificationData;
+  const isIosApp = (DeviceMeta && DeviceMeta().isIosApp) ?? false;
+  // VPC requires a in-place redirection but need to open new tab for iOS app webview (Persona hosted flow is not compatible with webview on iOS)
+  const mobileLinkTarget = isIosApp ? '_blank' : '_self';
 
   return (
     <React.Fragment>
@@ -52,26 +48,7 @@ function VendorlinkPage({
                 <div className='preparation-text'>{translate(LabelConstants.ValidIdList)}</div>
               </div>
             </div>
-            {showQRImg && (
-              <div className='preparation-list-item'>
-                <span className='icon-menu-mobile' />
-                <div className='preparation-list-text'>
-                  <div className='preparation-title'>{translate(LabelConstants.UseSmartphone)}</div>
-                  <div className='preparation-text'>
-                    {translate(LabelConstants.SmartphoneRequired)}
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
-          {showQRImg && (
-            <div>
-              <div className='verification-link-upsell'>{translate(LabelConstants.ScanQRCode)}</div>
-              <div className='qr-code-wrapper'>
-                <img className='qr-code-img' src={qrCode} alt='qr' />
-              </div>
-            </div>
-          )}
           <p
             className='verification-link-legal'
             dangerouslySetInnerHTML={{
@@ -82,21 +59,19 @@ function VendorlinkPage({
               })
             }}
           />
-          {!showQRImg && (
-            <a
-              href={vendorVerificationData.verificationLink}
-              target={mobileLinkTarget}
-              rel='noreferrer'>
-              <Button
-                onClick={() => console.log('start sesesion')}
-                className='primary-link'
-                variant={Button.variants.primary}
-                size={Button.sizes.medium}
-                width={Button.widths.full}>
-                {translate(ActionConstants.StartSession)}
-              </Button>
-            </a>
-          )}
+          <a
+            href={vendorVerificationData.verificationLink}
+            target={mobileLinkTarget}
+            rel='noreferrer'>
+            <Button
+              onClick={() => console.log('start sesesion')}
+              className='primary-link'
+              variant={Button.variants.primary}
+              size={Button.sizes.medium}
+              width={Button.widths.full}>
+              {translate(ActionConstants.StartSession)}
+            </Button>
+          </a>
         </Modal.Body>
       )}
     </React.Fragment>

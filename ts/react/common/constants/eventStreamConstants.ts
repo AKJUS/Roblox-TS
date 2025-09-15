@@ -55,6 +55,7 @@ export enum EventStreamMetadata {
   SortPos = 'sortPos',
   StartDepth = 'startDepth',
   StartPos = 'startPos',
+  SubPageName = 'subPageName',
   SuggestionKwd = 'suggestionKwd',
   SuggestionReplacedKwd = 'suggestionReplacedKwd',
   SuggestionCorrectedKwd = 'suggestionCorrectedKwd',
@@ -97,7 +98,8 @@ export enum SessionInfoType {
   HomePageSessionInfo = 'homePageSessionInfo',
   GameSearchSessionInfo = 'gameSearchSessionInfo',
   DiscoverPageSessionInfo = 'discoverPageSessionInfo',
-  SearchLandingPageSessionInfo = 'searchLandingPageSessionInfo'
+  SearchLandingPageSessionInfo = 'searchLandingPageSessionInfo',
+  SpotlightPageSessionInfo = 'spotlightPageSessionInfo'
 }
 
 export type TDiscoverySessionInfo = {
@@ -222,7 +224,8 @@ export type TCarouselGameImpressions = TBaseGameImpressions & {
     | PageContext.HomePage
     | PageContext.GamesPage
     | PageContext.GameDetailPage
-    | PageContext.SearchLandingPage;
+    | PageContext.SearchLandingPage
+    | PageContext.SpotlightPage;
 };
 
 export type TGameImpressions = TCarouselGameImpressions | TGridGameImpressions;
@@ -243,6 +246,7 @@ export type TSortDetailReferral =
 // Common params for both gameDetailReferral and playGameClicked events
 export type TCommonReferralParams = {
   [EventStreamMetadata.IsAd]?: boolean | string;
+  [EventStreamMetadata.NativeAdData]?: string;
   [EventStreamMetadata.Position]: number;
   [EventStreamMetadata.SortPos]?: number;
   [EventStreamMetadata.NumberOfLoadedTiles]?: number;
@@ -251,6 +255,7 @@ export type TCommonReferralParams = {
   [SessionInfoType.DiscoverPageSessionInfo]?: string;
   [SessionInfoType.GameSearchSessionInfo]?: string;
   [SessionInfoType.HomePageSessionInfo]?: string;
+  [SessionInfoType.SpotlightPageSessionInfo]?: string;
   [EventStreamMetadata.Page]:
     | PageContext.SearchPage
     | PageContext.SortDetailPageDiscover
@@ -259,14 +264,14 @@ export type TCommonReferralParams = {
     | PageContext.GamesPage
     | PageContext.GameDetailPage
     | PageContext.PeopleListInHomePage
-    | PageContext.SearchLandingPage;
+    | PageContext.SearchLandingPage
+    | PageContext.SpotlightPage;
 };
 
 export type TGameDetailReferral =
   | (TCommonReferralParams & {
       [EventStreamMetadata.PlaceId]: number;
       [EventStreamMetadata.UniverseId]: number;
-      [EventStreamMetadata.NativeAdData]?: string;
       [EventStreamMetadata.GameSetTargetId]?: number;
       [EventStreamMetadata.FriendId]?: number;
       [EventStreamMetadata.AppliedFilters]?: string;
@@ -282,7 +287,8 @@ export type TGameDetailReferral =
         | PageContext.GamesPage
         | PageContext.GameDetailPage
         | PageContext.PeopleListInHomePage
-        | PageContext.SearchLandingPage;
+        | PageContext.SearchLandingPage
+        | PageContext.SpotlightPage;
       [EventStreamMetadata.ShareLinkType]?: string;
       [EventStreamMetadata.ShareLinkId]?: string;
     })
@@ -292,7 +298,12 @@ export type TPlayGameClicked = TCommonReferralParams & {
   [EventStreamMetadata.PlaceId]: number;
   [EventStreamMetadata.UniverseId]: number;
   [EventStreamMetadata.IsAd]: string;
-  [EventStreamMetadata.PlayContext]: PageContext.HomePage | PageContext.GameDetailPage;
+  [EventStreamMetadata.PlayContext]:
+    | PageContext.HomePage
+    | PageContext.GameDetailPage
+    | PageContext.GamesPage
+    | PageContext.SpotlightPage
+    | PageContext.SortDetailPageDiscover;
 };
 
 export type TRequestRefundClick =

@@ -9,10 +9,10 @@ function groupSelect($log) {
     link(scope, element, attrs) {
       const heightOfHeader = scope.chatLibrary.layout.topBarHeight;
       scope.$watch(
-        function() {
+        function () {
           return element.innerHeight();
         },
-        function(newValue, oldValue) {
+        function (newValue, oldValue) {
           if (newValue && newValue !== oldValue) {
             const dialogElm = `#${scope.dialogData.layoutId} .dialog-container`;
             const scrollbarElm = `#${scope.dialogData.layoutId} ${scope.friendsScrollbarElm}`;

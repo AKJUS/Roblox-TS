@@ -1,6 +1,12 @@
-import { SessionInfo } from '@rbx/unified-logging';
+import { EventContext, SessionInfo, parseEventParams } from '@rbx/unified-logging';
+import { eventStreamService } from 'core-roblox-utilities';
 import { PageContext } from '../../common/types/pageContext';
-import { TAnalyticsContext, TAnalyticsData } from '../system/SduiTypes';
+import {
+  TAnalyticsContext,
+  TAnalyticsData,
+  TSduiContext,
+  TSduiPageContext
+} from '../system/SduiTypes';
 import logSduiError, { SduiErrorNames } from './logSduiError';
 
 /**
@@ -50,7 +56,8 @@ export const parseMaybeStringNumberField = (
  */
 export const parseBooleanField = (
   input: string | number | boolean | undefined,
-  defaultValue: boolean
+  defaultValue: boolean,
+  pageContext: TSduiPageContext
 ): boolean => {
   if (typeof input === 'boolean') {
     return input;
@@ -67,7 +74,8 @@ export const parseBooleanField = (
 
     logSduiError(
       SduiErrorNames.ParseBooleanFieldInvalidString,
-      `Invalid string value for boolean field: ${input}`
+      `Invalid string value for boolean field: ${input}`,
+      pageContext
     );
 
     return defaultValue;
@@ -83,7 +91,8 @@ export const parseBooleanField = (
 
     logSduiError(
       SduiErrorNames.ParseBooleanFieldInvalidNumber,
-      `Invalid number value for boolean field: ${input}`
+      `Invalid number value for boolean field: ${input}`,
+      pageContext
     );
 
     return defaultValue;
@@ -93,7 +102,8 @@ export const parseBooleanField = (
     SduiErrorNames.ParseBooleanFieldInvalidType,
     `Invalid type for boolean field: ${typeof input}, input: ${
       input ? JSON.stringify(input) : 'undefined'
-    }`
+    }`,
+    pageContext
   );
 
   return defaultValue;
@@ -116,7 +126,10 @@ export const isStringNumberOrBooleanValue = (
  * Filter out any invalid (unknown type) event parameters.
  * Resulting object only contains string/number/boolean params.
  */
-export const filterInvalidEventParams = (params: Record<string, unknown>): TAnalyticsData => {
+export const filterInvalidEventParams = (
+  params: Record<string, unknown>,
+  pageContext: TSduiPageContext
+): TAnalyticsData => {
   const validParams: TAnalyticsData = {};
 
   Object.keys(params).forEach(key => {
@@ -128,7 +141,8 @@ export const filterInvalidEventParams = (params: Record<string, unknown>): TAnal
         SduiErrorNames.AnalyticsParsingDiscardedInvalidParam,
         `Discarding invalid event parameter key: ${key}, value: ${JSON.stringify(
           value
-        )}, type: ${typeof value}`
+        )}, type: ${typeof value}`,
+        pageContext
       );
     }
   });
@@ -139,49 +153,106 @@ export const filterInvalidEventParams = (params: Record<string, unknown>): TAnal
 type TPageSessionAnalyticsData = {
   [SessionInfo.HomePageSessionInfo]?: string;
   [SessionInfo.DiscoverPageSessionInfo]?: string;
+  [SessionInfo.SpotlightPageSessionInfo]?: string;
+};
+
+export const getSessionInfoKey = (
+  pageContext: TSduiPageContext
+):
+  | SessionInfo.HomePageSessionInfo
+  | SessionInfo.DiscoverPageSessionInfo
+  | SessionInfo.SpotlightPageSessionInfo
+  | null => {
+  const currentPage = pageContext.pageName;
+  switch (currentPage) {
+    case PageContext.HomePage:
+      return SessionInfo.HomePageSessionInfo;
+    case PageContext.GamesPage:
+      return SessionInfo.DiscoverPageSessionInfo;
+    case PageContext.SpotlightPage:
+      return SessionInfo.SpotlightPageSessionInfo;
+    default:
+      logSduiError(
+        SduiErrorNames.SessionInfoKeyNotFound,
+        `Session info key not found for page: ${
+          currentPage ? JSON.stringify(currentPage) : 'undefined'
+        }`,
+        pageContext
+      );
+      return null;
+  }
 };
 
 export const buildSessionAnalyticsData = (
   pageSessionInfo: string,
-  currentPage: PageContext.HomePage | PageContext.GamesPage | PageContext.SearchLandingPage
+  sduiContext: TSduiContext
 ): TPageSessionAnalyticsData => {
+  const currentPage = sduiContext.pageContext.pageName;
+  const sessionInfoKey = getSessionInfoKey(sduiContext.pageContext);
+  if (!sessionInfoKey) {
+    logSduiError(
+      SduiErrorNames.InvalidPageForSessionAnalytics,
+      `Invalid page context for session analytics: ${
+        currentPage ? JSON.stringify(currentPage) : 'undefined'
+      } with session info: ${pageSessionInfo}`,
+      sduiContext.pageContext
+    );
+    return {};
+  }
+
+  return {
+    [sessionInfoKey]: pageSessionInfo
+  };
+};
+
+export const getEventContext = (pageContext: TSduiPageContext): EventContext | null => {
+  const currentPage = pageContext.pageName;
+  const ERROR_EVENT_NAME = 'webDiscoverySduiError';
+
   switch (currentPage) {
     case PageContext.HomePage:
-      return {
-        [SessionInfo.HomePageSessionInfo]: pageSessionInfo
-      };
+      return EventContext.Home;
     case PageContext.GamesPage:
-      return {
-        [SessionInfo.DiscoverPageSessionInfo]: pageSessionInfo
-      };
+      return EventContext.Games;
+    case PageContext.SpotlightPage:
+      return EventContext.Spotlight;
     default:
-      logSduiError(
-        SduiErrorNames.InvalidPageForSessionAnalytics,
-        `Invalid page context for session analytics: ${
-          currentPage ? JSON.stringify(currentPage) : 'undefined'
-        } with session info: ${pageSessionInfo}`
+      // direct logging to event stream to avoid recursive calls on
+      // getEventContext <-> logSduiError <-> getEventContext
+      eventStreamService.sendEvent(
+        {
+          name: ERROR_EVENT_NAME,
+          type: ERROR_EVENT_NAME,
+          context: pageContext.pageName
+        },
+        parseEventParams({
+          errorName: SduiErrorNames.InvalidEventContextForPage,
+          errorMessage: `Page context does not have a valid event context: ${
+            currentPage ? JSON.stringify(currentPage) : 'undefined'
+          }`
+        })
       );
-      return {};
+      return null;
   }
 };
 
 export const findAnalyticsFieldInAncestors = (
   fieldKey: string,
-  analyticsContext: TAnalyticsContext | undefined,
+  analyticsContext: TAnalyticsContext,
   defaultValue: string | number | boolean
 ): string | number | boolean => {
   if (
-    analyticsContext?.analyticsData &&
-    analyticsContext?.analyticsData[fieldKey] !== undefined &&
-    analyticsContext?.analyticsData[fieldKey] !== null
+    analyticsContext.analyticsData &&
+    analyticsContext.analyticsData[fieldKey] !== undefined &&
+    analyticsContext.analyticsData[fieldKey] !== null
   ) {
     return analyticsContext.analyticsData[fieldKey];
   }
 
   if (
-    analyticsContext?.ancestorAnalyticsData &&
-    analyticsContext?.ancestorAnalyticsData[fieldKey] !== undefined &&
-    analyticsContext?.ancestorAnalyticsData[fieldKey] !== null
+    analyticsContext.ancestorAnalyticsData &&
+    analyticsContext.ancestorAnalyticsData[fieldKey] !== undefined &&
+    analyticsContext.ancestorAnalyticsData[fieldKey] !== null
   ) {
     return analyticsContext.ancestorAnalyticsData[fieldKey];
   }

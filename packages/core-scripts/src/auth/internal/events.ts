@@ -18,7 +18,7 @@ const constants = {
 };
 
 // Sampling constant.
-const ONE_MILLION = 1_000_000;
+export const ONE_MILLION = 1_000_000;
 
 export const sendBATSuccessEvent = (url: string, sampleRatePerMillion: number): void => {
   const shouldSampleEvent = Math.random() * ONE_MILLION < sampleRatePerMillion;

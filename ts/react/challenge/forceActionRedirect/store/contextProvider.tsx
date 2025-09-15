@@ -1,9 +1,6 @@
 import React, { createContext, ReactChild, ReactElement, useReducer, useState } from 'react';
 import { TranslateFunction } from 'react-utilities';
-import {
-  ForceActionRedirectChallengeConfig,
-  OnModalChallengeAbandonedCallback
-} from '../interface';
+import { ForceActionRedirect } from '@rbx/generic-challenge-types';
 import { ForceActionRedirectAction } from './action';
 import { ForceActionRedirectState } from './state';
 import forceActionStateReducer from './stateReducer';
@@ -29,10 +26,11 @@ export const ForceActionRedirectContext = createContext<ForceActionRedirectConte
 );
 
 type Props = {
-  forceActionRedirectChallengeConfig: ForceActionRedirectChallengeConfig;
+  forceActionRedirectChallengeConfig: ForceActionRedirect.ForceActionRedirectChallengeConfig;
   renderInline: boolean;
   translate: TranslateFunction;
-  onModalChallengeAbandoned: OnModalChallengeAbandonedCallback | null;
+  onModalChallengeAbandoned: ForceActionRedirect.OnModalChallengeAbandonedCallback | null;
+  onChallengeAbandoned: ForceActionRedirect.OnChallengeAbandonedCallback | null;
   children: ReactChild;
 };
 
@@ -46,6 +44,7 @@ export const ForceActionRedirectContextProvider = ({
   renderInline,
   translate,
   onModalChallengeAbandoned,
+  onChallengeAbandoned,
   children
 }: Props): ReactElement => {
   // We declare these variables as lazy-initialized state variables since they
@@ -61,6 +60,7 @@ export const ForceActionRedirectContextProvider = ({
     resources,
     redirectURLSignifier: forceActionRedirectChallengeConfig.redirectURLSignifier,
     onModalChallengeAbandoned,
+    onChallengeAbandoned,
 
     // Mutable state:
     isModalVisible: true

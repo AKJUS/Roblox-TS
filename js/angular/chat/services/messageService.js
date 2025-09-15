@@ -49,7 +49,7 @@ function messageService(
       if (isBriefVersion) {
         message.briefTimeStamp = 'Yesterday';
       } else {
-        message.displayTimeStamp = `Yesterday | ${  $filter('date')(timeStamp, timeFormat)}`;
+        message.displayTimeStamp = `Yesterday | ${$filter('date')(timeStamp, timeFormat)}`;
       }
     } else if (diffDays <= messageDay) {
       // with one week
@@ -57,7 +57,7 @@ function messageService(
         timeFormat = 'EEE';
         message.briefTimeStamp = $filter('date')(timeStamp, timeFormat);
       } else {
-        timeFormat = `EEE | ${  timeFormat}`;
+        timeFormat = `EEE | ${timeFormat}`;
         message.displayTimeStamp = $filter('date')(timeStamp, timeFormat);
       }
     } else if (currentYear === messageYear) {
@@ -65,20 +65,20 @@ function messageService(
         timeFormat = 'MMM d';
         message.briefTimeStamp = $filter('date')(timeStamp, timeFormat);
       } else {
-        timeFormat = `MMM d | ${  timeFormat}`;
+        timeFormat = `MMM d | ${timeFormat}`;
         message.displayTimeStamp = $filter('date')(timeStamp, timeFormat);
       }
     } else if (isBriefVersion) {
       timeFormat = 'MMM d, yyyy';
       message.briefTimeStamp = $filter('date')(timeStamp, timeFormat);
     } else {
-      timeFormat = 'MMM d, yyyy | ' + timeFormat;
+      timeFormat = `MMM d, yyyy | ${timeFormat}`;
       message.displayTimeStamp = $filter('date')(timeStamp, timeFormat);
     }
   }
 
   // Use this object to mark messages read...it will queue messages so we don't send frequent calls for the same conversation
-  let markMessagesRead = (function() {
+  const markMessagesRead = (function () {
     let messagesToMarkRead = {};
     let timer = false;
 
@@ -96,12 +96,12 @@ function messageService(
       for (const conversationId in messagesToMarkRead) {
         var savedData = messagesToMarkRead[conversationId];
         chatService.markAsRead(conversationId).then(
-          function(_data) {
-            let conversation = savedData.conversation;
+          function (_data) {
+            const { conversation } = savedData;
             conversation.hasUnreadMessages = false;
             $rootScope.$broadcast('Roblox.Chat.LoadUnreadConversationCount');
           },
-          function() {
+          function () {
             $log.debug('----- markAsRead request is failed ! ------');
           }
         );
@@ -137,7 +137,7 @@ function messageService(
       }
       // message is sent by different sender with previous sender
       // message is sent as different timestamp
-      let index = conversation.chatMessages.length - 1;
+      const index = conversation.chatMessages.length - 1;
       if (message.displayTimeStamp) {
         message.isClusterMaster = true;
       }
@@ -174,7 +174,7 @@ function messageService(
         return false;
       }
       parseMessageTimestamp(message);
-      let timeStamp = message.parsedTimestamp;
+      const timeStamp = message.parsedTimestamp;
       if (
         !conversation.startTimeStamp ||
         timeStamp + partyChromeDisplayTimeStampInterval < conversation.startTimeStamp
@@ -189,7 +189,7 @@ function messageService(
         return false;
       }
       parseMessageTimestamp(message);
-      let timeStamp = message.parsedTimestamp;
+      const timeStamp = message.parsedTimestamp;
       if (!conversation.previousTimeStamp) {
         conversation.startTimeStamp = timeStamp;
       }
@@ -223,11 +223,11 @@ function messageService(
       }
 
       if (messages && messages.length > 0) {
-        let sizeOfMsg = messages.length;
-        let alienIds = [];
+        const sizeOfMsg = messages.length;
+        const alienIds = [];
         conversation.previousTimeStamp = null;
-        for (var i = sizeOfMsg - 1; i >= 0; i--) {
-          let message = messages[i];
+        for (let i = sizeOfMsg - 1; i >= 0; i--) {
+          const message = messages[i];
           this.buildTimeStamp(message, conversation);
           if (message.type === chatUtility.messageSenderType.SYSTEM) {
             message.isSystemMessage = true;
@@ -239,11 +239,11 @@ function messageService(
           }
           // check the sender user info
           if (isUserInfoExisted(message, friendsDict, alienIds)) {
-            let senderId = message.sender_user_id;
+            const senderId = message.sender_user_id;
             $log.debug(
-              ' ----- new friend information for this message, trying to get now -----' + senderId
+              ` ----- new friend information for this message, trying to get now -----${senderId}`
             );
-            let userIds = [senderId];
+            const userIds = [senderId];
             alienIds.push(senderId);
             usersService.getUserInfo(userIds, friendsDict);
           }
@@ -291,7 +291,7 @@ function messageService(
       } else if (conversation.chatMessages) {
         let currentLatestMsg = {}; // set default
         for (var i = 0; i < conversation.chatMessages.length; i++) {
-          let chatMessage = conversation.chatMessages[i];
+          const chatMessage = conversation.chatMessages[i];
           if (
             chatMessage.id &&
             !chatMessage.sendMessageHasError &&
@@ -310,12 +310,12 @@ function messageService(
             message.isSystemMessage = true;
           }
           parseMessageTimestamp(message);
-          var isCurrentMessageSameAsTheLatestMessage =
+          const isCurrentMessageSameAsTheLatestMessage =
             message.id === currentLatestMsg.id ||
             (currentLatestMsg.id &&
               typeof currentLatestMsg.id !== 'string' &&
               currentLatestMsg.id.toString() === message.id);
-          var isMessagePresentInMessagesDict =
+          const isMessagePresentInMessagesDict =
             !angular.isUndefined(message.id) &&
             !angular.isUndefined(conversation.messagesDict[message.id]);
           if (
@@ -335,7 +335,7 @@ function messageService(
         }
       }
 
-      this.updatePreviewMessage(conversation, messages);
+      this.updateAndSanitizePreviewMessage(conversation, messages);
 
       if (conversation.hasUnreadMessages > 0) {
         $rootScope.$broadcast('Roblox.Chat.LoadUnreadConversationCount');
@@ -355,7 +355,7 @@ function messageService(
     },
 
     buildSystemMessage(notificationType, conversation, isErrorMsg) {
-      let systemMessage = angular.copy(dialogAttributes.systemMessage);
+      const systemMessage = angular.copy(dialogAttributes.systemMessage);
       messageUtility.setSystemMessage(systemMessage, isErrorMsg);
       switch (notificationType) {
         case chatUtility.notificationType.conversationTitleModerated:
@@ -409,9 +409,8 @@ function messageService(
       return message;
     },
 
-
     // source of truth for preview message updates
-    updatePreviewMessage(conversation, messages) {
+    updateAndSanitizePreviewMessage(conversation, messages) {
       // conversation.previewMessage is the current assigned preview message
       // conversation.preview_message is the original server-defined preview message
       let previewMessage = conversation.previewMessage ?? conversation.preview_message;
@@ -441,12 +440,12 @@ function messageService(
         status &&
         conversation.type === chatUtility.conversationType.multiUserConversation
       ) {
-        let messages = conversation.chatMessages;
+        const messages = conversation.chatMessages;
         if (messages && messages.length > 0) {
-          let userTyping = dialogLayout.typing.userTypingDict[userIdForTyping];
-          let clusterMessagesMarkedAsTyping = {};
+          const userTyping = dialogLayout.typing.userTypingDict[userIdForTyping];
+          const clusterMessagesMarkedAsTyping = {};
           for (let i = 0; i < messages.length; i++) {
-            let message = messages[i];
+            const message = messages[i];
             if (
               message.isClusterMaster &&
               message.sender_user_id === userIdForTyping &&

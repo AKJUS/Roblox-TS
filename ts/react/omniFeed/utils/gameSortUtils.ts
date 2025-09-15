@@ -1,3 +1,4 @@
+import { fireEvent } from 'roblox-event-tracker';
 import { EventStreamMetadata } from '../../common/constants/eventStreamConstants';
 import { TGameData } from '../../common/types/bedev1Types';
 import {
@@ -5,6 +6,8 @@ import {
   TExploreApiFiltersSortResponse,
   TExploreApiGameSort,
   TExploreApiGameSortResponse,
+  TExploreApiSongsSortResponse,
+  TExploreApiSongsSort,
   TExploreApiSort,
   TExploreApiSortResponse,
   TExploreApiSorts,
@@ -17,6 +20,7 @@ import {
   TOmniRecommendationSort,
   TTreatmentType
 } from '../../common/types/bedev2Types';
+import { sortDetailPage } from '../../common/constants/configConstants';
 
 export const hydrateOmniRecommendationGames = (
   recommendations: TOmniRecommendationGame[],
@@ -75,6 +79,10 @@ export const isGameSortFromExploreApi = (sort: TExploreApiSort): sort is TExplor
   return 'games' in sort;
 };
 
+export const isSongSortFromExploreApi = (sort: TExploreApiSort): sort is TExploreApiSongsSort => {
+  return 'songs' in sort;
+};
+
 export const isFilterSortFromExploreApi = (
   sort: TExploreApiSort
 ): sort is TExploreApiFiltersSort => {
@@ -100,6 +108,12 @@ const isExploreApiGameSortResponse = (
   sort: TExploreApiSortResponse
 ): sort is TExploreApiGameSortResponse => {
   return 'games' in sort;
+};
+
+const isExploreApiSongSortResponse = (
+  sort: TExploreApiSortResponse
+): sort is TExploreApiSongsSortResponse => {
+  return 'songs' in sort;
 };
 
 export const mapExploreApiGameSortResponse = (
@@ -143,9 +157,29 @@ const mapExploreApiFiltersSortResponse = (
   };
 };
 
+const mapExploreApiSongSortResponse = (
+  sort: TExploreApiSongsSortResponse
+): TExploreApiSongsSort => {
+  return {
+    topic: sort.sortDisplayName,
+    topicId: sort.gameSetTypeId,
+    treatmentType: sort.treatmentType,
+    songs: sort.songs,
+    sortId: sort.sortId,
+    contentType: sort.contentType,
+    nextPageToken: sort.nextPageToken || '',
+    subtitle: sort.subtitle,
+    topicLayoutData: sort.topicLayoutData
+  };
+};
+
 export const mapExploreApiSortResponse = (sort: TExploreApiSortResponse): TExploreApiSort => {
   if (isExploreApiGameSortResponse(sort)) {
     return mapExploreApiGameSortResponse(sort);
+  }
+
+  if (isExploreApiSongSortResponse(sort)) {
+    return mapExploreApiSongSortResponse(sort);
   }
 
   return mapExploreApiFiltersSortResponse(sort);
@@ -155,6 +189,46 @@ export const mapExploreApiSortsResponse = (data: TExploreApiSortsResponse): TExp
   return {
     sorts: data.sorts.map(sort => mapExploreApiSortResponse(sort)),
     nextSortsPageToken: data.nextSortsPageToken
+  };
+};
+
+// The explore API responses contain items in differently named keys depending
+// on the response type. For example, the Games sort response has a `games`
+// array, whereas the Songs sort response has a `songs` array.
+//
+// This function exists to help with "load more" scenarios where we need to add
+// more results to the existing sort results. In this case, we need to make sure
+// the new sort and the previous sort match so we, for example, don't try to
+// merge song data with game data
+export const joinExploreApiSorts = (
+  newSort: TExploreApiSort,
+  prevSort: TExploreApiSort
+): TExploreApiSort => {
+  if (isGameSortFromExploreApi(prevSort)) {
+    if (isGameSortFromExploreApi(newSort)) {
+      return {
+        ...prevSort,
+        games: [...prevSort.games, ...newSort.games],
+        nextPageToken: newSort.nextPageToken
+      };
+    }
+    fireEvent(sortDetailPage.mismatchedGamesSortMergeError);
+  }
+
+  if (isSongSortFromExploreApi(prevSort)) {
+    if (isSongSortFromExploreApi(newSort)) {
+      return {
+        ...prevSort,
+        songs: [...prevSort.songs, ...newSort.songs],
+        nextPageToken: newSort.nextPageToken
+      };
+    }
+    fireEvent(sortDetailPage.mismatchedSongsSortMergeError);
+  }
+
+  return {
+    ...prevSort,
+    nextPageToken: newSort.nextPageToken
   };
 };
 

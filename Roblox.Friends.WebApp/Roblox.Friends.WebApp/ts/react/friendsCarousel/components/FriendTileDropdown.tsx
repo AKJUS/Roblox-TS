@@ -93,7 +93,7 @@ const FriendTileDropdown = ({
         {canChat && (
           <li>
             <button type='button' className='friend-tile-dropdown-button' onClick={startChat}>
-              <span className='icon icon-chat-gray' />{' '}
+              <span className='icon-chat-gray' />{' '}
               {translate('Label.Chat', { username: displayName })}
             </button>
           </li>
@@ -105,7 +105,7 @@ const FriendTileDropdown = ({
             onClick={() => {
               window.open(userProfileUrl);
             }}>
-            <span className='icon icon-viewdetails' /> {translate('Label.ViewProfile')}
+            <span className='icon-viewdetails' /> {translate('Label.ViewProfile')}
           </button>
         </li>
       </ul>

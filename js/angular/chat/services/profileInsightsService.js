@@ -8,7 +8,7 @@ function profileInsightsService($q, apiParamsInitialization, httpService) {
     EnvironmentUrls.profileInsightsApi || `${EnvironmentUrls.apiGatewayUrl}/profile-insights-api`;
 
   return {
-    getProfileInsights(userId) {
+    getProfileInsights(userId, rankingStrategy = 'tc_info_boost') {
       return httpService
         .httpPost(
           {
@@ -18,7 +18,7 @@ function profileInsightsService($q, apiParamsInitialization, httpService) {
           },
           {
             userIds: [userId],
-            count: 2
+            rankingStrategy
           }
         )
         .then(response => {

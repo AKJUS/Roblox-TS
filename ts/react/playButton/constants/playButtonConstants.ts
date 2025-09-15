@@ -69,6 +69,8 @@ const playButtonErrorStatusTranslationMap: Record<TPlayabilityStatusWithUnplayab
     'UnplayableError.ContextualPlayabilityRegionalAvailability',
   [PlayabilityStatus.ContextualPlayabilityRegionalCompliance]:
     'UnplayableError.ContextualPlayabilityRegionalCompliance',
+  [PlayabilityStatus.ContextualPlayabilityAgeRecommendationParentalControls]:
+    'UnplayableError.ContextualPlayabilityAgeRecommendationParentalControls',
   [PlayabilityStatus.ContextualPlayabilityAgeGated]:
     'UnplayableError.ContextualPlayabilityAgeGated',
   [PlayabilityStatus.PlaceHasNoPublishedVersion]: 'UnplayableError.PlaceHasNoPublishedVersion',
@@ -95,6 +97,7 @@ const counterEvents = {
   PlayButtonUpsellAgeRestrictionVerificationTriggered:
     'PlayButtonUpsellAgeRestrictionVerificationTriggered',
   PlayButtonUpsellUnknownSettingOrAge: 'PlayButtonUpsellUnknownSettingOrAge',
+  PlayButtonUpsellMinimalMaturityRating: 'PlayButtonUpsellMinimalMaturityRating',
   PlayButtonUpsellAgeNotInMapping: 'PlayButtonUpsellAgeNotInMapping',
   PlayButtonUpsellParentalConsentError: 'PlayButtonUpsellParentalConsentError',
   PlayButtonUpsellAgeRestrictionVerificationError:
@@ -120,6 +123,11 @@ const FeatureExperienceDetails = {
   PlayButtonMessageAgreeToNotice: 'PlayButtonMessage.AgreeToNotice'
 };
 
+const defaultAfReferralProperties = {
+  pid: 'experiencestart_mobileweb',
+  is_retargeting: 'false'
+};
+
 export default {
   playButtonErrorStatusTranslationMap,
   playButtonTextTranslationMap,
@@ -130,5 +138,6 @@ export default {
   avatarChatUpsellLayerU13,
   playButtonLayer,
   unlockPlayIntentConstants,
-  FeatureExperienceDetails
+  FeatureExperienceDetails,
+  defaultAfReferralProperties
 };

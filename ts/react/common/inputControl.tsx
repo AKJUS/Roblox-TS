@@ -22,7 +22,7 @@ const handleKeyDown = (handler: () => void | Promise<void>, canSubmit: boolean) 
   }
 };
 
-type InputValidator = (value: string) => Promise<string | null>;
+export type InputValidator = (value: string) => Promise<string | null>;
 
 /**
  * Returns null (no error) for every argument.

@@ -12,7 +12,6 @@ enum ChallengeType {
   FORCE_TWO_STEP_VERIFICATION = 'forcetwostepverification',
   TWO_STEP_VERIFICATION = 'twostepverification',
   SECURITY_QUESTIONS = 'securityquestions',
-  REAUTHENTICATION = 'reauthentication',
   PROOF_OF_WORK = 'proofofwork',
   ROSTILE = 'rostile',
   PRIVATE_ACCESS_TOKEN = 'privateaccesstoken',
@@ -20,7 +19,8 @@ enum ChallengeType {
   PROOF_OF_SPACE = 'proofofspace',
   PHONE_VERIFICATION = 'phoneverification',
   EMAIL_VERIFICATION = 'emailverification',
-  BLOCK_SESSION = 'blocksession'
+  BLOCK_SESSION = 'blocksession',
+  BIOMETRIC = 'biometric'
 }
 
 export default ChallengeType;

@@ -1,7 +1,7 @@
 import React from 'react';
 import { EventContext } from '@rbx/unified-logging';
 import { EnvironmentUrls } from 'Roblox';
-import { TranslateFunction } from 'react-utilities';
+import { TranslateFunction, withTranslations } from 'react-utilities';
 import Presence from 'roblox-presence';
 import { TFriend } from '../types/friendsCarouselTypes';
 import FriendTileContent from './FriendTileContent';
@@ -9,6 +9,8 @@ import FriendTileDropDown from './FriendTileDropdown';
 import FriendTilePopover from './FriendTilePopover';
 import useFriendsCarouselClickTracker from '../hooks/useFriendsCarouselClickTracker';
 import FriendCarouselNames from '../constants/friendCarouselNames';
+import { translationConfig } from '../translation.config';
+import friendsCarouselConstants from '../constants/friendsCarouselConstants';
 
 const DROPDOWN_WIDTH = 240;
 const DROPDOWN_WIDTH_INGAME = 315;
@@ -39,7 +41,8 @@ const FriendTile = ({
   totalNumberOfFriends: number;
 }): JSX.Element => {
   const userProfileUrl = `${EnvironmentUrls.websiteUrl}/users/${friend.id}/profile`;
-  const displayName = friend.combinedName;
+  const displayName =
+    friend.combinedName ?? translate(friendsCarouselConstants.unavailableFriendName);
 
   const presence = Presence.usePresence(friend.id, undefined);
 
@@ -110,4 +113,4 @@ const FriendTile = ({
   );
 };
 
-export default FriendTile;
+export default withTranslations(FriendTile, translationConfig);

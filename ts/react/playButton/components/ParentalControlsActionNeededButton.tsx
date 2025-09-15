@@ -7,6 +7,7 @@ import playButtonTranslationConfig from '../../../../translation.config';
 import RestrictedUnplayableModal from './RestrictedUnplayableModal';
 import useFetchParentalControlsUpsellData from '../hooks/useFetchParentalControlsUpsellData';
 import useContextualParentalControlsUpsell from '../hooks/useContextualParentalControlsUpsell';
+import { TAppsFlyerReferralProperties } from '../types/playButtonTypes';
 
 type TParentalControlsActionNeededButtonProps = {
   universeId: string;
@@ -17,6 +18,7 @@ type TParentalControlsActionNeededButtonProps = {
   privateServerLinkCode?: string;
   gameInstanceId?: string;
   eventProperties?: Record<string, string | number | undefined>;
+  appsFlyerReferralProperties?: TAppsFlyerReferralProperties;
 };
 
 export const ParentalControlsActionNeededButton = ({
@@ -28,13 +30,14 @@ export const ParentalControlsActionNeededButton = ({
   privateServerLinkCode,
   gameInstanceId,
   eventProperties,
+  appsFlyerReferralProperties,
   translate
 }: TParentalControlsActionNeededButtonProps & {
   translate: TranslateFunction;
 }): JSX.Element => {
   const {
     contentAgeRestriction,
-    minimumAge,
+    contentMaturityRating,
     isFetching,
     hasError
   } = useFetchParentalControlsUpsellData(universeId);
@@ -52,7 +55,8 @@ export const ParentalControlsActionNeededButton = ({
     rootPlaceId,
     privateServerLinkCode,
     gameInstanceId,
-    eventProperties
+    eventProperties,
+    appsFlyerReferralProperties
   );
 
   const onPlayButtonClick = useCallback(
@@ -60,9 +64,9 @@ export const ParentalControlsActionNeededButton = ({
       e.preventDefault();
       e.stopPropagation();
 
-      launchPlayButtonUpsell(contentAgeRestriction, minimumAge, hasError);
+      launchPlayButtonUpsell(contentAgeRestriction, contentMaturityRating, hasError);
     },
-    [launchPlayButtonUpsell, contentAgeRestriction, minimumAge, hasError]
+    [launchPlayButtonUpsell, contentAgeRestriction, contentMaturityRating, hasError]
   );
 
   if (!hasError && isFetching) {
@@ -101,7 +105,8 @@ ParentalControlsActionNeededButton.defaultProps = {
   rootPlaceId: undefined,
   privateServerLinkCode: undefined,
   gameInstanceId: undefined,
-  eventProperties: {}
+  eventProperties: {},
+  appsFlyerReferralProperties: {}
 };
 
 export default withTranslations<TParentalControlsActionNeededButtonProps>(

@@ -18,6 +18,7 @@ const url = {
 const layerNames = {
   homePage: 'PlayerApp.HomePage.UX',
   homePageWeb: 'Website.Homepage',
+  gridUi: 'PlayerApp.GridUI',
   serverTab: 'GameDetails.ServersTab',
   gameDetails: 'Website.GameDetails',
   gameDetailsExposure: 'Website.GameDetails.Exposure',
@@ -30,32 +31,29 @@ const layerNames = {
 const defaultValues = {
   homePage: {},
   homePageWeb: {
-    IsExpandHomeContentEnabled: true,
+    IsExpandHomeContentEnabled: true
+  },
+  gridUi: {
+    IsNewSortHeaderEnabled: false,
     IsCarouselHorizontalScrollEnabled: false,
     IsNewScrollArrowsEnabled: false
   },
-  serverTab: {
-    ShouldDisableJoinButtonForFullServers: false
-  },
+  serverTab: {},
   gameDetails: {
     ShouldHidePrivateServersInAboutTab: false,
     IsGameStorePreviewEnabled: false
   },
-  gameDetailsExposure: {
-    IsEventsSectionUprankEnabled: false,
-    IsEventsSectionRedesignEnabled: false
-  },
+  gameDetailsExposure: {},
   searchPage: {
     ShouldUseOmniSearchAPI: false
   },
   discoverPage: {
-    IsChartsPageRenameEnabled: true
+    // MUS-2078 TODO: Remove this and all other FE experimentation logic for the
+    // Music surfaces
+    IsMusicChartsCarouselEnabled: false
   },
   tileLayer: {},
-  playButton: {
-    HasUpdatedPlayButtons: false,
-    HasUpdatedPlayButtonsVpc: false
-  }
+  playButton: {}
 };
 
 export default {

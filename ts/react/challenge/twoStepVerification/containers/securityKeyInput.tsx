@@ -1,5 +1,5 @@
 import { fido2Util, hybridResponseService } from 'core-roblox-utilities';
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Modal } from 'react-style-guide';
 import { DeviceMeta } from 'Roblox';
 import * as TwoStepVerification from '../../../../common/request/types/twoStepVerification';
@@ -197,7 +197,9 @@ const SecurityKeyInput: React.FC<Props> = ({
    */
 
   const BodyElement = renderInline ? InlineChallengeBody : Modal.Body;
-  const lockIconClassName = renderInline ? 'inline-challenge-lock-icon' : 'modal-lock-icon';
+  const lockIconClassName = renderInline
+    ? 'inline-challenge-protection-shield-icon'
+    : 'modal-protection-shield-icon';
   const marginBottomClassName = renderInline
     ? 'inline-challenge-margin-bottom'
     : 'modal-margin-bottom';
@@ -214,6 +216,10 @@ const SecurityKeyInput: React.FC<Props> = ({
     ? 'inline-challenge-margin-bottom-sm'
     : 'modal-margin-bottom-sm';
 
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    buttonRef.current?.focus();
+  }, []);
   /*
    * Component Markup
    */
@@ -226,6 +232,7 @@ const SecurityKeyInput: React.FC<Props> = ({
           <p className={marginBottomSmallClassName}>{resources.Label.VerifyWithSecurityKey}</p>
           <p className={marginBottomClassName}>{resources.Label.SecurityKeyDirections}</p>
           <button
+            ref={buttonRef}
             type='button'
             className={actionButtonClassName}
             aria-label={resources.Action.Verify}

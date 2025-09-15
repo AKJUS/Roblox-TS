@@ -14,6 +14,7 @@ export type AccessManagementUpsellEventParams = {
   usePrologue: boolean;
   ampRecourseData: any;
   featureSpecificData: TFeatureSpecificData;
+  namespace: string;
   closeCallback: (access: Access) => string;
 };
 
@@ -36,8 +37,10 @@ export const PrologueConstants = {
     IdvAndVpc: 'Description.PrologueTextIdvAndVpc',
     IdvAndVpcConnectingText: 'Description.PrologueConnectingTextIdvAndVpc',
     VpcEnablePurchase: 'Description.PrologueEnablePurchase',
+    VpcEnablePurchaseExpT1: 'Description.PrologueEnablePurchaseExpT1',
     VpcUnblockUser: 'Description.PrologueUnblockUser',
-    VpcUnblockExperience: 'Description.PrologueUnblockExperience'
+    VpcUnblockExperience: 'Description.PrologueUnblockExperience',
+    PrologueFetchParentExperiment: 'Description.PrologueFetchParentExperiment'
   },
   Error: {
     TryAgain: 'Response.ErrorTryAgain'

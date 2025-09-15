@@ -73,7 +73,7 @@ const shouldFetchAgreements = async nowDate => {
 
   try {
     const userAgreementsBehavior = await universalAppConfigurationService.getCooldownPeriodInMs();
-    cooldownInMs = userAgreementsBehavior.data.cooldownPeriodInMs;
+    cooldownInMs = userAgreementsBehavior.cooldownPeriodInMs;
   } catch (e) {
     // In the case of errors contacting GUAC, fall back to a sane default value
     cooldownInMs = agreementConstants.defaultCooldownInMs;

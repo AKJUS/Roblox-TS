@@ -7,7 +7,7 @@ export default function sendEvent(context: string, properties: { [key: string]: 
       ITEM_UPSELL_EVENTS.EVENT_NAME,
       context,
       properties,
-      EventStream.TargetTypes.WWW
+      EventStream.TargetTypes.WWW as number
     );
   } catch (e) {
     // do nothing

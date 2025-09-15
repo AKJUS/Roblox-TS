@@ -12,7 +12,9 @@ export enum ThumbnailType {
   Group = 'groupThumbnail',
   Asset = 'assetThumbnail',
   Bundle = 'bundleThumbnail',
-  Icon = 'icon'
+  Icon = 'icon',
+  GamePass = 'gamePassThumbnail',
+  AvatarImageUrl = 'avatarImageUrlThumbnail'
 }
 
 export enum ButtonStyle {

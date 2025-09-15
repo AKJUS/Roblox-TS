@@ -22,7 +22,6 @@ type PlayGameProperties = {
 type EventStreamProperties = {
   eventName: string;
   ctx: string;
-  params?: Record<string, number | string>;
   gamePlayIntentEventCtx: string;
   properties: Record<string, string | number | undefined>;
 };

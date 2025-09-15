@@ -1,10 +1,13 @@
 import fpjs from '@fingerprintjs/fingerprintjs';
-import { ParseChallengeSpecificProperties as NewParseChallengeSpecificProperties } from '@rbx/generic-challenge-types';
+import {
+  ParseChallengeSpecificProperties as NewParseChallengeSpecificProperties,
+  ForceActionRedirect as ForceActionRedirectInterface
+} from '@rbx/generic-challenge-types';
 import * as Option from 'fp-ts/Option';
 import Roblox from 'Roblox';
 import * as z from 'zod';
 import { RequestServiceDefault } from '../../../common/request';
-import { GET_PRELUDE_CONFIG } from '../../../common/request/types/rotatingClient';
+import '../../../../css/challenge/biometric/biometric-overlay.scss';
 import * as Captcha from '../captcha';
 import * as CaptchaInterface from '../captcha/interface';
 import * as DeviceIntegrity from '../deviceIntegrity';
@@ -12,7 +15,6 @@ import * as DeviceIntegrityInterface from '../deviceIntegrity/interface';
 import * as EmailVerification from '../emailVerification';
 import * as EmailVerificationInterface from '../emailVerification/interface';
 import * as ForceActionRedirect from '../forceActionRedirect';
-import * as ForceActionRedirectInterface from '../forceActionRedirect/interface';
 import { Generic } from '../interface';
 import * as PhoneVerification from '../phoneVerification';
 import * as PhoneVerificationInterface from '../phoneVerification/interface';
@@ -22,21 +24,23 @@ import * as ProofOfSpace from '../proofOfSpace';
 import * as ProofOfSpaceInterface from '../proofOfSpace/interface';
 import * as ProofOfWork from '../proofOfWork';
 import * as ProofOfWorkInterface from '../proofOfWork/interface';
-import * as Reauthentication from '../reauthentication';
-import * as ReauthenticationInterface from '../reauthentication/interface';
 import * as Rostile from '../rostile';
 import * as RostileInterface from '../rostile/interface';
 import * as SecurityQuestions from '../securityQuestions';
 import * as SecurityQuestionsInterface from '../securityQuestions/interface';
 import * as TwoStepVerification from '../twoStepVerification';
 import * as TwoStepVerificationInterface from '../twoStepVerification/interface';
+import * as Biometric from '../biometric';
+import * as BiometricInterface from '../biometric/interface';
 import { EVENT_CONSTANTS, LOG_PREFIX } from './app.config';
 import {
+  ChallengeContainerStyling,
   ChallengeErrorData,
   ChallengeErrorKind,
   ChallengeErrorParameters,
   ChallengeSpecificProperties,
   ChallengeType,
+  GetChallengeContainerStyling,
   InterceptChallenge,
   ParseChallengeSpecificProperties,
   RenderChallenge,
@@ -56,6 +60,58 @@ const requestService = new RequestServiceDefault();
 
 // Initialize instance of `MetricsService` to record parse and render failures.
 const metricsService = new MetricsServiceDefault();
+
+/**
+ * Generic challenge container styling implementation.
+ */
+const getChallengeContainerStyling = (
+  challengeType: ChallengeType
+): ChallengeContainerStyling | undefined => {
+  switch (challengeType) {
+    case ChallengeType.BIOMETRIC:
+      return {
+        className: 'biometric-challenge-overlay',
+        useOverlay: true
+      };
+    default:
+      return undefined;
+  }
+};
+
+/**
+ * Applies container styling based on challenge-specific configuration.
+ */
+const applyContainerStyling = (
+  container: HTMLElement,
+  challengeSpecificProperties: ChallengeSpecificProperties
+): void => {
+  const styling = challengeSpecificProperties.getContainerStyling?.();
+  if (styling) {
+    Object.entries(styling).forEach(([key, value]) => {
+      if (key === 'className' && value !== undefined) {
+        // Apply CSS class
+        // eslint-disable-next-line no-param-reassign
+        container.className = value as string;
+      } else if (key !== 'useOverlay' && key !== 'className' && value !== undefined) {
+        // Apply inline CSS properties
+        // eslint-disable-next-line no-param-reassign
+        (container.style as CSSStyleDeclaration & Record<string, string | boolean>)[
+          key
+        ] = value as string;
+      }
+    });
+  }
+};
+
+/**
+ * Determines if a container should be cleaned up based on challenge-specific styling.
+ */
+const shouldCleanupContainer = (
+  challengeSpecificProperties: ChallengeSpecificProperties
+): boolean => {
+  const styling = challengeSpecificProperties.getContainerStyling?.();
+  return styling?.useOverlay === true;
+};
 
 /**
  * Parses challenge-specific properties from a challenge type string and a JSON
@@ -97,13 +153,21 @@ export const parseChallengeSpecificProperties: ParseChallengeSpecificProperties 
     return null;
   }
 
+  // Add challenge-specific styling function
+  const getContainerStyling:
+    | GetChallengeContainerStyling
+    | undefined = getChallengeContainerStyling(challengeType)
+    ? () => getChallengeContainerStyling(challengeType)
+    : undefined;
+
   // TypeScript cannot figure it out, so we must assert that the `challengeType`
   // and `challengeMetadata` are correlated properties (with a known challenge
   // type) when returning from this function.
   return {
     challengeId,
     challengeType,
-    challengeMetadata
+    challengeMetadata,
+    getContainerStyling
   } as ChallengeSpecificProperties;
 };
 
@@ -408,23 +472,6 @@ export const renderChallenge: RenderChallenge = async ({
       return Promise.resolve(success);
     }
 
-    case ChallengeType.REAUTHENTICATION: {
-      const { challengeType, challengeMetadata } = challengeSpecificProperties;
-      const fullParameters: ReauthenticationInterface.ChallengeParameters = {
-        ...challengeBaseProperties,
-        ...challengeMetadata,
-        onChallengeInvalidated: data =>
-          challengeBaseProperties.onChallengeInvalidated({ challengeType, ...data }),
-        onChallengeCompleted: data =>
-          challengeBaseProperties.onChallengeCompleted({ challengeType, metadata: data })
-      };
-      const success = Reauthentication.renderChallenge(fullParameters);
-      if (success && challengeBaseProperties.onChallengeDisplayed !== undefined) {
-        challengeBaseProperties.onChallengeDisplayed({ displayed: true });
-      }
-      return Promise.resolve(success);
-    }
-
     case ChallengeType.PROOF_OF_WORK: {
       const { challengeType, challengeMetadata } = challengeSpecificProperties;
       const fullParameters: ProofOfWorkInterface.ChallengeParameters = {
@@ -587,6 +634,25 @@ export const renderChallenge: RenderChallenge = async ({
       return Promise.resolve(success);
     }
 
+    case ChallengeType.BIOMETRIC: {
+      const { challengeType, challengeMetadata } = challengeSpecificProperties;
+      const fullParameters: BiometricInterface.ChallengeParameters = {
+        onChallengeDisplayed: () => undefined,
+        ...challengeBaseProperties,
+        ...challengeMetadata,
+        onChallengeInvalidated: data =>
+          challengeBaseProperties.onChallengeInvalidated({ challengeType, ...data }),
+        onChallengeCompleted: data =>
+          challengeBaseProperties.onChallengeCompleted({
+            challengeType,
+            metadata: {
+              ...data
+            }
+          })
+      };
+      return Promise.resolve(Biometric.renderChallenge(fullParameters));
+    }
+
     default: {
       // If we have handled all of the challenge types above, TypeScript will
       // infer `challengeSpecificProperties` to have type `never` and the
@@ -733,8 +799,22 @@ export const interceptChallenge: InterceptChallenge = <T>(parameters: {
     if (document.getElementById(challengeSpecificContainerId) === null) {
       const genericChallengeContainer = document.createElement('div');
       genericChallengeContainer.id = challengeSpecificContainerId;
+
+      // Apply challenge-specific styling
+      applyContainerStyling(genericChallengeContainer, challengeSpecificProperties);
+
       document.body.appendChild(genericChallengeContainer);
     }
+
+    // Helper function to clean up the challenge container
+    const cleanupContainer = () => {
+      if (shouldCleanupContainer(challengeSpecificProperties)) {
+        const container = document.getElementById(challengeSpecificContainerId);
+        if (container) {
+          container.remove();
+        }
+      }
+    };
 
     // Attempt to render the challenge.
     // eslint-disable-next-line no-void
@@ -742,7 +822,11 @@ export const interceptChallenge: InterceptChallenge = <T>(parameters: {
       challengeBaseProperties: {
         containerId: challengeSpecificContainerId,
         renderInline: false,
+        containerStyling: challengeSpecificProperties.getContainerStyling?.(),
         onChallengeCompleted: data => {
+          // Clean up the container before proceeding
+          cleanupContainer();
+
           // Retry the request on success.
           try {
             resolve(retryRequest(challengeId, btoa(JSON.stringify(data.metadata))));
@@ -768,15 +852,22 @@ export const interceptChallenge: InterceptChallenge = <T>(parameters: {
             }
           }
         },
-        onChallengeInvalidated: data =>
+        onChallengeInvalidated: data => {
+          // Clean up the container before proceeding
+          cleanupContainer();
+
           // Fail the request on an invalidated challenge.
           reject(
             new ChallengeError({
               kind: ChallengeErrorKind.INVALIDATED,
               data
             })
-          ),
-        onModalChallengeAbandoned: () =>
+          );
+        },
+        onModalChallengeAbandoned: () => {
+          // Clean up the container before proceeding
+          cleanupContainer();
+
           // Fail the request on an abandoned challenge.
           reject(
             new ChallengeError({
@@ -785,13 +876,18 @@ export const interceptChallenge: InterceptChallenge = <T>(parameters: {
                 challengeType: challengeSpecificProperties.challengeType
               }
             })
-          ),
+          );
+        },
+        onChallengeAbandoned: null,
         newRenderChallenge,
         newParseChallenge
       },
       challengeSpecificProperties
     }).then(success => {
       if (!success) {
+        // Clean up container on initialization failure
+        cleanupContainer();
+
         // Record render failure.
         metricsService.fireRenderFailureEvent(challengeSpecificProperties.challengeType);
 
@@ -812,15 +908,3 @@ export const interceptChallenge: InterceptChallenge = <T>(parameters: {
       }
     });
   });
-
-// TODO: possibly move this into grasshopper and the invocation to corescripts when its ready.
-export const loadPreludeIfMissing = (): void => {
-  const maybePreludeExists = document.getElementById('prelude');
-  if (maybePreludeExists === null) {
-    const prelude = document.createElement('script');
-    prelude.src = GET_PRELUDE_CONFIG.url;
-    prelude.async = true;
-    prelude.id = 'prelude';
-    document.body.appendChild(prelude);
-  }
-};

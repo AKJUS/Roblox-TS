@@ -1,8 +1,13 @@
+import { CurrentUser } from 'Roblox';
 import { entityUrl } from 'core-roblox-utilities';
 import { urlService, seoName } from 'core-utilities';
-import { url, chartsUrl } from '../constants/browserConstants';
+import { url } from '../constants/browserConstants';
 import { TSortDetailReferral, TGameDetailReferral } from '../constants/eventStreamConstants';
 import { PageContext } from '../types/pageContext';
+import {
+  getAbuseReportRevampUrl,
+  loadGuacConfigNonThrowing
+} from '../constants/abuseReportConstants';
 
 export const buildGameDetailUrl = (
   placeId: number,
@@ -28,7 +33,26 @@ export const buildGamePassDetailUrl = (passId: string, passName: string): string
   return urlService.getAbsoluteUrl(`/game-pass/${passId}/${seoName.formatSeoName(passName)}`);
 };
 
-export const buildReportAbuseUrl = (placeId: string, placeName: string): string => {
+export const buildReportAbuseRevampUrl = async ({
+  placeId,
+  placeName,
+  universeId
+}: {
+  placeId: string;
+  placeName: string;
+  universeId: string;
+}): Promise<string> => {
+  const config = await loadGuacConfigNonThrowing();
+  if (config.EnableExperience) {
+    const reportAbuseUrl = getAbuseReportRevampUrl({
+      targetId: placeId,
+      submitterId: CurrentUser.userId,
+      abuseVector: 'place',
+      universeId
+    });
+    return reportAbuseUrl;
+  }
+
   const parsedParams = {
     id: placeId,
     RedirectUrl: encodeURIComponent(
@@ -43,8 +67,7 @@ export const buildReportAbuseUrl = (placeId: string, placeName: string): string 
 
 const getSortDetailBaseUrl = (
   sortName: string,
-  pageContext: PageContext.HomePage | PageContext.GamesPage,
-  isChartsPageRenameEnabled: boolean
+  pageContext: PageContext.HomePage | PageContext.GamesPage
 ): string => {
   const encodedSortName = encodeURIComponent(sortName);
 
@@ -52,9 +75,6 @@ const getSortDetailBaseUrl = (
     case PageContext.HomePage:
       return url.sortDetailV2(encodedSortName);
     case PageContext.GamesPage: {
-      if (isChartsPageRenameEnabled) {
-        return chartsUrl.sortDetail(encodedSortName);
-      }
       return url.sortDetail(encodedSortName);
     }
     default:
@@ -66,10 +86,9 @@ export const buildSortDetailUrl = (
   sortName: string,
   pageContext: PageContext.HomePage | PageContext.GamesPage,
   eventProperties: TSortDetailReferral = {},
-  isChartsPageRenameEnabled = false,
   additionalUrlParams: Record<string, string> = {}
 ): string => {
-  const baseUrl = getSortDetailBaseUrl(sortName, pageContext, isChartsPageRenameEnabled);
+  const baseUrl = getSortDetailBaseUrl(sortName, pageContext);
 
   return urlService.getUrlWithQueries(baseUrl, { ...eventProperties, ...additionalUrlParams });
 };
@@ -93,7 +112,7 @@ export const getHttpReferrer = (): string => document.referrer;
 
 export default {
   buildAddGamePassUrl,
-  buildReportAbuseUrl,
+  buildReportAbuseRevampUrl,
   buildSortDetailUrl,
   buildGameDetailUrl,
   isElementInWindow,

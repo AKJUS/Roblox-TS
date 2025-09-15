@@ -15,7 +15,7 @@ export default function generateCookieForAutoPurchase(
   );
   upsellUtil.constants.UPSELL_TARGET_ITEM_URL_REGEX.lastIndex = 0; // regex pointer rewind
 
-  let assetUrl: string | null = null;
+  let assetUrl: string | undefined;
   if (Array.isArray(pathMatches) && pathMatches.length > 0) {
     [assetUrl] = pathMatches;
   }

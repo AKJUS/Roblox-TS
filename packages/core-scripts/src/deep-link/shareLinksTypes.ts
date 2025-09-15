@@ -25,6 +25,10 @@ enum ShareLinksType {
   EXPERIENCE_EVENT = "ExperienceEvent",
 }
 
+enum ShareLinksTypeV2 {
+  EXPERIENCE_V2 = "ExperienceV2",
+}
+
 type ExperienceInviteData = {
   status: ExperienceInviteStatus;
   inviterId: number;
@@ -97,7 +101,7 @@ type ExperienceEventData = {
   joinData: ExperienceJoinData;
 };
 
-export { ProfileShareFriendshipSourceType, ShareLinksType };
+export { ProfileShareFriendshipSourceType, ShareLinksType, ShareLinksTypeV2 };
 export type {
   AvatarItemDetailsData,
   ContentPostData,

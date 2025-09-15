@@ -16,8 +16,7 @@ function osaContextCard(resources, chatService, messageService, chatUtility) {
 
       chatService
         .recordModalSequenceResponse({
-          conversationId: scope.dialogData.source === chatUtility.conversationSource.CHANNELS ? scope.dialogData.id : null,
-          friendId: scope.dialogData.source === chatUtility.conversationSource.FRIENDS ? scope.dialogData.id : null,
+          ...chatUtility.getDynamicConversationId(scope.dialogData),
           modalSequence: chatUtility.modalSequence.CONVERSATION_INLINE_TOP_MODAL,
           modalVariant: chatUtility.modalVariant.OSA_CONTEXT_CARD,
           actionType: chatUtility.modalActionType.RECORD_HAS_SEEN
@@ -37,7 +36,7 @@ function osaContextCard(resources, chatService, messageService, chatUtility) {
               .then(response => {
                 const data = response.messages;
                 if (data && data.length > 0) {
-                  messageService.updatePreviewMessage(scope.dialogData, data);
+                  messageService.updateAndSanitizePreviewMessage(scope.dialogData, data);
                 }
               });
           }

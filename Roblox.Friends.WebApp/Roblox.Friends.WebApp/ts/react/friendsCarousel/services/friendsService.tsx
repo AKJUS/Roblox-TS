@@ -8,7 +8,9 @@ import {
   TGetProfilesResponse,
   TFriend,
   TPresence,
-  TOnlineFriendType
+  TOnlineFriendType,
+  TGetNewFriendRequestsCountResponse,
+  TProfile
 } from '../types/friendsCarouselTypes';
 
 const getFriendsCount = async (userId: number): Promise<TGetFriendsCountResponse> => {
@@ -72,6 +74,7 @@ const getFriends = async (userId: number, isOwnUser: boolean): Promise<TFriend[]
     if (!(presenceType1 in presenceSortMapping && presenceType2 in presenceSortMapping)) {
       return -1;
     }
+
     return presenceSortMapping[presenceType1] < presenceSortMapping[presenceType2] ? -1 : 1;
   });
   const offlineFriends = (await getPaginatedFriends(userId, isOwnUser)).PageItems;
@@ -90,30 +93,47 @@ const getFriends = async (userId: number, isOwnUser: boolean): Promise<TFriend[]
   const friendIds: number[] = [...onlineFriendsIds, ...offlineFriendsIds];
 
   const friendProfiles = (await getProfiles(friendIds)).profileDetails;
+  const friendProfilesMap = new Map<number, TProfile>(
+    friendProfiles.map(profile => [profile.userId, profile])
+  );
+
   const friends: TFriend[] = [];
 
-  friendProfiles.forEach(friend => {
-    const isOnline = presenceMapping.has(friend.userId);
+  friendIds.forEach(id => {
+    const isOnline = presenceMapping.has(id);
     const presence: TPresence = {
       isOnline,
-      isInGame: isOnline && presenceMapping.get(friend.userId)?.UserPresenceType === 'InGame',
-      lastLocation: isOnline ? presenceMapping.get(friend.userId)?.lastLocation : undefined,
-      gameId: isOnline ? presenceMapping.get(friend.userId)?.gameInstanceId : undefined,
-      universeId: isOnline ? presenceMapping.get(friend.userId)?.universeId : undefined,
-      placeId: isOnline ? presenceMapping.get(friend.userId)?.placeId : undefined
+      isInGame: isOnline && presenceMapping.get(id)?.UserPresenceType === 'InGame',
+      lastLocation: isOnline ? presenceMapping.get(id)?.lastLocation : undefined,
+      gameId: isOnline ? presenceMapping.get(id)?.gameInstanceId : undefined,
+      universeId: isOnline ? presenceMapping.get(id)?.universeId : undefined,
+      placeId: isOnline ? presenceMapping.get(id)?.placeId : undefined
     };
+    const friend = friendProfilesMap.get(id);
     friends.push({
-      id: friend.userId,
-      combinedName: friend.names.combinedName,
+      id,
+      combinedName: friend?.names.combinedName,
       presence,
-      hasVerifiedBadge: friend.isVerified
+      hasVerifiedBadge: friend?.isVerified ?? false
     });
   });
 
   return friends;
 };
 
+const getNewFriendRequestsCount = async (): Promise<number> => {
+  const urlConfig = {
+    url: `${EnvironmentUrls.friendsApi}/v1/my/new-friend-requests/count`,
+    retryable: true,
+    withCredentials: true
+  };
+
+  const { data }: { data: TGetNewFriendRequestsCountResponse } = await httpService.get(urlConfig);
+  return data.count;
+};
+
 export default {
   getFriendsCount,
-  getFriends
+  getFriends,
+  getNewFriendRequestsCount
 };

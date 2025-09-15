@@ -78,7 +78,7 @@ const ReportNotificationModalContent: FC<ReportNotificationModalProps> = ({ hand
         setEuDsa(false);
         const result = await getReportAbuseConfig();
         if (!ignore) {
-          setEuDsa(result.data.displayDsaLink);
+          setEuDsa(result.displayDsaLink);
         }
       } catch (error) {
         // Do nothing, already set to false

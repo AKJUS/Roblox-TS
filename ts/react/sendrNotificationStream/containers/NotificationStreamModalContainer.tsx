@@ -1,5 +1,6 @@
 import { StyledEngineProvider } from '@mui/material';
 import React, { useCallback, useEffect, useState } from 'react';
+import { CurrentUser } from 'Roblox';
 import MetaActionsList from '../components/MetaActionsList';
 import ReportNotificationModal from '../components/ReportNotificationModal';
 import { NotificationLocalizationProvider } from '../context/NotificationsLocalization';
@@ -7,6 +8,11 @@ import {
   SelectedNotificationState,
   useSelectedNotificationProvider
 } from '../context/SelectedNotification';
+import {
+  getAbuseReportRevampUrl,
+  loadGuacConfigNonThrowing
+} from '../abuseReport/constants/abuseReportConstants';
+import { NotificationData } from '../types/NotificationTemplateTypes';
 
 const NotificationStreamModalContainer = (): JSX.Element => {
   const {
@@ -34,9 +40,22 @@ const NotificationStreamModalContainer = (): JSX.Element => {
     };
   }, [openMetaActionsList]);
 
-  const showAbuseReport = useCallback(() => setShowReportNotification(true), [
-    setShowReportNotification
-  ]);
+  const showAbuseReport = useCallback(
+    async (notificationData: NotificationData) => {
+      const config = await loadGuacConfigNonThrowing();
+      if (config.EnableNotification) {
+        const url = getAbuseReportRevampUrl({
+          targetId: notificationData.id,
+          submitterId: CurrentUser.userId,
+          abuseVector: 'notifications'
+        });
+        window.location.href = url;
+        return;
+      }
+      setShowReportNotification(true);
+    },
+    [setShowReportNotification]
+  );
 
   const closeAbuseReport = useCallback(() => setShowReportNotification(false), [
     setShowReportNotification

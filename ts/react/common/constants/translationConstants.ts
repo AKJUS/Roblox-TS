@@ -11,15 +11,25 @@ export const FeatureGamePage = {
 export const CommonGameSorts = {
   LabelApiError: 'Label.ApiError',
   LabelGames: 'Label.Games',
-  LabelSponsoredAdsDisclosureStatic: 'Label.SponsoredAdsDisclosureStatic'
+  LabelSponsoredAdsDisclosureStatic: 'Label.SponsoredAdsDisclosureStatic',
+  LabelContentLoadFailed: 'Label.ContentLoadFailed'
 };
 
 export const CommonUIFeatures = {
-  LabelDiscover: 'Label.Discover',
   LabelCharts: 'Label.Charts',
+  LabelsHome: 'Label.sHome',
   ActionClose: 'Action.Close',
   ActionDropdownSelected: 'Action.DropdownSelected',
   ActionDropdownNotSelected: 'Action.DropdownNotSelected'
+};
+
+export const SearchGlobalSearch = {
+  ActionLoadMore: 'Action.LoadMore'
+};
+
+export const CommonUIMessages = {
+  ActionClose: 'Action.Close',
+  ResponseUnexpectedError: 'Response.UnexpectedError'
 };
 
 export const FeaturePlacesList = {
@@ -46,6 +56,7 @@ export const FeatureGameDetails = {
   LabelReportAbuse: 'Label.ReportAbuse',
   LabelPlaceCopyingAllowed: 'Label.PlaceCopyingAllowed',
   LabelVoiceEnabled: 'Label.VoiceEnabled',
+  LabelContentFailedToLoad: 'Label.ContentFailedToLoad',
   LabelYes: 'Label.Yes',
   LabelNo: 'Label.No',
   LabelUnavailable: 'Label.Unavailable',
@@ -64,7 +75,9 @@ export const FeatureGameDetails = {
   LabelSupported: 'Label.Supported',
   LabelVoiceChat: 'Label.VoiceChat',
   HeadingRefund: 'Heading.Refund',
-  ActionRequestRefund: 'Action.RequestRefund'
+  ActionRequestRefund: 'Action.RequestRefund',
+  HeadingNotice: 'Body.NotesTitle',
+  InExperiencePurchase: 'Notes.InExperiencePurchase'
 };
 
 export const FeatureCommunityLinks = {
@@ -91,6 +104,16 @@ export const FeatureDeveloperProducts = {
   LabelPendingMessageTooltip: 'Label.PendingMessageTooltip'
 };
 
+export const FeatureSduiLandingPage = {
+  ActionHome: 'Action.Home',
+  ActionBack: 'Action.Back',
+  ErrorContentFetchTitle: 'Error.ContentFetch.Title',
+  ErrorContentFetchDescription: 'Error.ContentFetch.Description',
+  ErrorPageErrorImageAlt: 'ErrorPage.ErrorImageAlt',
+  ErrorPageNotFound: 'Error.PageNotFound',
+  ErrorPageNotFoundOrDoesNotExist: 'Error.PageNotFoundOrDoesNotExist'
+};
+
 export const FeatureSocialShare = {
   LabelInviteExpiredError: 'Label.InviteExpiredError',
   LabelInviterNotHereError: 'Label.InviterNotHereError',
@@ -100,6 +123,15 @@ export const FeatureSocialShare = {
   LabelPlay: 'Label.Play'
 };
 
+export const PlayerFeedbacksVoteForm = {
+  MessageMaxLengthCharacters: 'Message.MaxLengthCharacters',
+  MessageMinLengthCharacters: 'Message.MinLengthCharacters',
+  MessageReportAbuseInsteadLong: 'Message.ReportAbuseInsteadLong',
+  MessageSubmitSuccess: 'Message.SubmitSuccess',
+  PromptBannerGiveFeedbackButton: 'PromptBanner.GiveFeedbackButton',
+  PromptBannerTitleOnly: 'PromptBanner.TitleOnly'
+};
+
 export default {
   CommonGameSorts,
   CommonUIFeatures,
@@ -107,6 +139,7 @@ export default {
   FeatureGamePage,
   FeatureGamePass,
   FeaturePlacesList,
+  FeatureSduiLandingPage,
   FeatureSocialShare,
   FeatureCommunityLinks
 };

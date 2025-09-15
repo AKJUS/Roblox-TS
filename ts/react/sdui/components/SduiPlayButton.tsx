@@ -1,12 +1,11 @@
 import React, { useCallback, useMemo } from 'react';
 import { PlayButton as RobloxPlayButton } from 'Roblox';
 import { EventStreamMetadata, TPlayGameClicked } from '../../common/constants/eventStreamConstants';
-import { PageContext } from '../../common/types/pageContext';
-import { buildCommonReferralParams } from '../system/actions/openGameDetails';
+import { buildCommonReferralParams } from '../system/actions/openGameDetailsParser';
 import { TSduiCommonProps } from '../system/SduiTypes';
 import { parseMaybeStringNumberField } from '../utils/analyticsParsingUtils';
-import { SduiActionType, TSduiActionConfig } from '../system/SduiActionHandlerRegistry';
-import executeAction from '../system/executeAction';
+import { SduiActionType, TSduiActionConfig } from '../system/SduiActionParserRegistry';
+import { parseCallback } from '../system/SduiParsers';
 
 type TSduiPlayButtonProps = {
   universeId: string | number;
@@ -34,6 +33,7 @@ type TSduiPlayButtonProps = {
 
 const SduiPlayButton = ({
   analyticsContext,
+  sduiContext,
   universeId,
   placeId,
   width,
@@ -49,13 +49,15 @@ const SduiPlayButton = ({
       actionParams: {}
     };
 
+    const parsedAction = parseCallback(actionConfig, analyticsContext, sduiContext);
+
     // The actual game launch is handled by the PlayButton component
     // This executeAction call is for the action analytics only
-    executeAction(actionConfig, analyticsContext);
-  }, [analyticsContext]);
+    parsedAction.onActivated();
+  }, [analyticsContext, sduiContext]);
 
   const playButtonEventProperties = useMemo<TPlayGameClicked>(() => {
-    const commonReferralParams = buildCommonReferralParams(analyticsContext);
+    const commonReferralParams = buildCommonReferralParams(analyticsContext, sduiContext);
 
     return {
       ...commonReferralParams,
@@ -64,11 +66,9 @@ const SduiPlayButton = ({
       ).toString(),
       [EventStreamMetadata.PlaceId]: parseMaybeStringNumberField(placeId, -1),
       [EventStreamMetadata.UniverseId]: parseMaybeStringNumberField(universeId, -1),
-      // TODO https://roblox.atlassian.net/browse/CLIGROW-2205
-      // context should come from sduiContext.pageContext
-      [EventStreamMetadata.PlayContext]: PageContext.HomePage
+      [EventStreamMetadata.PlayContext]: sduiContext.pageContext.pageName
     };
-  }, [analyticsContext, placeId, universeId]);
+  }, [analyticsContext, placeId, universeId, sduiContext]);
 
   // TODO https://roblox.atlassian.net/browse/CLIGROW-2198
   // Handle unplayable and unplayable loading states

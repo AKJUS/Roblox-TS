@@ -17,13 +17,15 @@ const FriendsCarouselHeader = ({
     ? `${EnvironmentUrls.websiteUrl}/users/friends#!/friends`
     : `${EnvironmentUrls.websiteUrl}/users/${profileUserId}/friends#!/friends`;
 
+  const carouselHeaderText = 'Label.Connections';
+
   return (
     <div className='container-header people-list-header'>
       {friendsCount == null ? (
-        <h2>{translate('Heading.Friends')}</h2>
+        <h2>{translate(carouselHeaderText)}</h2>
       ) : (
         <h2>
-          {translate('Heading.Friends')}
+          {translate(carouselHeaderText)}
           <span className='friends-count'>{friendsCountString}</span>
         </h2>
       )}

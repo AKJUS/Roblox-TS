@@ -1,6 +1,9 @@
 import { addExternal, addLegacyExternal } from "@rbx/externals";
-import * as webBlox from "@rbx/ui";
+import * as translation from "@rbx/core-scripts/intl/translation";
 
-addExternal(["Roblox", "ui"], webBlox);
+addExternal(["Roblox", "core-scripts", "intl", "translation"], translation);
 
-addLegacyExternal("WebBlox", webBlox);
+addLegacyExternal(
+  ["Roblox", "TranslationResourceProvider"],
+  translation.TranslationResourceProvider,
+);

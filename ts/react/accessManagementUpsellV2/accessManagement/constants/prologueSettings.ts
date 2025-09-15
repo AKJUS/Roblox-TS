@@ -1,5 +1,6 @@
 import { TranslateFunction } from 'react-utilities';
 import { PrologueConstants } from './viewConstants';
+import ExpNewChildModal from '../../enums/ExpNewChildModal';
 
 // Feature team can choose to define their promptline and title here,
 // also add the translation under Amp.Upsell namespace.
@@ -53,26 +54,47 @@ export function getPrologueTranslatedBodyText(
   defaultText: string,
   connectingText: string,
   translate: TranslateFunction,
-  recourseParameters?: Record<string, string> | null
+  recourseParameters?: Record<string, string> | null,
+  expChildModalType?: string
 ): string {
+  let prologueReasonText: string;
+
+  // Currently, the strings use two styles to get the reason for the prologue:
+  // 1. Direct approach: Use a complete translation key (enable purchases, unblock user/experience)
+  //     e.g., user blocking uses one string: "To unblock {displayName}, you need parent permission"
+  // 2. Bridge approach: Use prompt line + connecting text (CanCorrectAge, CanChangeSetting)
+  //     e.g., age correction uses two strings: "To update your birthday" and "you need parent permission"
+
+  // First, look for the prologue reason assuming the direct approach.
   if (recourseParameters?.enablePurchases !== undefined) {
-    return translate(PrologueConstants.Description.VpcEnablePurchase);
-  }
-  if (recourseParameters?.friendManagementAction === 'Unblock') {
-    return translate(PrologueConstants.Description.VpcUnblockUser, {
+    prologueReasonText = translate(PrologueConstants.Description.VpcEnablePurchase);
+  } else if (recourseParameters?.friendManagementAction === 'Unblock') {
+    prologueReasonText = translate(PrologueConstants.Description.VpcUnblockUser, {
       displayName: recourseParameters.displayName
     });
-  }
-  if (recourseParameters?.experienceManagementAction === 'Unblock') {
-    return translate(PrologueConstants.Description.VpcUnblockExperience, {
+  } else if (recourseParameters?.experienceManagementAction === 'Unblock') {
+    prologueReasonText = translate(PrologueConstants.Description.VpcUnblockExperience, {
       experienceName: recourseParameters.experienceName
     });
+  } else {
+    // If it's a feature that uses the bridge approach, get the prompt line and add the connecting text.
+    const featurePromptLine = getProloguePromptLine(featureName, recourseParameters);
+    if (featurePromptLine) {
+      prologueReasonText = `${translate(featurePromptLine)}, ${translate(connectingText)}`;
+    } else {
+      return translate(defaultText);
+    }
   }
 
-  const featurePromptLine = getProloguePromptLine(featureName, recourseParameters);
+  // If we are enrolled in the experiment, append the instructions to fetch the parent.
+  if (
+    expChildModalType === ExpNewChildModal.newPrologueNoVisual ||
+    expChildModalType === ExpNewChildModal.newPrologueVisual
+  ) {
+    return `${prologueReasonText}<br /><br />${translate(
+      PrologueConstants.Description.PrologueFetchParentExperiment
+    )}`;
+  }
 
-  const translatedBodyText = featurePromptLine
-    ? `${translate(featurePromptLine)}, ${translate(connectingText)}`
-    : translate(defaultText);
-  return translatedBodyText;
+  return prologueReasonText;
 }

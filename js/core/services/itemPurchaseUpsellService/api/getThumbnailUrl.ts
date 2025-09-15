@@ -44,16 +44,13 @@ export default async function getThumbnailUrl(
 
   try {
     const thumbnailData = await httpService.get<ThumbnailInfoArray>(urlConfig, requestParam);
+    const [thumbnail] = thumbnailData.data.data;
 
-    if (
-      thumbnailData.status !== 200 ||
-      !thumbnailData.data.data ||
-      thumbnailData.data.data.length === 0
-    ) {
+    if (thumbnailData.status !== 200 || !thumbnail) {
       return Promise.resolve(null);
     }
 
-    return Promise.resolve(thumbnailData.data.data[0].imageUrl);
+    return Promise.resolve(thumbnail.imageUrl);
   } catch (e) {
     return Promise.resolve(null); // no stop for the upsell
   }

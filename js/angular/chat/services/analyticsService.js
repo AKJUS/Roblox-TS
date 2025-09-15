@@ -1,10 +1,10 @@
-import chatModule from '../chatModule';
 import { CurrentUser, EventStream } from 'Roblox';
+import chatModule from '../chatModule';
 
 function analyticsService($log, chatUtility, featureInterventionAnalytics) {
   'ngInject';
 
-  const EventTracker = window.EventTracker;
+  const { EventTracker } = window;
 
   return {
     sendEvent(eventName, eventProperties) {
@@ -33,7 +33,13 @@ function analyticsService($log, chatUtility, featureInterventionAnalytics) {
 
       return conversation?.id;
     },
-    sendInterventionEvent({ eventType, interventionType, renderedTimestamp, eventId, durationSeconds }) {
+    sendInterventionEvent({
+      eventType,
+      interventionType,
+      renderedTimestamp,
+      eventId,
+      durationSeconds
+    }) {
       if (!EventStream) {
         return;
       }
@@ -44,7 +50,7 @@ function analyticsService($log, chatUtility, featureInterventionAnalytics) {
         user_id: userId,
         timestamp_milliseconds: interactedTimestamp,
         event_type: eventType,
-        interventionType: interventionType,
+        interventionType,
         event_id: eventId,
         timeout_duration_seconds: durationSeconds,
         placement: 'Web'

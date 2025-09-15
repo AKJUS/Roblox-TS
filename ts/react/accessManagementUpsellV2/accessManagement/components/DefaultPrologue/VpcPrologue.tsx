@@ -4,6 +4,7 @@ import { IModalService } from 'react-style-guide';
 import { useSelector } from 'react-redux';
 import useModal from '../../../hooks/useModal';
 import { UpsellStage } from '../../../enums';
+import ExpNewChildModal from '../../../enums/ExpNewChildModal';
 import {
   setVerificationStageRecourse,
   selectFeatureName,
@@ -25,11 +26,13 @@ import {
 const VpcPrologue = ({
   translate,
   onHide,
-  recourseParameters
+  recourseParameters,
+  expChildModalType
 }: {
   translate: TranslateFunction;
   onHide: () => void;
   recourseParameters: Record<string, string> | null;
+  expChildModalType?: ExpNewChildModal;
 }): [JSX.Element, IModalService] => {
   const dispatch = useAppDispatch();
   const featureName = useSelector(selectFeatureName);
@@ -46,12 +49,16 @@ const VpcPrologue = ({
     defaultBodyText,
     connectingBodyText,
     translate,
-    recourseParameters
+    recourseParameters,
+    expChildModalType
   );
 
   const vpcPrologueBody = (
     <div>
-      <div className='text-description'> {translatedBodyText} </div>
+      {expChildModalType === ExpNewChildModal.newPrologueVisual && (
+        <div className='ask-your-parent-lock' />
+      )}
+      <div className='text-description' dangerouslySetInnerHTML={{ __html: translatedBodyText }} />
     </div>
   );
 

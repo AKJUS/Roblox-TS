@@ -1,6 +1,7 @@
+import { Guac } from 'Roblox';
 import { httpService } from 'core-utilities';
 import { eventStreamService } from 'core-roblox-utilities';
-import { getUpsellCardTypeUrlConfig, getVoicePolicyConfig } from '../constants/urlConstants';
+import { getUpsellCardTypeUrlConfig } from '../constants/urlConstants';
 import { UpsellCardEventContext } from '../constants/upsellCardConstants';
 
 export const getHomePageUpsellCardVariation = () => {
@@ -11,8 +12,7 @@ export const getHomePageUpsellCardVariation = () => {
 };
 
 export const getVoicePolicy = async () => {
-  const urlConfig = getVoicePolicyConfig();
-  const { data } = await httpService.get(urlConfig);
+  const data = await Guac.callBehaviour('free-communication-infographics');
   return data;
 };
 

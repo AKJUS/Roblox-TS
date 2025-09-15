@@ -1,5 +1,10 @@
 import { cryptoUtil } from 'core-roblox-utilities';
 import { httpService } from 'core-utilities';
+import * as Rcs from '@rbx/clients/rotatingClientService';
+import { Configuration } from '@rbx/clients';
+import { EnvironmentUrls } from 'Roblox';
+import * as boolean from 'fp-ts/boolean';
+import { pipe } from 'fp-ts/lib/function';
 import {
   ChallengeIdAndActionType,
   UserId
@@ -8,7 +13,16 @@ import { Result } from '../../result';
 import { toResult } from '../common';
 import * as TwoStepVerification from '../types/twoStepVerification';
 
-const { generateSecureAuthIntent } = cryptoUtil;
+const rcsClient = new Rcs.MetadataApi(
+  new Configuration({
+    credentials: 'include',
+    genericChallengeMiddlewareType: 'native',
+    robloxSiteDomain: EnvironmentUrls.domain,
+    basePath: `${EnvironmentUrls.apiGatewayUrl ?? ''}/rotating-client-service`
+  })
+);
+
+const { generateSecureAuthIntent, generateSecureAuthIntentV2 } = cryptoUtil;
 
 export const getMetadata = (
   context?: UserId & ChallengeIdAndActionType
@@ -48,7 +62,14 @@ export const enableEmailTwoStepVerification = async (
     TwoStepVerification.TwoStepVerificationError | null
   >
 > => {
-  const secureAuthenticationIntent = await generateSecureAuthIntent();
+  const flag = (await rcsClient.metadataGetMetadata())?.enableNewSAIOn2SV;
+  const secureAuthenticationIntent = await pipe(
+    !!flag,
+    boolean.match(
+      () => generateSecureAuthIntent(),
+      () => generateSecureAuthIntentV2()
+    )
+  );
 
   return toResult(
     httpService.post(TwoStepVerification.ENABLE_EMAIL_TWO_STEP_VERIFICATION_CONFIG(userId), {
@@ -122,7 +143,14 @@ export const enableVerifyAuthenticator = async (
     TwoStepVerification.TwoStepVerificationError | null
   >
 > => {
-  const secureAuthenticationIntent = await generateSecureAuthIntent();
+  const flag = (await rcsClient.metadataGetMetadata())?.enableNewSAIOn2SV;
+  const secureAuthenticationIntent = await pipe(
+    !!flag,
+    boolean.match(
+      () => generateSecureAuthIntent(),
+      () => generateSecureAuthIntentV2()
+    )
+  );
   return toResult(
     httpService.post(TwoStepVerification.ENABLE_VERIFY_AUTHENTICATOR_CONFIG(userId), {
       setupToken,
@@ -218,7 +246,14 @@ export const enableSmsTwoStepVerification = async (
     TwoStepVerification.TwoStepVerificationError | null
   >
 > => {
-  const secureAuthenticationIntent = await generateSecureAuthIntent();
+  const flag = (await rcsClient.metadataGetMetadata())?.enableNewSAIOn2SV;
+  const secureAuthenticationIntent = await pipe(
+    !!flag,
+    boolean.match(
+      () => generateSecureAuthIntent(),
+      () => generateSecureAuthIntentV2()
+    )
+  );
   return toResult(
     httpService.post(TwoStepVerification.ENABLE_SMS_TWO_STEP_VERIFICATION_CONFIG(userId), {
       secureAuthenticationIntent
@@ -304,8 +339,14 @@ export const enableVerifySecurityKey = async (
     TwoStepVerification.TwoStepVerificationError | null
   >
 > => {
-  const secureAuthenticationIntent = await generateSecureAuthIntent();
-
+  const flag = (await rcsClient.metadataGetMetadata())?.enableNewSAIOn2SV;
+  const secureAuthenticationIntent = await pipe(
+    !!flag,
+    boolean.match(
+      () => generateSecureAuthIntent(),
+      () => generateSecureAuthIntentV2()
+    )
+  );
   return toResult(
     httpService.post(TwoStepVerification.ENABLE_VERIFY_SECURITY_KEY_CONFIG(userId), {
       sessionId,

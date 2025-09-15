@@ -8,11 +8,11 @@ function dialogLazyLoad(chatService, chatUtility, messageService, gameService, $
     restrict: 'A',
     scope: true,
     link(scope, element, attrs) {
-      scope.callbackScrollToBottom = function() {
+      scope.callbackScrollToBottom = function () {
         scope.updateDialog();
       };
 
-      scope.callbackLazyLoad = function() {
+      scope.callbackLazyLoad = function () {
         if (
           !scope.dialogParams.loadMoreMessages ||
           !scope.dialogLayout.IsdialogContainerVisible ||
@@ -26,7 +26,7 @@ function dialogLazyLoad(chatService, chatUtility, messageService, gameService, $
         chatService
           .getMessages(scope.dialogData.id, cursor, scope.dialogParams.pageSizeOfGetMessages)
           .then(
-            function(response) {
+            function (response) {
               const data = response.messages;
               scope.dialogLayout.isChatLoading = false;
               if (!data) {
@@ -71,14 +71,14 @@ function dialogLazyLoad(chatService, chatUtility, messageService, gameService, $
                 }
               }
             },
-            function() {
+            function () {
               scope.dialogLayout.isChatLoading = false;
               $log.debug('---error from get getMessages in dialogLazyLoadDirective.js---');
             }
           );
       };
 
-      let init = function() {
+      const init = function () {
         $log.debug('---- onInit callback ---- Scrollbars updated');
         if (chatUtility.shouldScrollFromTop(scope.dialogData, scope.chatLibrary)) {
           scope.updateDialog();
@@ -98,7 +98,7 @@ function dialogLazyLoad(chatService, chatUtility, messageService, gameService, $
           onInit: init,
           onUpdate() {
             $log.debug(
-              '---- onUpdate callback ---- Scrollbars updated' + scope.dialogLayout.scrollToBottom
+              `---- onUpdate callback ---- Scrollbars updated${scope.dialogLayout.scrollToBottom}`
             );
             if (scope.dialogLayout.scrollToBottom) {
               element.mCustomScrollbar('scrollTo', 'bottom', {

@@ -56,6 +56,7 @@ export const base64StringToArrayBuffer = (base64String: string): ArrayBuffer => 
   const rawString = atob(base64String);
   return stringToArrayBuffer(rawString);
 };
+
 /**
  * Generates a key pair for signing messages.
  *
@@ -91,7 +92,27 @@ export const exportPublicKeyAsSpki = async (publicKey: CryptoKey): Promise<strin
   return arrayBufferToBase64String(publicKeyArrayBuffer);
 };
 
-export const textEncode = (str: string): Uint8Array => new TextEncoder().encode(str);
+export const textEncode = (str: string): Uint8Array<ArrayBuffer> => new TextEncoder().encode(str);
+
+/**
+ * Converts the passed string to a URL-safe base-64-encoded string.
+ * Uses textEncode first because base64 expects UTF-8 bytes, not UTF-16 strings.
+ * Direct base64 encoding of Unicode strings fails with "Character Out Of Range" errors.
+ *
+ * https://developer.mozilla.org/en-US/docs/Web/API/Window/btoa#unicode_strings
+ *
+ * @param {string} str
+ * @returns A URL-safe base-64-encoded string.
+ */
+export const stringToUrlSafeBase64 = (str: string): string => {
+  const bytes = textEncode(str);
+  const base64String = arrayBufferToBase64String(bytes.buffer);
+  const urlSafeBase64String = base64String
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=/g, "");
+  return urlSafeBase64String;
+};
 
 /**
  * hash string with sha256 and return the hashed base64 string.

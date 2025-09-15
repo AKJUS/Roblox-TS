@@ -39,10 +39,9 @@ const handleGlobalPrivacyControl = async (nowDate: Date) => {
 
   try {
     const userSettingsGlobalPrivacyControlConfig = await universalAppConfigurationService.getUserSettingsGlobalPrivacyControlGuacPolicy();
-    serverGpcVersion = userSettingsGlobalPrivacyControlConfig.data.gpcVersion;
-    serverCooldownInMs = userSettingsGlobalPrivacyControlConfig.data.cooldownPeriodInMs;
-    serverCooldownPeriodFuzzyInMs =
-      userSettingsGlobalPrivacyControlConfig.data.cooldownPeriodFuzzyInMs;
+    serverGpcVersion = userSettingsGlobalPrivacyControlConfig.gpcVersion;
+    serverCooldownInMs = userSettingsGlobalPrivacyControlConfig.cooldownPeriodInMs;
+    serverCooldownPeriodFuzzyInMs = userSettingsGlobalPrivacyControlConfig.cooldownPeriodFuzzyInMs;
   } catch (e) {
     // In the case of errors contacting GUAC, fall back to a sane default value
     serverGpcVersion = globalPrivacyControlConstants.unknownGpcVersion;

@@ -1,5 +1,5 @@
 export const translationConfig: { common: string[]; feature: string } = {
-  common: [],
+  common: ['CommonUI.Features'],
   feature: 'Feature.PeopleList'
 };
 

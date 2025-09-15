@@ -40,7 +40,8 @@ function chatController(
   languageResource,
   countdownTimerService,
   featureInterventionAnalytics,
-  systemFeedbackService
+  systemFeedbackService,
+  localeService
 ) {
   'ngInject';
 
@@ -77,8 +78,10 @@ function chatController(
   };
 
   const getOpenConversations = function () {
-    return $scope.preSetChatLibrary.dialogIdList
-      .filter(dialogId => dialogId !== chatUtility.newGroup.layoutId && $scope.chatUserDict[dialogId])
+    return $scope.chatLibrary.dialogIdList
+      .filter(
+        dialogId => dialogId !== chatUtility.newGroup.layoutId && $scope.chatUserDict[dialogId]
+      )
       .map(dialogId => $scope.chatUserDict[dialogId]);
   };
 
@@ -122,19 +125,22 @@ function chatController(
     );
   };
 
+  const getConversationInScope = function (conversationId) {
+    const { layoutId } = $scope.chatLibrary.conversationsDict[conversationId];
+    return $scope.chatUserDict[layoutId];
+  };
 
   $scope.processLatestMessageForConversations = function (data) {
     angular.forEach(data, function (messageData) {
-      const messages = messageData.messages;
+      const { messages } = messageData;
       if ($scope.chatLibrary.conversationsDict[messageData.conversationId]) {
-        const { layoutId } = $scope.chatLibrary.conversationsDict[messageData.conversationId];
-        const conversation = $scope.chatUserDict[layoutId];
+        const conversation = getConversationInScope(messageData.conversationId);
         conversation.hasUnreadMessages =
           conversation.hasUnreadMessages ||
           messageUtility.hasUnreadMessages(conversation, messages);
-        messageService.updatePreviewMessage(conversation, messages);
-        messageService.resetConversationUnreadStatus($scope.chatUserDict[layoutId], messages);
-        messageService.formatTimestampInConversation($scope.chatUserDict[layoutId]);
+        messageService.updateAndSanitizePreviewMessage(conversation, messages);
+        messageService.resetConversationUnreadStatus(conversation, messages);
+        messageService.formatTimestampInConversation(conversation);
       }
     });
   };
@@ -196,6 +202,13 @@ function chatController(
         $scope.chatLibrary.userConversationsDict[userId] = newConversation.layoutId;
       }
     });
+
+    // update modals
+    if ($scope.chatLibrary.isWebChatTcEnabled) {
+      $scope.chatLibrary.modals.conversationOverlays[newLayoutId] =
+        $scope.chatLibrary.modals.conversationOverlays[oldLayoutId];
+      delete $scope.chatLibrary.modals.conversationOverlays[oldLayoutId];
+    }
   };
 
   const getConversationsByIds = function (conversationIds, shouldPopDialog) {
@@ -366,22 +379,34 @@ function chatController(
 
         $scope.resetDialogLayout(dialogsLayout[dialogId]);
       });
-      $scope.chatLibrary.dialogIdList = $scope.preSetChatLibrary.dialogIdList;
+      $scope.chatLibrary.dialogIdList = [
+        ...new Set([...$scope.chatLibrary.dialogIdList, ...$scope.preSetChatLibrary.dialogIdList])
+      ];
+
+      const openConversations = [];
       angular.forEach(dialogDict, function (dialog, layoutId) {
-        if (!dialog.isUpdated) {
+        if (!dialog.isUpdated && !$scope.chatLibrary.dialogDict[layoutId]) {
           dialog.isUpdated = true;
         }
         if (layoutId === chatUtility.newGroup.layoutId) {
           $scope.chatUserDict[chatUtility.newGroup.layoutId] = $scope.newGroup;
+        } else if ($scope.chatUserDict[layoutId]) {
+          openConversations.push($scope.chatUserDict[layoutId]);
         }
         $scope.chatLibrary.dialogDict[layoutId] = dialog;
         if (dialogsLayout[layoutId]) {
           $scope.chatLibrary.dialogsLayout[layoutId] = dialogsLayout[layoutId];
         }
+        const idx = $scope.preSetChatLibrary.dialogIdList.indexOf(layoutId);
+        if (idx > -1) {
+          $scope.preSetChatLibrary.dialogIdList.splice(idx, 1);
+        }
+        delete dialogsLayout[layoutId];
       });
+      $scope.preSetChatLibrary.dialogDict = {};
       $scope.maybeCloseNewGroupDialog();
 
-      applyChatModerationStatuses(getOpenConversations());
+      applyChatModerationStatuses(openConversations);
     }
   };
 
@@ -576,10 +601,6 @@ function chatController(
             }
           });
         });
-
-      if (userIds && userIds.length > 0) {
-        usersService.getAvatarHeadshots(userIds, $scope.chatLibrary.friendsDict);
-      }
     }
   };
 
@@ -692,7 +713,7 @@ function chatController(
       );
   };
 
-  $scope.getUserConversationsFromCursor = function(cursor, addToFront) {
+  $scope.getUserConversationsFromCursor = function (cursor, addToFront) {
     chatService
       .getUserConversations(
         cursor,
@@ -837,7 +858,9 @@ function chatController(
   };
 
   $scope.handleChannelsNotifications = function (data) {
-    $log.debug(`--------- this is ${chatUtility.notificationsName.CommunicationChannelsNotifications} subscription -----------${data.Type}`);
+    $log.debug(
+      `--------- this is ${chatUtility.notificationsName.CommunicationChannelsNotifications} subscription -----------${data.Type}`
+    );
     try {
       const type = data.Type;
       const channelId = data.ChannelId;
@@ -851,13 +874,19 @@ function chatController(
         case chatUtility.channelsNotificationType.channelUnarchived:
         case chatUtility.channelsNotificationType.participantsAdded:
         case chatUtility.channelsNotificationType.participantsRemoved:
-          fetchConversations(channelId);
+          if ($scope.chatLibrary.isWebChatTcEnabled) {
+            setTimeout(() => {
+              fetchConversations(channelId);
+            }, $scope.chatLibrary.rtnFetchConversationDelayMs);
+          } else {
+            fetchConversations(channelId);
+          }
           break;
         case chatUtility.channelsNotificationType.channelArchived:
         case chatUtility.channelsNotificationType.channelDeleted:
         case chatUtility.channelsNotificationType.removedFromChannel:
           if (!$scope.chatLibrary.conversationsDict[channelId].remove) {
-            var { layoutId } = $scope.chatLibrary.conversationsDict[channelId];
+            const { layoutId } = $scope.chatLibrary.conversationsDict[channelId];
             $scope.chatLibrary.conversationsDict[channelId].remove = true;
             $scope.closeDialog(layoutId);
             fetchConversations(channelId);
@@ -1042,7 +1071,7 @@ function chatController(
       if (data.abuseVector !== 'party_chat') {
         return;
       }
-      const type = data.type;
+      const { type } = data;
       switch (type) {
         case chatUtility.notificationType.featureInterventionTypeNudge:
           showNudgeModal(data.decisionEventId);
@@ -1081,15 +1110,15 @@ function chatController(
   };
 
   const showNudgeModal = function (eventId) {
-    var renderedTimestamp = Date.now();
-    var sendEvent = function (eventType) {
+    const renderedTimestamp = Date.now();
+    const sendEvent = function (eventType) {
       analyticsService.sendInterventionEvent({
         eventType,
         interventionType: featureInterventionAnalytics.interventionTypes.partyChatNudge,
         renderedTimestamp,
         eventId
       });
-    }
+    };
 
     Roblox.Dialog.open({
       titleText: languageResource.get('Heading.DontSharePersonalInformation'),
@@ -1106,14 +1135,20 @@ function chatController(
         $window.open($scope.chatLibrary.chatTimeoutsLearnMoreUrl, '_blank');
       },
       allowHtmlContentInFooter: true,
-      footerText: `<a id="intervention-mistake-btn">${languageResource.get('Description.Mistake')}</a>`,
+      footerText: `<a id="intervention-mistake-btn">${languageResource.get(
+        'Description.Mistake'
+      )}</a>`,
       cssClass: 'chat-intervention-modal'
     });
 
     sendEvent(featureInterventionAnalytics.eventTypes.modalAppeared);
 
     angular.element('#intervention-mistake-btn').bind('click', function () {
-      systemFeedbackService.showSystemFeedback(`${languageResource.get('Heading.TakeALook')} - ${languageResource.get('Description.FeedbackHelps')}`);
+      systemFeedbackService.showSystemFeedback(
+        `${languageResource.get('Heading.TakeALook')} - ${languageResource.get(
+          'Description.FeedbackHelps'
+        )}`
+      );
       sendEvent(featureInterventionAnalytics.eventTypes.appealClicked);
       Roblox.Dialog.close();
     });
@@ -1157,16 +1192,16 @@ function chatController(
       }
     );
 
-    var renderedTimestamp = Date.now();
-    var sendEvent = function (eventType) {
+    const renderedTimestamp = Date.now();
+    const sendEvent = function (eventType) {
       analyticsService.sendInterventionEvent({
         eventType,
         interventionType: featureInterventionAnalytics.interventionTypes.partyChatTimeout,
         renderedTimestamp,
         eventId: timeout.eventId,
         durationSeconds: timeout.durationSeconds
-    });
-    }
+      });
+    };
 
     // open modal
     Roblox.Dialog.open({
@@ -1186,7 +1221,9 @@ function chatController(
         $window.open($scope.chatLibrary.chatTimeoutsLearnMoreUrl, '_blank');
       },
       allowHtmlContentInFooter: true,
-      footerText: `<a id="intervention-mistake-btn">${languageResource.get('Description.Mistake')}</a>`,
+      footerText: `<a id="intervention-mistake-btn">${languageResource.get(
+        'Description.Mistake'
+      )}</a>`,
       onCloseCallback() {
         countdownTimerService.cancel(timerRef);
         unwatch();
@@ -1199,7 +1236,11 @@ function chatController(
     sendEvent(featureInterventionAnalytics.eventTypes.modalAppeared);
 
     angular.element('#intervention-mistake-btn').bind('click', function () {
-      systemFeedbackService.showSystemFeedback(`${languageResource.get('Heading.TakeALook')} - ${languageResource.get('Description.FeedbackHelps')}`);
+      systemFeedbackService.showSystemFeedback(
+        `${languageResource.get('Heading.TakeALook')} - ${languageResource.get(
+          'Description.FeedbackHelps'
+        )}`
+      );
       sendEvent(featureInterventionAnalytics.eventTypes.appealClicked);
       Roblox.Dialog.close();
     });
@@ -1215,13 +1256,14 @@ function chatController(
   // if conversationId is given, returns the later of the conversation-level timeout and the user-level timeout
   // if conversationId is not given, returns the user-level timeout
   const getPrimaryTimeout = function (conversationId) {
-    const conversation = $scope.chatUserDict[$scope.chatLibrary.conversationsDict[conversationId]?.layoutId];
+    const conversation =
+      $scope.chatUserDict[$scope.chatLibrary.conversationsDict[conversationId]?.layoutId];
     if (conversation?.moderationType === chatUtility.moderationType.TRUSTED_COMMS) {
       // timeouts only apply to moderated conversations
       return undefined;
     }
 
-    const userTimeout = $scope.chatTimeouts['user'];
+    const userTimeout = $scope.chatTimeouts.user;
     const conversationTimeout = conversationId ? $scope.chatTimeouts[conversationId] : null;
 
     if (userTimeout && conversationTimeout) {
@@ -1234,12 +1276,12 @@ function chatController(
       return conversationTimeout;
     }
     return undefined;
-  }
+  };
 
   // get the primary timeout expiry timestamp, if active, for the given conversationId
   $scope.getTimeoutExpiresAt = function (conversationId) {
     return getPrimaryTimeout(conversationId)?.endTime?.getTime();
-  }
+  };
 
   $scope.handleFriendshipNotifications = function (data) {
     $log.debug(`--------- this is FriendshipNotifications subscription -----------${data.Type}`);
@@ -1274,8 +1316,16 @@ function chatController(
             }
           );
           // refetch the first page of conversations in-case new friends conversation was created
-          $scope.getUserConversationsFromCursor('', true);
-          $document.triggerHandler('Roblox.Friends.CountChanged');
+          if ($scope.chatLibrary.isWebChatTcEnabled) {
+            setTimeout(() => {
+              $scope.getUserConversationsFromCursor('', true);
+            }, $scope.chatLibrary.rtnFetchConversationDelayMs).then(() => {
+              $document.triggerHandler('Roblox.Friends.CountChanged');
+            });
+          } else {
+            $scope.getUserConversationsFromCursor('', true);
+            $document.triggerHandler('Roblox.Friends.CountChanged');
+          }
           break;
       }
     } catch (e) {
@@ -1486,10 +1536,6 @@ function chatController(
       $scope.handleChatNotifications
     );
     realTimeClient.Unsubscribe(
-      chatUtility.notificationsName.ExperienceIntervention,
-      $scope.handleFeatureInterventions
-    );
-    realTimeClient.Unsubscribe(
       chatUtility.notificationsName.FeatureIntervention,
       $scope.handleFeatureInterventions
     );
@@ -1530,6 +1576,7 @@ function chatController(
           const newIsChatEnabled = $scope.getIsChatEnabled();
           if (!newIsChatEnabled) {
             $scope.unsubscribeRealTimeForChat();
+            $scope.hasChatLandingLoaded = false;
           } else if (!oldIsChatEnabled && newIsChatEnabled) {
             $scope.handleSignalRSuccess(true);
             $scope.initializeRealTimeSubscriptionsForChat();
@@ -1598,11 +1645,6 @@ function chatController(
 
       if ($scope.chatLibrary.useChatTimeouts) {
         realTimeClient.Subscribe(
-          chatUtility.notificationsName.ExperienceIntervention,
-          $scope.handleFeatureInterventions
-        );
-
-        realTimeClient.Subscribe(
           chatUtility.notificationsName.FeatureIntervention,
           $scope.handleFeatureInterventions
         );
@@ -1651,9 +1693,9 @@ function chatController(
         if (e && e.message) {
           message += e.message;
         }
-        googleAnalyticsEventsService.fireEvent(
-          $scope.chatLibrary.googleAnalyticsEvent.category,
-          $scope.chatLibrary.googleAnalyticsEvent.action,
+        googleAnalyticsEventsService.fireEvent?.(
+          $scope.chatLibrary.googleAnalyticsEvent?.category,
+          $scope.chatLibrary.googleAnalyticsEvent?.action,
           message
         );
       }
@@ -1727,6 +1769,14 @@ function chatController(
       default:
         return `conv_${id}`;
     }
+  };
+
+  $scope.parseConversationIdFromLayoutId = function (layoutId) {
+    const layoutParts = layoutId.split('_');
+    if (layoutParts[0] === 'conv') {
+      return layoutParts[1];
+    }
+    return null;
   };
 
   $scope.getUserInfoForConversation = function (conversation) {
@@ -1833,7 +1883,11 @@ function chatController(
         const userId = user.id;
         if (userId !== $scope.chatLibrary.userId) {
           const friendId = $scope.getLayoutId(userId, chatUtility.dialogType.FRIEND);
-          $scope.replaceConversation(friendId, conversation);
+          if ($scope.chatUserDict[friendId]) {
+            $scope.replaceConversation(friendId, conversation);
+          } else {
+            $scope.chatLibrary.userConversationsDict[userId] = conversation.layoutId;
+          }
         }
       });
     }
@@ -1927,7 +1981,7 @@ function chatController(
     shouldPopDialog
   ) {
     for (let i = 0; i < unreadConversations.length; i++) {
-      let unreadConversation = unreadConversations[i];
+      const unreadConversation = unreadConversations[i];
       unreadConversation.isGroupChat =
         chatUtility.conversationType.multiUserConversation === unreadConversation.type;
 
@@ -1987,7 +2041,10 @@ function chatController(
             );
             gameService.fetchDataForLinkCard(unreadConversation.chatMessages, $scope.chatLibrary);
           }
-          messageService.updatePreviewMessage(existingConversation, unreadConversation.chatMessages);
+          messageService.updateAndSanitizePreviewMessage(
+            existingConversation,
+            unreadConversation.chatMessages
+          );
           $scope.updateChatViewModel(existingConversation, true);
         }
 
@@ -2012,12 +2069,19 @@ function chatController(
         $scope.updateConversationInLocalStorage(unreadConversation);
         unreadConversation.layoutId = layoutId;
         $scope.updateChatViewModel(unreadConversation, true);
+        $scope.processLatestMessageForConversations([
+          {
+            conversationId: unreadConversation.id,
+            messages: unreadConversation.messages
+          }
+        ]);
         if (shouldPopDialog) {
           notifyUser(unreadConversation);
         }
       }
       $scope.$apply();
     }
+    $scope.retrieveDialogStatus();
 
     if (!angular.equals($scope.chatUserDict, {})) {
       $scope.chatLibrary.chatLayout.chatLandingEnabled = false;
@@ -2275,8 +2339,10 @@ function chatController(
     if (!$scope.chatLibrary.useChatTimeouts || !conversations) {
       return;
     }
-    
-    const moderatedConversations = conversations.filter(conversation => conversation.moderationType !== chatUtility.moderationType.TRUSTED_COMMS);
+
+    const moderatedConversations = conversations.filter(
+      conversation => conversation.moderationType !== chatUtility.moderationType.TRUSTED_COMMS
+    );
     // If no conversations are moderated, no need to fetch chat moderation statuses
     if (moderatedConversations.length === 0) {
       return;
@@ -2287,8 +2353,8 @@ function chatController(
       .map(conversation => conversation.id);
 
     const response = await chatService.getChatModerationStatuses(moderatedChannelConversationIds);
-    var userTimeoutRange = response['user_timeout_range'];
-    var conversationTimeoutRanges = response['conversation_timeout_ranges'];
+    const userTimeoutRange = response.user_timeout_range;
+    const conversationTimeoutRanges = response.conversation_timeout_ranges;
     if (userTimeoutRange) {
       registerChatTimeout({
         timeout: constructTimeout(userTimeoutRange)
@@ -2297,22 +2363,22 @@ function chatController(
     if (conversationTimeoutRanges) {
       for (const conversationTimeoutRange of conversationTimeoutRanges) {
         registerChatTimeout({
-          conversationId: conversationTimeoutRange['id'],
-          timeout: constructTimeout(conversationTimeoutRange['timeout_range'])
+          conversationId: conversationTimeoutRange.id,
+          timeout: constructTimeout(conversationTimeoutRange.timeout_range)
         });
       }
     }
-  }
+  };
 
-  const constructTimeout = function(moderationTimeoutRange) {
-    var startTime = new Date(moderationTimeoutRange['start_time']);
-    var endTime = new Date(moderationTimeoutRange['end_time']);
+  const constructTimeout = function (moderationTimeoutRange) {
+    const startTime = new Date(moderationTimeoutRange.start_time);
+    const endTime = new Date(moderationTimeoutRange.end_time);
     return {
       endTime,
       durationSeconds: (endTime.getTime() - startTime.getTime()) / 1000,
-      eventId: moderationTimeoutRange['decision_event_id']
+      eventId: moderationTimeoutRange.decision_event_id
     };
-  }
+  };
 
   $scope.closeDialog = function (layoutId) {
     const conversation = $scope.chatUserDict[layoutId];
@@ -2433,12 +2499,6 @@ function chatController(
     window.location.href = urlService.getAbsoluteUrl(chatUtility.linksLibrary.settingLink);
   };
 
-  $scope.getAvatars = function (userIds) {
-    if (userIds && userIds.length > 0) {
-      usersService.getAvatarHeadshots(userIds, $scope.chatLibrary.friendsDict);
-    }
-  };
-
   $scope.getFriendsInfo = friends => {
     if ($scope.chatLibrary.chatLayout.pageDataLoading) {
       $scope.chatLibrary.chatLayout.pageDataLoading = false;
@@ -2457,21 +2517,79 @@ function chatController(
           $scope.chatLibrary.friendsDict[userId] = currentFriend;
         }
       });
-      $scope.getAvatars(userIds);
     }
   };
 
+  $scope.getConversationOverlay = conversationId => {
+    const conversation = getConversationInScope(conversationId);
+    chatService
+      .getModalSequence({
+        ...chatUtility.getDynamicConversationId(conversation),
+        modalSequence: chatUtility.modalSequence.CONVERSATION_OVERLAY
+      })
+      .then(data => {
+        if (data) {
+          $scope.chatLibrary.modals.conversationOverlays[conversation.layoutId] = data;
+        }
+      });
+  };
+
+  $scope.maybeFetchCountryRegions = function () {
+    if (
+      ($scope.chatLibrary.countryRegions &&
+        Object.keys($scope.chatLibrary.countryRegions).length > 0) ||
+      $scope.chatLibrary.isFetchingCountryRegions
+    ) {
+      return Promise.resolve();
+    }
+    $scope.chatLibrary.isFetchingCountryRegions = true;
+    return localeService
+      .getCountryRegions()
+      .then(response => {
+        angular.forEach(response?.countryRegionList ?? [], countryRegion => {
+          $scope.chatLibrary.countryRegions[countryRegion.code] = countryRegion;
+        });
+      })
+      .catch(error => {
+        $log.debug('Error fetching country regions for chat', error);
+      })
+      .finally(() => {
+        $scope.chatLibrary.isFetchingCountryRegions = false;
+      });
+  };
+
+  $scope.initializeChatLanding = function () {
+    $scope.chatLibrary.chatLayout.pageDataLoading = true;
+    $scope.getUserConversations();
+    $scope.chatLibrary.hasChatLandingLoaded = true;
+  };
+
   $scope.initializeChat = function () {
-    if (!$scope.chatUserDict || !$scope.chatLibrary) {
+    if (!$scope.chatUserDict || !$scope.chatLibrary || !$scope.chatLibrary.chatLayout) {
       $scope.setup();
     }
+    $scope.chatLibrary.countryRegions = {};
     performanceService.logSinglePerformanceMark(
       chatUtility.performanceMarkLabels.chatConversationsLoading
     );
     // initialize loading conversation count and chat user list
     $scope.updateUnreadConversationCount();
-    // initialize the chat windows
-    $scope.getUserConversations();
+    if (!$scope.chatLibrary.chatLayout.collapsed) {
+      $scope.initializeChatLanding();
+    } else {
+      $scope.chatLibrary.chatLayout.pageDataLoading = false;
+    }
+
+    // attempt to fetch open conversations
+    const conversationIds = Object.keys($scope.preSetChatLibrary?.dialogDict ?? {})
+      .map(layoutId => $scope.parseConversationIdFromLayoutId(layoutId))
+      .filter(conversationId => conversationId !== null);
+    if (conversationIds.length > 0) {
+      getConversationsByIds(
+        conversationIds.slice(0, chatUtility.chatApiParams.pageSizeOfConversations),
+        false
+      );
+    }
   };
 
   $scope.sendChatLandingEvent = function (eventName, counterName, layoutId) {
@@ -2645,7 +2763,7 @@ function chatController(
         metadataResponse.isChatEnabledByGlobalRules === 'enabled';
     }
     if (metadataResponse.isChatVisible !== false) {
-      angular.element("#chat-container").show();
+      angular.element('#chat-container').show();
     }
     $scope.chatLibrary.chatLayout.isChatEnabled = metadataResponse.isChatEnabled;
     $scope.chatLibrary.chatLayout.languageForPrivacySettingUnavailable =
@@ -2654,7 +2772,7 @@ function chatController(
 
   // need to combine this with setup function after we rollout chat app site
   $scope.initializeChatLibrary = function (data) {
-    const { metadataResponse, chatUiPoliciesResponse } = data;
+    const { metadataResponse, chatUiPoliciesResponse, renameFriendsPoliciesResponse } = data;
     const { domain } = EnvironmentUrls;
     $scope.parseChatSettingsResponsesForChatEnabled(data);
     $scope.chatLibrary.chatLayout.languageForPrivacySettingUnavailable =
@@ -2681,7 +2799,8 @@ function chatController(
     ($scope.chatLibrary.screenHeight = window.screen ? window.screen.height : 0),
       ($scope.chatLibrary.signalRDisconnectionResponseInMilliseconds =
         metadataResponse.signalRDisconnectionResponseInMilliseconds);
-    $scope.chatLibrary.typingInChatAsSenderThrottleMs = metadataResponse.typingInChatFromSenderThrottleMs;
+    $scope.chatLibrary.typingInChatAsSenderThrottleMs =
+      metadataResponse.typingInChatFromSenderThrottleMs;
     $scope.chatLibrary.typingInChatForReceiverExpirationMs =
       metadataResponse.typingInChatForReceiverExpirationMs;
 
@@ -2690,10 +2809,15 @@ function chatController(
       $scope.chatLibrary.userId % 100 <= chatUiPoliciesResponse.usePaginatedFriends;
     $scope.chatLibrary.useChatTimeouts =
       $scope.chatLibrary.userId % 100 <= (chatUiPoliciesResponse.useChatTimeouts ?? 0);
-    $scope.chatLibrary.chatTimeoutsLearnMoreUrl = chatUiPoliciesResponse.chatTimeoutsLearnMoreUrl ?? '#';
+    $scope.chatLibrary.chatTimeoutsLearnMoreUrl =
+      chatUiPoliciesResponse.chatTimeoutsLearnMoreUrl ?? '#';
     $scope.chatLibrary.isWebChatTcEnabled = chatUiPoliciesResponse.isWebChatTcEnabled;
     $scope.chatLibrary.useOneToOneOsaContextCards =
       $scope.chatLibrary.userId % 100 <= (chatUiPoliciesResponse.useOneToOneOsaContextCards ?? 0);
+    $scope.chatLibrary.renameFriendsToConnections =
+      renameFriendsPoliciesResponse.renameFriendsToConnections ?? false;
+    $scope.chatLibrary.rtnFetchConversationDelayMs =
+      chatUiPoliciesResponse.rtnFetchConversationDelayMs ?? 3000;
     $scope.chatLibrary.username = CurrentUser.name;
     let eventAction = googleAnalyticsEventsService.eventActions.Chat;
     eventAction += `: ${googleAnalyticsEventsService.getUserAgent()}`;
@@ -2701,6 +2825,8 @@ function chatController(
       category: googleAnalyticsEventsService.eventCategories.JSErrors,
       action: eventAction
     };
+    $scope.chatLibrary.isWebChatAutotranslationEnabled =
+      chatUiPoliciesResponse.isWebChatAutotranslationEnabled ?? false;
 
     // initialize eventstream variable
     $scope.chatLibrary.eventStreamParams = { ...chatUtility.eventStreamParams };
@@ -2716,20 +2842,22 @@ function chatController(
     $scope.chatLibrary.shouldRespectConversationHasUnreadMessageToMarkAsRead =
       metadataResponse.shouldRespectConversationHasUnreadMessageToMarkAsRead;
 
+    $scope.chatLibrary.hasChatLandingLoaded = false;
+
     $scope.initializeLayoutLibrary();
   };
 
-  $scope.getIsChatEnabled = function() {
+  $scope.getIsChatEnabled = function () {
     return chatUtility.getIsChatEnabled($scope.chatLibrary);
   };
-  $scope.getIsGroupChatEnabled = function() {
+  $scope.getIsGroupChatEnabled = function () {
     return chatUtility.getIsGroupChatEnabled($scope.chatLibrary);
   };
-  $scope.getChatDisabledReason = function() {
+  $scope.getChatDisabledReason = function () {
     return chatUtility.getChatDisabledReasonsByPriority($scope.chatLibrary)?.[0];
   };
 
-  $scope.maybeCloseNewGroupDialog = function() {
+  $scope.maybeCloseNewGroupDialog = function () {
     const newGroupLayoutId = $scope.newGroup?.layoutId;
     const dialogDict = $scope.chatLibrary?.dialogDict;
     if (!$scope.getIsGroupChatEnabled() && newGroupLayoutId && dialogDict?.[newGroupLayoutId]) {
@@ -2766,14 +2894,21 @@ function chatController(
   };
 
   $scope.fetchAllWebChatSettings = function (shouldBypassCache) {
-    const promises = [chatService.getMetaData(shouldBypassCache), guacService.getChatUiPolicies()];
+    const promises = [
+      chatService.getMetaData(shouldBypassCache),
+      guacService.getChatUiPolicies(),
+      guacService.getRenameFriendsPolicies()
+    ];
 
-    return Promise.allSettled(promises).then(([metadataResult, chatUiPoliciesResult]) => {
-      return {
-        metadataResponse: getPromiseResultOrEmptyObject(metadataResult),
-        chatUiPoliciesResponse: getPromiseResultOrEmptyObject(chatUiPoliciesResult)
-      };
-    });
+    return Promise.allSettled(promises).then(
+      ([metadataResult, chatUiPoliciesResult, renameFriendsPoliciesResult]) => {
+        return {
+          metadataResponse: getPromiseResultOrEmptyObject(metadataResult),
+          chatUiPoliciesResponse: getPromiseResultOrEmptyObject(chatUiPoliciesResult),
+          renameFriendsPoliciesResponse: getPromiseResultOrEmptyObject(renameFriendsPoliciesResult)
+        };
+      }
+    );
   };
 
   $scope.initialize = function () {

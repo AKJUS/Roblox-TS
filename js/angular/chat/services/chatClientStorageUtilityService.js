@@ -15,17 +15,15 @@ function chatClientStorageUtilityService(chatUtility, localStorageService, cooki
     isStorageDefined(key) {
       if (typeof window.Storage !== 'undefined') {
         return this.getFromStorage(key);
-      } else {
-        return cookieService.isCookieDefined(key);
       }
+      return cookieService.isCookieDefined(key);
     },
 
     getFromStorage(key) {
       if (typeof window.Storage !== 'undefined') {
         return localStorageService.getLocalStorage(key);
-      } else {
-        return cookieService.retrieveCookie(key);
       }
+      return cookieService.retrieveCookie(key);
     },
 
     updateStorage(key, value, options) {

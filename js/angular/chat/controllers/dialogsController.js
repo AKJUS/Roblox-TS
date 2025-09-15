@@ -4,18 +4,18 @@ import chatModule from '../chatModule';
 function dialogsController($scope, chatService, chatUtility, messageService, $log) {
   'ngInject';
 
-  $scope.isNewGroupChat = function(conversation) {
+  $scope.isNewGroupChat = function (conversation) {
     return (
       conversation.dialogType === chatUtility.dialogType.NEWGROUPCHAT ||
       (conversation.addMoreFriends && !conversation.isGroupChat)
     );
   };
 
-  $scope.canAddFriendInExistedConversation = function(conversation) {
+  $scope.canAddFriendInExistedConversation = function (conversation) {
     return conversation.addMoreFriends && conversation.isGroupChat;
   };
 
-  $scope.resetPreviousDialog = function(oldLayoutId, newLayoutId, preDialogData) {
+  $scope.resetPreviousDialog = function (oldLayoutId, newLayoutId, preDialogData) {
     $scope.chatUserDict[oldLayoutId].selectedUserIds = [];
     $scope.chatUserDict[oldLayoutId].selectedUsersDict = {};
     if (!preDialogData.preserved) {
@@ -40,7 +40,7 @@ function dialogsController($scope, chatService, chatUtility, messageService, $lo
       $scope.updateDialogList(newLayoutId, true);
     }
   };
-  $scope.generateDialog = function(conversation, dialogType, preDialogData) {
+  $scope.generateDialog = function (conversation, dialogType, preDialogData) {
     const oldLayoutId = preDialogData.layoutId;
     const newLayoutId = $scope.getLayoutId(conversation.id, dialogType);
     conversation.dialogType = dialogType;
@@ -63,7 +63,7 @@ function dialogsController($scope, chatService, chatUtility, messageService, $lo
     }
   };
 
-  $scope.createNewGroupChat = function(layoutId, currentConversation) {
+  $scope.createNewGroupChat = function (layoutId, currentConversation) {
     if ($scope.newGroupChatLocked) {
       return;
     }
@@ -73,7 +73,7 @@ function dialogsController($scope, chatService, chatUtility, messageService, $lo
     let newTitle = currentConversation.name;
     if (currentConversation.addMoreFriends && !currentConversation.isGroupChat) {
       const participantUsers = currentConversation.participants;
-      angular.forEach(participantUsers, function(user) {
+      angular.forEach(participantUsers, function (user) {
         const userId = user.id;
         if (userId !== $scope.chatLibrary.userId) {
           if (
@@ -93,7 +93,7 @@ function dialogsController($scope, chatService, chatUtility, messageService, $lo
     }
     chatService
       .startGroupConversation(currentConversation.selectedUserIds, newTitle)
-      .then(function(conversation) {
+      .then(function (conversation) {
         if (conversation.status === chatUtility.resultType.SUCCESS) {
           const layoutId = $scope.chatLibrary.allConversationLayoutIdsDict[conversation.id];
           if (layoutId) {
@@ -112,12 +112,12 @@ function dialogsController($scope, chatService, chatUtility, messageService, $lo
         }
         $scope.newGroupChatLocked = false;
       })
-      .catch(function(ex) {
+      .catch(function (ex) {
         $scope.newGroupChatLocked = false;
       });
   };
 
-  $scope.sendInvite = function(layoutId) {
+  $scope.sendInvite = function (layoutId) {
     $log.debug('------------- sendInvite ------------');
     const currentConversation = $scope.chatUserDict[layoutId];
     if (
@@ -134,7 +134,7 @@ function dialogsController($scope, chatService, chatUtility, messageService, $lo
     } else if ($scope.canAddFriendInExistedConversation(currentConversation)) {
       chatService
         .addToConversation(currentConversation.selectedUserIds, currentConversation.id)
-        .then(function(data) {
+        .then(function (data) {
           if (data && data.status === chatUtility.resultType.SUCCESS) {
             currentConversation.addMoreFriends = false;
             currentConversation.selectedUserIds.forEach(selectedUserId => {

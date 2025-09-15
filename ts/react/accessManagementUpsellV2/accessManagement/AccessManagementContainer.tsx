@@ -63,15 +63,16 @@ function AccessManagementContainer({
       redirectLink,
       ampFeatureCheckData,
       isAsyncCall,
-      usePrologue,
+      usePrologue: prologueAllowed,
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       ampRecourseData,
       featureSpecificData,
-      closeCallback
+      closeCallback,
+      namespace
     } = event.detail;
     setOnHideCallback(() => (access: Access): string => closeCallback(access));
     try {
-      await dispatch(fetchFeatureAccess({ featureName, ampFeatureCheckData }));
+      await dispatch(fetchFeatureAccess({ featureName, ampFeatureCheckData, namespace }));
     } catch (error) {
       // Handle error if needed
     }
@@ -89,15 +90,16 @@ function AccessManagementContainer({
     if (featureSpecificData) {
       setFeatureSpecificParams(featureSpecificData);
     }
-    // This experiment only applies to enable purchase
-    let usePrologueWithExp = usePrologue;
-    if (
-      (ampRecourseData as Record<string, any>)?.enablePurchases &&
-      expChildModalType !== ExpNewChildModal.control
-    ) {
-      usePrologueWithExp = false;
-    }
-    if (usePrologueWithExp) {
+
+    // Only some experiment variants include a prologue (including control)
+    const experimentVersionIncludesPrologue =
+      expChildModalType === ExpNewChildModal.control ||
+      expChildModalType === ExpNewChildModal.newPrologueNoVisual ||
+      expChildModalType === ExpNewChildModal.newPrologueVisual;
+
+    // Only show the prologue if we are both in a context that allows a prologue and the experiment variant includes a prologue
+    const usePrologue = prologueAllowed && experimentVersionIncludesPrologue;
+    if (usePrologue) {
       dispatch(setPrologueUsed(true));
       dispatch(setStage(UpsellStage.Prologue));
     } else {
@@ -168,7 +170,7 @@ function AccessManagementContainer({
             />
           );
         }
-        case Recourse.SettingsUpdate: {
+        case Recourse.UserSettings: {
           return (
             <UpdateSettingsContainer
               translate={translate}
@@ -206,6 +208,7 @@ function AccessManagementContainer({
               translate={translate}
               onHide={onHideFunction}
               recourseParameters={recourseParameters}
+              expChildModalType={expChildModalType}
             />
           );
         }

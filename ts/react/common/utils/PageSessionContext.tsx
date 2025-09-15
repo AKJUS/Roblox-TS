@@ -8,7 +8,10 @@ export const PageSessionProvider: React.FC = ({ children }) => {
   const paramString = window.location.href?.split('?')[1];
   const urlParams = paramString && parseQueryString(paramString);
   const referredSession =
-    urlParams && (urlParams.discoverPageSessionInfo || urlParams.homePageSessionInfo);
+    urlParams &&
+    (urlParams.discoverPageSessionInfo ||
+      urlParams.homePageSessionInfo ||
+      urlParams.spotlightPageSessionInfo);
   const [session] = useState(
     referredSession && typeof referredSession === 'string'
       ? referredSession

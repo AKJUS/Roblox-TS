@@ -1,7 +1,7 @@
 import { AxiosResponse } from 'axios';
 import { httpService } from 'core-utilities';
 import { TUserAuthIntent } from 'core-roblox-utilities';
-import { EnvironmentUrls } from 'Roblox';
+import { EnvironmentUrls, Guac } from 'Roblox';
 import experimentConstants from '../constants/experimentConstants';
 import bedev2Constants from '../constants/bedev2Constants';
 import {
@@ -19,7 +19,12 @@ import {
   TSurvey,
   TSurveyResponseBody,
   TTreatmentType,
-  TGetProfilesResponse
+  TGetProfilesResponse,
+  TSduiTreatmentType,
+  TLandingPageResponse,
+  TCanUserManagePlaceRequestBody,
+  TCanUserManagePlaceResponse,
+  TPrivateServerSettingsResponse
 } from '../types/bedev2Types';
 import { TPageType } from '../types/bedev1Types';
 import { TDeviceFeatures } from '../utils/deviceFeaturesUtils';
@@ -50,17 +55,36 @@ const getExperimentationValues = async <T extends Record<string, number | string
   }
 };
 
+export const getLandingPageData = async (
+  pageSlug: string,
+  sessionId: string,
+  deviceFeatures?: TDeviceFeatures
+): Promise<TLandingPageResponse> => {
+  const params = {
+    pageSlug,
+    sessionId,
+    ...deviceFeatures
+  };
+  const { data } = await httpService.post<TLandingPageResponse>(
+    bedev2Constants.url.getLandingPageData(),
+    params
+  );
+  return data;
+};
+
 export const getOmniRecommendations = async (
   pageType: TPageType,
   sessionId: string,
   deviceFeatures?: TDeviceFeatures,
   authIntentFeatures?: TUserAuthIntent,
-  interestedUniverses?: number[]
+  interestedUniverses?: number[],
+  sduiTreatmentTypes?: TSduiTreatmentType[]
 ): Promise<TGetOmniRecommendationsResponse> => {
   const params = {
     pageType,
     sessionId,
     supportedTreatmentTypes: [TTreatmentType.SortlessGrid],
+    sduiTreatmentTypes,
     authIntentData: authIntentFeatures,
     ...deviceFeatures,
     ...getInputUniverseIdsRequestParam(interestedUniverses)
@@ -131,6 +155,7 @@ export const getOmniSearch = async (
   }
 
   return {
+    paginationMethod: data.paginationMethod,
     filteredSearchQuery: data.filteredSearchQuery,
     nextPageToken: data.nextPageToken,
     gamesList
@@ -150,10 +175,10 @@ export const getExploreSorts = (
 
   return httpService
     .get<TExploreApiSortsResponse>(bedev2Constants.url.getExploreSorts, {
-      sessionId,
-      sortsPageToken,
       ...filterParams,
-      ...deviceFeatures
+      ...deviceFeatures,
+      sessionId,
+      sortsPageToken
     })
     .then(response => {
       return response.data;
@@ -174,11 +199,11 @@ export const getExploreSortContents = (
 
   return httpService
     .get<TExploreApiGameSortResponse>(bedev2Constants.url.getExploreSortContents, {
+      ...filterParams,
+      ...deviceFeatures,
       sessionId,
       sortId,
-      pageToken,
-      ...filterParams,
-      ...deviceFeatures
+      pageToken
     })
     .then(response => {
       return response.data;
@@ -236,9 +261,7 @@ export const getThumbnailForAsset = async (assetId: number): Promise<string> => 
 };
 
 const getGuacAppPolicyBehaviorData = (): Promise<TGuacAppPolicyBehaviorResponse> => {
-  return httpService
-    .get<TGuacAppPolicyBehaviorResponse>(bedev2Constants.url.getGuacAppPolicyBehaviorData())
-    .then(response => response.data);
+  return Guac.callBehaviour<TGuacAppPolicyBehaviorResponse>('app-policy');
 };
 
 const getProfiles = async (userIds: number[]): Promise<TGetProfilesResponse> => {
@@ -268,6 +291,55 @@ const getSearchLandingRecommendations = async (
   return data;
 };
 
+const getCanUserManagePlace = async (placeId: number, userId: string): Promise<boolean> => {
+  const urlConfig = {
+    url: `${EnvironmentUrls.apiGatewayUrl}/asset-permissions-api/v1/assets/check-permissions`,
+    retryable: true,
+    withCredentials: true
+  };
+
+  const requestBody: TCanUserManagePlaceRequestBody = {
+    requests: [
+      {
+        subject: {
+          subjectType: 'User',
+          subjectId: userId
+        },
+        action: 'Edit',
+        assetId: placeId
+      }
+    ]
+  };
+
+  return httpService.post<TCanUserManagePlaceResponse>(urlConfig, requestBody).then(response => {
+    if (response?.data?.results?.[0]?.value?.status === 'HasPermission') {
+      return true;
+    }
+
+    return false;
+  });
+};
+
+const getPrivateServerSettings = async (
+  universeId: number
+): Promise<TPrivateServerSettingsResponse> => {
+  const urlConfig = {
+    url: `${EnvironmentUrls.apiGatewayUrl}/private-servers-api/Universe-Private-Server-Settings`,
+    retryable: true
+  };
+
+  return httpService
+    .get<TPrivateServerSettingsResponse>(urlConfig, {
+      universeId
+    })
+    .then(response => {
+      return response.data;
+    })
+    .catch(() => {
+      return Promise.reject();
+    });
+};
+
 export default {
   getExperimentationValues,
   getOmniRecommendations,
@@ -275,10 +347,13 @@ export default {
   getOmniSearch,
   getExploreSorts,
   getExploreSortContents,
+  getLandingPageData,
   getSurvey,
   postSurveyResults,
   getThumbnailForAsset,
   getGuacAppPolicyBehaviorData,
   getProfiles,
-  getSearchLandingRecommendations
+  getSearchLandingRecommendations,
+  getCanUserManagePlace,
+  getPrivateServerSettings
 };

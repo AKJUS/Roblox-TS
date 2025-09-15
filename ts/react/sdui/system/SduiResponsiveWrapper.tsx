@@ -1,17 +1,19 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { TSduiComponentProps } from './wrapComponentForSdui';
+import { TSduiComponentWrapperProps } from './wrapComponentForSdui';
 
 import extractResponsivePropOverrides from './extractResponsivePropOverrides';
 
 type TSduiResponsiveWrapperProps = {
-  wrappedComponent: React.ComponentType<TSduiComponentProps>;
-} & TSduiComponentProps;
+  wrappedComponent: React.ComponentType<TSduiComponentWrapperProps>;
+} & TSduiComponentWrapperProps;
 
 const SduiResponsiveWrapper = ({
   wrappedComponent,
   componentConfig,
   parentAnalyticsContext,
-  localAnalyticsData
+  sduiContext,
+  localAnalyticsData,
+  extraLocalProps
 }: TSduiResponsiveWrapperProps): JSX.Element => {
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 
@@ -28,13 +30,19 @@ const SduiResponsiveWrapper = ({
   }, []);
 
   const responsivePropOverrides: Record<string, unknown> = useMemo(() => {
-    return extractResponsivePropOverrides(componentConfig.responsiveProps, windowWidth);
-  }, [componentConfig, windowWidth]);
+    return extractResponsivePropOverrides(
+      componentConfig.responsiveProps,
+      windowWidth,
+      sduiContext
+    );
+  }, [componentConfig.responsiveProps, windowWidth, sduiContext]);
 
   return React.createElement(wrappedComponent, {
     componentConfig,
     parentAnalyticsContext,
+    sduiContext,
     localAnalyticsData,
+    extraLocalProps,
     responsivePropOverrides
   });
 };

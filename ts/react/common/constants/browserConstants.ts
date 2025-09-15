@@ -2,12 +2,12 @@
 export const homePageContainerId = 'place-list';
 export const homePageContainer = (): HTMLElement | null =>
   document.getElementById(homePageContainerId);
+export const placesListContainerId = 'places-list-web-app';
+export const placesListContainer = (): HTMLElement | null =>
+  document.getElementById(placesListContainerId);
 export const navigationContainerId = 'navigation-container';
 export const navigationContainer = (): HTMLElement | null =>
   document.getElementById(navigationContainerId);
-export const recommendedGamesContainerId = 'recommended-games-container';
-export const recommendedGamesContainer = (): HTMLElement | null =>
-  document.getElementById(recommendedGamesContainerId);
 export const gameStoreContainerId = 'game-store-container';
 export const gameStoreContainer = (): HTMLElement | null =>
   document.getElementById(gameStoreContainerId);
@@ -22,10 +22,6 @@ export const queryParams = {
 
 // URL Paths
 export const url = {
-  sortDetail: (sortName: string): string => `discover#/sortName/${sortName}`,
-  sortDetailV2: (sortName: string): string => `discover#/sortName/v2/${sortName}`
-};
-
-export const chartsUrl = {
-  sortDetail: (sortName: string): string => `charts#/sortName/${sortName}`
+  sortDetail: (sortName: string): string => `charts#/sortName/${sortName}`,
+  sortDetailV2: (sortName: string): string => `charts#/sortName/v2/${sortName}`
 };

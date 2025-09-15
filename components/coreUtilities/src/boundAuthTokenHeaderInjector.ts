@@ -57,7 +57,6 @@ try {
   }
 } catch (e) {
   // Not expected to happen.
-  // eslint-disable-next-line no-console
   console.error("CurrentUser hash calculation error:", e);
 }
 
@@ -125,7 +124,6 @@ const initializeBoundAuthTokensForJQuery = (): void => {
               });
             } catch (e) {
               // Not expected (only should happen if `send` was called previously).
-              // eslint-disable-next-line no-console
               console.error("Could not set BAT headers:", e);
             }
           })

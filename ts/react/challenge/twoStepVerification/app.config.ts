@@ -76,6 +76,8 @@ export const TWO_STEP_VERIFICATION_LANGUAGE_RESOURCES = [
   'Label.SmsMediaType',
   'Label.EnterAuthenticatorCode',
   'Label.EnterEmailCode',
+  'Label.EnterEmailCodeSanitizedEmail',
+  'Label.EnterEmailCodeSanitizedEmailU13',
   'Label.EnterPassword',
   'Label.EnterRecoveryCode',
   'Label.EnterTextCode',

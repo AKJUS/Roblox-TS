@@ -2,8 +2,9 @@ import { useState, useEffect, useMemo } from 'react';
 import bedev2Services from '../services/bedev2Services';
 
 type TAppPolicyData = {
-  shouldShowVpcPlayButtonUpsells: boolean | undefined;
   shouldShowLikeFavoriteCounts: boolean | undefined;
+  experienceDetailsNoticeType: string | undefined;
+  shouldShowVpcPlayButtonUpsells: boolean | undefined;
 };
 
 type TUseGetAppPolicyData = TAppPolicyData & {
@@ -12,8 +13,9 @@ type TUseGetAppPolicyData = TAppPolicyData & {
 
 const useGetAppPolicyData = (): TUseGetAppPolicyData => {
   const [appPolicyData, setAppPolicyData] = useState<TAppPolicyData>({
-    shouldShowVpcPlayButtonUpsells: undefined,
-    shouldShowLikeFavoriteCounts: undefined
+    shouldShowLikeFavoriteCounts: undefined,
+    experienceDetailsNoticeType: undefined,
+    shouldShowVpcPlayButtonUpsells: undefined
   });
 
   const [isFetchingPolicy, setIsFetchingPolicy] = useState<boolean>(false);
@@ -24,14 +26,16 @@ const useGetAppPolicyData = (): TUseGetAppPolicyData => {
       .getGuacAppPolicyBehaviorData()
       .then(data => {
         setAppPolicyData({
-          shouldShowVpcPlayButtonUpsells: data.shouldShowVpcPlayButtonUpsells,
-          shouldShowLikeFavoriteCounts: data.EnableAggregateLikesFavoritesCount
+          shouldShowLikeFavoriteCounts: data.EnableAggregateLikesFavoritesCount,
+          experienceDetailsNoticeType: data.experienceDetailsNoticeType,
+          shouldShowVpcPlayButtonUpsells: data.shouldShowVpcPlayButtonUpsells
         });
       })
       .catch(() => {
         setAppPolicyData({
-          shouldShowVpcPlayButtonUpsells: false,
-          shouldShowLikeFavoriteCounts: false
+          shouldShowLikeFavoriteCounts: false,
+          experienceDetailsNoticeType: undefined,
+          shouldShowVpcPlayButtonUpsells: false
         });
       })
       .finally(() => {
@@ -40,16 +44,22 @@ const useGetAppPolicyData = (): TUseGetAppPolicyData => {
   }, []);
 
   return useMemo(() => {
-    const { shouldShowVpcPlayButtonUpsells, shouldShowLikeFavoriteCounts } = appPolicyData;
+    const {
+      shouldShowLikeFavoriteCounts,
+      experienceDetailsNoticeType,
+      shouldShowVpcPlayButtonUpsells
+    } = appPolicyData;
 
     return {
-      shouldShowVpcPlayButtonUpsells,
       shouldShowLikeFavoriteCounts,
+      experienceDetailsNoticeType,
+      shouldShowVpcPlayButtonUpsells,
       isFetchingPolicy
     };
   }, [
-    appPolicyData.shouldShowVpcPlayButtonUpsells,
     appPolicyData.shouldShowLikeFavoriteCounts,
+    appPolicyData.experienceDetailsNoticeType,
+    appPolicyData.shouldShowVpcPlayButtonUpsells,
     isFetchingPolicy
   ]);
 };

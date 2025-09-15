@@ -6,7 +6,7 @@ import { AppIcon } from '@rbx/branding-assets';
 import { Button } from '@rbx/foundation-ui';
 import { jsClientDeviceIdentifier } from 'header-scripts';
 import { Endpoints } from 'Roblox';
-import qrCode from '../../../../images/install-app-qr-code.png';
+import qrCode from '../../../../images/install-app-qr-code.webp';
 
 import {
   useDialogContainerStyles,

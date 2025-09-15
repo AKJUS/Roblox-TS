@@ -5,7 +5,7 @@ function pinGameService($log, playTogetherService, gameService, eventStreamServi
 
   return {
     sendPinGameEvent(eventType, rootPlaceId, conversation) {
-      let properties = {
+      const properties = {
         placeId: rootPlaceId,
         conversationId: conversation.id
       };
@@ -18,7 +18,7 @@ function pinGameService($log, playTogetherService, gameService, eventStreamServi
 
     setPinGameData(conversation, parameters) {
       if (parameters && parameters.universeId) {
-        let {rootPlaceId} = parameters;
+        const { rootPlaceId } = parameters;
         conversation.pinGame = {
           universeId: parameters.universeId,
           rootPlaceId,

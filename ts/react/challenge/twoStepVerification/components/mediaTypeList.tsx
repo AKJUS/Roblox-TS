@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useHistory } from 'react-router';
 import { Modal } from 'react-style-guide';
 import * as TwoStepVerification from '../../../../common/request/types/twoStepVerification';
@@ -205,7 +205,11 @@ const MediaTypeList: React.FC<Props> = ({
     }
   };
 
-  const renderMediaType = (mediaType: MediaType, key: number): JSX.Element | null => {
+  const renderMediaType = (
+    mediaType: MediaType,
+    key: number,
+    rowRef: React.RefObject<HTMLTableRowElement> | null
+  ): JSX.Element | null => {
     const mediaTypeLabel = getMediaTypeLabel(mediaType);
     if (!mediaTypeLabel) {
       return null;
@@ -213,6 +217,8 @@ const MediaTypeList: React.FC<Props> = ({
 
     return (
       <tr
+        tabIndex={key}
+        ref={rowRef}
         key={key}
         onClick={requestInFlight ? undefined : () => transitionToMediaType(mediaType)}
         className={requestInFlight ? 'media-type-row disabled' : 'media-type-row'}>
@@ -234,7 +240,9 @@ const MediaTypeList: React.FC<Props> = ({
 
   setModalTitleText(resources.Label.TwoStepVerification);
   const BodyElement = renderInline ? InlineChallengeBody : Modal.Body;
-  const lockIconClassName = renderInline ? 'inline-challenge-lock-icon' : 'modal-lock-icon';
+  const lockIconClassName = renderInline
+    ? 'inline-challenge-protection-shield-icon'
+    : 'modal-protection-shield-icon';
   const marginBottomXLargeClassName = renderInline
     ? 'inline-challenge-margin-bottom-xlarge'
     : 'modal-margin-bottom-xlarge';
@@ -243,6 +251,10 @@ const MediaTypeList: React.FC<Props> = ({
     ? 'inline-challenge-margin-top-large'
     : 'modal-margin-bottom-large';
 
+  const rowRef = useRef<HTMLTableRowElement>(null);
+  useEffect(() => {
+    rowRef.current?.focus();
+  }, []);
   /*
    * Component Markup
    */
@@ -253,7 +265,9 @@ const MediaTypeList: React.FC<Props> = ({
       <p className={marginBottomXLargeClassName}>{resources.Label.ChooseAlternateMediaType}</p>
       <table className={`table table-striped media-type-list ${tableMarginClassName}`}>
         <tbody>
-          {enabledMediaTypes.map((mediaType, index) => renderMediaType(mediaType, index))}
+          {enabledMediaTypes.map((mediaType, index) =>
+            renderMediaType(mediaType, index, index === 0 ? rowRef : null)
+          )}
         </tbody>
       </table>
       {sendCodeError ? (

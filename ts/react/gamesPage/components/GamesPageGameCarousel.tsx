@@ -46,7 +46,6 @@ type TGamesPageGameCarouselProps = {
   playerCountStyle?: TPlayerCountStyle;
   playButtonStyle?: TPlayButtonStyle;
   itemsPerRow?: number;
-  isChartsPageRenameEnabled?: boolean;
   subtitleLinkPath?: string;
 };
 
@@ -64,7 +63,6 @@ export const GamesPageGameCarousel = ({
   playerCountStyle,
   playButtonStyle,
   itemsPerRow,
-  isChartsPageRenameEnabled,
   subtitleLinkPath
 }: TGamesPageGameCarouselProps): JSX.Element => {
   const gamesContainerRef = useRef<HTMLUListElement>(null);
@@ -141,10 +139,9 @@ export const GamesPageGameCarousel = ({
       (sort as TExploreApiGameSort).sortId,
       page,
       sortDetailReferralParams,
-      isChartsPageRenameEnabled,
       filterUrlParams
     );
-  }, [discoverPageSessionInfo, page, positionId, sort, isChartsPageRenameEnabled]);
+  }, [discoverPageSessionInfo, page, positionId, sort]);
 
   return (
     <div
@@ -194,7 +191,6 @@ GamesPageGameCarousel.defaultProps = {
   itemsPerRow: undefined,
   playerCountStyle: undefined,
   playButtonStyle: undefined,
-  isChartsPageRenameEnabled: undefined,
   subtitleLinkPath: undefined
 };
 

@@ -11,10 +11,10 @@ import * as EmailVerification from '../emailVerification/interface';
 import * as PrivateAccessToken from '../privateAccessToken/interface';
 import * as ProofOfSpace from '../proofOfSpace/interface';
 import * as ProofOfWork from '../proofOfWork/interface';
-import * as Reauthentication from '../reauthentication/interface';
 import * as Rostile from '../rostile/interface';
 import * as SecurityQuestions from '../securityQuestions/interface';
 import * as TwoStepVerification from '../twoStepVerification/interface';
+import * as Biometric from '../biometric/interface';
 
 /**
  * Values of the `feature` field when sending a hybrid `navigateToFeature` back
@@ -40,7 +40,6 @@ export type OnChallengeCompletedData<T extends ChallengeType> = {
   [ChallengeType.FORCE_AUTHENTICATOR]: never;
   [ChallengeType.FORCE_TWO_STEP_VERIFICATION]: never;
   [ChallengeType.SECURITY_QUESTIONS]: SecurityQuestions.OnChallengeCompletedData;
-  [ChallengeType.REAUTHENTICATION]: Reauthentication.OnChallengeCompletedData;
   [ChallengeType.PROOF_OF_WORK]: ProofOfWork.OnChallengeCompletedData;
   [ChallengeType.ROSTILE]: Rostile.OnChallengeCompletedData;
   [ChallengeType.PRIVATE_ACCESS_TOKEN]: PrivateAccessToken.OnChallengeCompletedData;
@@ -49,6 +48,7 @@ export type OnChallengeCompletedData<T extends ChallengeType> = {
   [ChallengeType.PHONE_VERIFICATION]: PhoneVerification.OnChallengeCompletedData;
   [ChallengeType.EMAIL_VERIFICATION]: EmailVerification.OnChallengeCompletedData;
   [ChallengeType.BLOCK_SESSION]: never;
+  [ChallengeType.BIOMETRIC]: Biometric.OnChallengeCompletedData;
 }[T];
 
 /**

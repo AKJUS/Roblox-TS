@@ -25,9 +25,20 @@ const chat = angular.module('chat', dependencies).config([
     msdElasticConfig.append = '\n';
     const translationProvider = new TranslationResourceProvider();
     const chatResources = translationProvider.getTranslationResource('Feature.Chat');
-    const inExperienceInterventionResources = translationProvider.getTranslationResource('Feature.InExperienceIntervention');
+    const inExperienceInterventionResources = translationProvider.getTranslationResource(
+      'Feature.InExperienceIntervention'
+    );
+    const friendsResources = translationProvider.getTranslationResource('Feature.Friends');
+    const ageCheckResources = translationProvider.getTranslationResource(
+      'AccountIdentity.AgeCheck'
+    );
 
-    languageResourceProvider.setTranslationResources([chatResources, inExperienceInterventionResources]);
+    languageResourceProvider.setTranslationResources([
+      chatResources,
+      inExperienceInterventionResources,
+      friendsResources,
+      ageCheckResources
+    ]);
   }
 ]);
 

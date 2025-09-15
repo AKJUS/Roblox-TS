@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Modal } from 'react-style-guide';
 import InlineChallenge from '../../../common/inlineChallenge';
 import InlineChallengeBody from '../../../common/inlineChallengeBody';
 import {
@@ -11,19 +10,23 @@ import {
 import useCaptchaContext from '../hooks/useCaptchaContext';
 import { ErrorCode } from '../interface';
 import { CaptchaReducerActionType } from '../store/action';
+import ArkoseIframeInlineShim from './arkoseIframeInlineShim';
+import { CaptchaElementEvent, CaptchaElementEventId } from './captchaElementEvent';
 
 /*
  * Visible Captcha Override Control
  */
 
 const QUERY_KEY_FC_NOSUPPRESS = 'fc_nosuppress' as const;
-const queryParameterFcNosuppress = new URLSearchParams(window.location.search).get(
-  QUERY_KEY_FC_NOSUPPRESS
-);
+const queryParameterFcNosuppress =
+  window.URLSearchParams === undefined
+    ? null
+    : new URLSearchParams(window.location.search).get(QUERY_KEY_FC_NOSUPPRESS);
 const QUERY_KEY_FC_SUPPRESS = 'fc_suppress' as const;
-const queryParameterFcSuppress = new URLSearchParams(window.location.search).get(
-  QUERY_KEY_FC_SUPPRESS
-);
+const queryParameterFcSuppress =
+  window.URLSearchParams === undefined
+    ? null
+    : new URLSearchParams(window.location.search).get(QUERY_KEY_FC_SUPPRESS);
 const queryStringToPropagate =
   // eslint-disable-next-line no-nested-ternary
   queryParameterFcNosuppress !== null
@@ -31,54 +34,10 @@ const queryStringToPropagate =
     : queryParameterFcSuppress !== null
     ? `&${QUERY_KEY_FC_SUPPRESS}=${queryParameterFcSuppress}`
     : '';
-
-/**
- * The type of an event from the Arkose iframe.
- *
- * Keep this in sync with the JS in `arkoseIframe.html`.
- */
-type CaptchaElementEvent =
-  | {
-      arkoseIframeId: string;
-      eventId: 'challenge-complete';
-      payload: {
-        captchaToken: string;
-      };
-    }
-  | {
-      arkoseIframeId: string;
-      eventId: 'challenge-error';
-      payload: {
-        captchaToken?: string;
-        error: string;
-      };
-    }
-  | {
-      arkoseIframeId: string;
-      eventId: 'challenge-suppressed';
-      payload: {
-        captchaToken: string;
-      };
-    }
-  | {
-      arkoseIframeId: string;
-      eventId: 'challenge-shown';
-      payload: {
-        captchaToken: string;
-      };
-    }
-  | {
-      arkoseIframeId: string;
-      eventId: 'challenge-resize';
-      payload: {
-        width: string;
-        height: string;
-      };
-    }
-  | {
-      arkoseIframeId: string;
-      eventId: 'challenge-ready';
-    };
+const queryParametersToPropagate = {
+  [QUERY_KEY_FC_NOSUPPRESS]: queryParameterFcNosuppress || undefined,
+  [QUERY_KEY_FC_SUPPRESS]: queryParameterFcSuppress || undefined
+};
 
 // An instance counter for this component used to route messages from an Arkose
 // `iframe` to the instance that spawned it.
@@ -93,6 +52,7 @@ const CaptchaV2: React.FC = () => {
       actionType,
       dataExchangeBlob,
       unifiedCaptchaId,
+      captchaVersion,
       renderInline,
       resources,
       metadataResponse,
@@ -100,13 +60,10 @@ const CaptchaV2: React.FC = () => {
       metricsService,
       onChallengeDisplayed,
       onModalChallengeAbandoned,
-      isModalVisible,
-      onChallengeCompletedData,
-      onChallengeInvalidatedData
+      isModalVisible
     },
     dispatch
   } = useCaptchaContext();
-
   /*
    * Component State
    */
@@ -119,15 +76,22 @@ const CaptchaV2: React.FC = () => {
   const [publicKey, setPublicKey] = useState<string>('');
   const [pageLoading, setPageLoading] = useState<boolean>(true);
   const [gotActiveCaptcha, setGotActiveCaptcha] = useState<boolean>(false);
-  const [solveStartTimeStamp, setSolveStartTimeStamp] = useState<number | null>(null);
   const [captchaElementListenerReady, setCaptchaElementListenerReady] = useState<boolean>(false);
-  const captchaElement = useRef<HTMLIFrameElement>(null);
+  const challengeDone = useRef<boolean>(false);
+  const solveStartTimestamp = useRef<number | null>(null);
+  const captchaElementIframe = useRef<HTMLIFrameElement>(null);
+  const captchaElementIframeShim = useRef<HTMLDivElement>(null);
 
   /*
    * Event Handlers
    */
 
-  const closeModal = () => {
+  const closeModal = useCallback(() => {
+    // Mutually-exclusive with other completion handlers.
+    if (challengeDone.current) {
+      return;
+    }
+    challengeDone.current = true;
     dispatch({
       type: CaptchaReducerActionType.HIDE_MODAL_CHALLENGE
     });
@@ -138,25 +102,34 @@ const CaptchaV2: React.FC = () => {
         })
       );
     }
-  };
+  }, [dispatch, onModalChallengeAbandoned]);
 
   const onComplete = useCallback(
-    (captchaToken: string, captchaId: string) =>
+    (captchaToken: string, captchaId: string) => {
+      // Mutually-exclusive with other completion handlers.
+      if (challengeDone.current) {
+        return;
+      }
+      challengeDone.current = true;
       dispatch({
         type: CaptchaReducerActionType.SET_CHALLENGE_COMPLETED,
         onChallengeCompletedData: { captchaToken, captchaId }
-      }),
+      });
+    },
     [dispatch]
   );
 
-  const onError = useCallback(
-    () =>
-      dispatch({
-        type: CaptchaReducerActionType.SET_CHALLENGE_INVALIDATED,
-        errorCode: ErrorCode.UNKNOWN
-      }),
-    [dispatch]
-  );
+  const onError = useCallback(() => {
+    // Mutually-exclusive with other completion handlers.
+    if (challengeDone.current) {
+      return;
+    }
+    challengeDone.current = true;
+    dispatch({
+      type: CaptchaReducerActionType.SET_CHALLENGE_INVALIDATED,
+      errorCode: ErrorCode.UNKNOWN
+    });
+  }, [dispatch]);
 
   const onShown = useCallback(() => {
     setPageLoading(false);
@@ -165,15 +138,15 @@ const CaptchaV2: React.FC = () => {
     });
     setGotActiveCaptcha(true);
     onChallengeDisplayed({ displayed: true });
-    setSolveStartTimeStamp(Date.now());
+    solveStartTimestamp.current = Date.now();
   }, [dispatch, onChallengeDisplayed]);
 
   /*
    * Effects
    */
 
-  // Idempotent function (no cleanup required):
-  const loadChallenge = () => {
+  // Challenge loading effect:
+  useEffect(() => {
     setPageLoading(true);
 
     // Use metadata to select the right Arkose key for our current action type.
@@ -181,16 +154,120 @@ const CaptchaV2: React.FC = () => {
     const publicKeyName = FUNCAPTCHA_PUBLIC_KEY_MAP[actionType];
     setPublicKey(funCaptchaPublicKeys[publicKeyName] || '');
     metricsService.fireTriggeredEvent();
-  };
+  }, [actionType, metadataResponse, metricsService]);
 
-  // Challenge loading effect:
-  useEffect(() => {
-    loadChallenge();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // Shared handler thunk between the previous `iframe` implementation (which
+  // `postMessage`s in this format) and the new inline shim, which receives
+  // this handler thunk as one of its props. Note that this thunk may be
+  // invoked in a different order than messages are published; any mutations
+  // of shared should take this possibility into account.
+  const handleCaptchaElementEvent = useCallback(
+    (captchaElementEvent: CaptchaElementEvent) => {
+      // Ensure that we only receive messages from the FunCaptcha instance
+      // spawned by this component. (Even though we clean up event listeners
+      // when unmounting the component, the default behavior when a user clicks
+      // the `X` button is to hide the modal and allow the spawning consumer to
+      // simply re-open the challenge. In these instances, the component is not
+      // truly unmounted, and in any case, we do not want multiple captcha
+      // instances to conflict with each other via event handler globals).
+      if (captchaElementEvent.arkoseIframeId !== arkoseIframeId) {
+        return;
+      }
+      switch (captchaElementEvent.eventId) {
+        case CaptchaElementEventId.ChallengeComplete: {
+          onComplete(captchaElementEvent.payload.captchaToken, unifiedCaptchaId);
+          metricsService.fireSuccessEvent();
+          let solveDuration = 0;
+          if (solveStartTimestamp.current) {
+            solveDuration = Date.now() - solveStartTimestamp.current;
+          }
+          eventService.sendCaptchaRedeemEvent(
+            actionType,
+            solveDuration,
+            true,
+            captchaElementEvent.payload.captchaToken,
+            unifiedCaptchaId,
+            FUNCAPTCHA_VERSION_V2
+          );
+          break;
+        }
+        case CaptchaElementEventId.ChallengeError:
+          challengeDone.current = true;
+          onError();
+          metricsService.fireProviderErrorEvent();
+          eventService.sendCaptchaInitiatedEvent(
+            actionType,
+            EVENT_CONSTANTS.captchaInitiatedChallengeType.error,
+            captchaElementEvent.payload.captchaToken || '',
+            unifiedCaptchaId,
+            captchaElementEvent.payload.error,
+            FUNCAPTCHA_VERSION_V2
+          );
+          break;
+        case CaptchaElementEventId.ChallengeShown:
+          onShown();
+          metricsService.fireDisplayedEvent();
+          eventService.sendCaptchaInitiatedEvent(
+            actionType,
+            EVENT_CONSTANTS.captchaInitiatedChallengeType.visible,
+            captchaElementEvent.payload.captchaToken,
+            unifiedCaptchaId,
+            null,
+            FUNCAPTCHA_VERSION_V2
+          );
+          break;
+        case CaptchaElementEventId.ChallengeResize:
+          if (captchaElementIframe.current !== null) {
+            captchaElementIframe.current.height = captchaElementEvent.payload.height;
+            captchaElementIframe.current.width = captchaElementEvent.payload.width;
+          }
+          if (captchaElementIframeShim.current !== null) {
+            captchaElementIframeShim.current.style.height = captchaElementEvent.payload.height;
+            captchaElementIframeShim.current.style.width = captchaElementEvent.payload.width;
+          }
+          break;
+        case CaptchaElementEventId.ChallengeSuppressed:
+          metricsService.fireSuppressedEvent();
+          eventService.sendCaptchaInitiatedEvent(
+            actionType,
+            EVENT_CONSTANTS.captchaInitiatedChallengeType.hidden,
+            captchaElementEvent.payload.captchaToken,
+            unifiedCaptchaId,
+            null,
+            FUNCAPTCHA_VERSION_V2
+          );
+          break;
+        case CaptchaElementEventId.ChallengeReady:
+          metricsService.fireInitializedEvent();
+          break;
+        case CaptchaElementEventId.ChallengeHidden:
+          closeModal();
+          break;
+        default:
+          break;
+      }
+    },
+    // Do NOT add mutable component state dependencies here; this listener
+    // effect should remain stable since it is passed to a child component that
+    // should not re-render unless broader context changes. Use a `ref` or
+    // other stable reference instead if necessary.
+    [
+      actionType,
+      arkoseIframeId,
+      closeModal,
+      eventService,
+      metricsService,
+      onComplete,
+      onError,
+      onShown,
+      unifiedCaptchaId
+    ]
+  );
 
-  // Effect that sets up an iframe listener for the Arkose iframe (and tears it
-  // down when the wrapper component is unmounted):
+  // Effect that sets up an `iframe` listener for the Arkose `iframe` (and
+  // tears down when the wrapper component is unmounted). This is not strictly
+  // necessary for the `iframe` shim (which receives its event handler thunk
+  // directly).
   useEffect(() => {
     const arkoseIframeListener = (event: MessageEvent) => {
       try {
@@ -203,81 +280,7 @@ const CaptchaV2: React.FC = () => {
         if (!Object.prototype.hasOwnProperty.call(captchaElementEvent, 'arkoseIframeId')) {
           return;
         }
-        // Ensure that we only receive messages from the `iframe` this component
-        // instance spawned. (Even though we clean up event listeners when
-        // unmounting the component, the default behavior when a user clicks the
-        // `X` button is to hide the modal and allow the spawning consumer to
-        // simply re-open the challenge. In these instances, the component is
-        // not truly unmounted, and in any case, we do not want multiple captcha
-        // instances to conflict with each other via event handler globals).
-        if (captchaElementEvent.arkoseIframeId !== arkoseIframeId) {
-          return;
-        }
-        switch (captchaElementEvent.eventId) {
-          case 'challenge-complete': {
-            onComplete(captchaElementEvent.payload.captchaToken, unifiedCaptchaId);
-            metricsService.fireSuccessEvent();
-            let solveDuration = 0;
-            if (solveStartTimeStamp) {
-              solveDuration = Date.now() - solveStartTimeStamp;
-            }
-            eventService.sendCaptchaRedeemEvent(
-              actionType,
-              solveDuration,
-              true,
-              captchaElementEvent.payload.captchaToken,
-              unifiedCaptchaId,
-              FUNCAPTCHA_VERSION_V2
-            );
-            break;
-          }
-          case 'challenge-error':
-            onError();
-            metricsService.fireProviderErrorEvent();
-            eventService.sendCaptchaInitiatedEvent(
-              actionType,
-              EVENT_CONSTANTS.captchaInitiatedChallengeType.error,
-              captchaElementEvent.payload.captchaToken || '',
-              unifiedCaptchaId,
-              captchaElementEvent.payload.error,
-              FUNCAPTCHA_VERSION_V2
-            );
-            break;
-          case 'challenge-shown':
-            onShown();
-            metricsService.fireDisplayedEvent();
-            eventService.sendCaptchaInitiatedEvent(
-              actionType,
-              EVENT_CONSTANTS.captchaInitiatedChallengeType.visible,
-              captchaElementEvent.payload.captchaToken,
-              unifiedCaptchaId,
-              null,
-              FUNCAPTCHA_VERSION_V2
-            );
-            break;
-          case 'challenge-resize':
-            if (captchaElement.current !== null) {
-              captchaElement.current.height = captchaElementEvent.payload.height;
-              captchaElement.current.width = captchaElementEvent.payload.width;
-            }
-            break;
-          case 'challenge-suppressed':
-            metricsService.fireSuppressedEvent();
-            eventService.sendCaptchaInitiatedEvent(
-              actionType,
-              EVENT_CONSTANTS.captchaInitiatedChallengeType.hidden,
-              captchaElementEvent.payload.captchaToken,
-              unifiedCaptchaId,
-              null,
-              FUNCAPTCHA_VERSION_V2
-            );
-            break;
-          case 'challenge-ready':
-            metricsService.fireInitializedEvent();
-            break;
-          default:
-            break;
-        }
+        handleCaptchaElementEvent(captchaElementEvent);
       } catch (error) {
         // `SyntaxError` is expected if `JSON.parse` fails, which happens if the
         // Arkose API code posts extraneous messages.
@@ -304,85 +307,52 @@ const CaptchaV2: React.FC = () => {
       setCaptchaElementListenerReady(false);
       window.removeEventListener('message', arkoseIframeListener);
     };
-  }, [
-    captchaElement,
-    solveStartTimeStamp,
-    actionType,
-    unifiedCaptchaId,
-    eventService,
-    metricsService,
-    arkoseIframeId,
-    onComplete,
-    onError,
-    onShown
-  ]);
+    // Do NOT add mutable component state dependencies here; this listener
+    // effect should remain stable so as not to lose asynchronous messages
+    // during re-renders.  Use a `ref` or other stable reference instead if
+    // necessary.
+  }, [actionType, eventService, handleCaptchaElementEvent, metricsService, unifiedCaptchaId]);
 
   /*
    * Render Properties
    */
 
-  const encodedDataExchangeBlob = encodeURIComponent(dataExchangeBlob);
+  // The `captchaBody` is displayed conditionally on setting up our event
+  // listener. Once visible, the `iframe` (or an equivalent shim) should take
+  // up as much of its parent as it can without exceeding its parent's size.
   const captchaBody = (
-    // Conditional on `pageLoading` ensures that the `iframe` remains invisible
-    // until we want to explicitly have it shown.
-    // Once visible, the `iframe` will take up as much of its parent as it can
-    // without exceeding its parent's size.
-    <div className='challenge-captcha-body' style={{ height: pageLoading ? 0 : undefined }}>
-      <iframe
-        ref={captchaElement}
-        title='Challenge'
-        id='arkose-iframe'
-        src={`/arkose/iframe?publicKey=${publicKey}&dataExchangeBlob=${encodedDataExchangeBlob}&arkoseIframeId=${arkoseIframeId}${queryStringToPropagate}`}
-        style={{
-          border: 'none',
-          background: 'transparent'
-        }}
+    <div className='challenge-captcha-body'>
+      <ArkoseIframeInlineShim
+        arkoseIframeId={arkoseIframeId}
+        dataExchangeBlob={dataExchangeBlob}
+        handleCaptchaElementEvent={handleCaptchaElementEvent}
+        publicKey={publicKey}
+        queryParameters={queryParametersToPropagate}
+        ref={captchaElementIframeShim}
+        useArkoseModal={!renderInline}
       />
     </div>
   );
-
-  const challengeDone = onChallengeCompletedData || onChallengeInvalidatedData;
 
   /*
    * Component Markup
    */
 
-  return renderInline ? (
-    <InlineChallenge titleText={resources.Description.VerifyingYouAreNotBot}>
-      <InlineChallengeBody>
-        {(pageLoading || !captchaElementListenerReady) && (
-          <span className='spinner spinner-default spinner-no-margin challenge-captcha-body' />
-        )}
-        {captchaElementListenerReady && captchaBody}
-      </InlineChallengeBody>
-    </InlineChallenge>
-  ) : (
-    <Modal
-      className='modal-modern modal-modern-challenge-captcha'
-      show={(isModalVisible || !gotActiveCaptcha) && !challengeDone}
-      // Since we might have passive captcha, we use this CSS hack and the
-      // backdrop setting to keep the modal invisible until we have confirmed
-      // active captcha.
-      style={{
-        display: gotActiveCaptcha ? 'block' : 'none'
-      }}
-      onHide={closeModal}
-      backdrop={gotActiveCaptcha ? 'static' : false}>
-      <Modal.Body>
-        <button
-          type='button'
-          className='challenge-captcha-close-button'
-          onClick={closeModal}
-          disabled={false}>
-          <span className='icon-close' />
-        </button>
-        {(pageLoading || !captchaElementListenerReady) && (
-          <span className='spinner spinner-default spinner-no-margin challenge-captcha-body' />
-        )}
-        {captchaElementListenerReady && captchaBody}
-      </Modal.Body>
-    </Modal>
-  );
+  if (renderInline) {
+    return (
+      <InlineChallenge titleText={resources.Description.VerifyingYouAreNotBot}>
+        <InlineChallengeBody>
+          {(pageLoading || !captchaElementListenerReady) && (
+            <span className='spinner spinner-default spinner-no-margin challenge-captcha-body' />
+          )}
+          {captchaElementListenerReady && captchaBody}
+        </InlineChallengeBody>
+      </InlineChallenge>
+    );
+  }
+
+  // Non-inline; use Arkose modal wrapper.
+  return captchaBody;
 };
 
 export default CaptchaV2;

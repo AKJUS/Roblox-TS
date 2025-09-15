@@ -30,14 +30,14 @@ export enum MetricName {
   SolveTimeRostile = 'solve_time_rostile',
   EventSecurityQuestion = 'event_security_question',
   EventGeneric = 'event_generic',
-  EventReauthentication = 'event_reauthentication',
-  SolveTimeReauthentication = 'solve_time_reauthentication',
   EventDeviceIntegrity = 'event_device_integrity',
   SolveTimeDeviceIntegrity = 'solve_time_device_integrity',
   EventPhoneVerification = 'event_phone_verification',
   SolveTimePhoneVerification = 'solve_time_phone_verification',
   EventEmailVerification = 'event_email_verification',
-  SolveTimeEmailVerification = 'solve_time_email_verification'
+  SolveTimeEmailVerification = 'solve_time_email_verification',
+  EventPersonaLiveness = 'event_persona_liveness',
+  SolveTimePersonaLiveness = 'solve_time_persona_liveness'
 }
 
 export type Metric =
@@ -254,27 +254,6 @@ export type Metric =
       };
     }
   | {
-      name: MetricName.EventReauthentication;
-      value: number;
-      labelValues: {
-        // eslint-disable-next-line camelcase
-        event_type: string;
-        // `reauthentication_type` is the type of reauthentication (OTP_EMAIL, PASSWORD)
-        // eslint-disable-next-line camelcase
-        reauthentication_type: string;
-      };
-    }
-  | {
-      name: MetricName.SolveTimeReauthentication;
-      value: number;
-      labelValues: {
-        // eslint-disable-next-line camelcase
-        event_type: string;
-        // eslint-disable-next-line camelcase
-        reauthentication_type: string;
-      };
-    }
-  | {
       name: MetricName.EventDeviceIntegrity;
       value: number;
       labelValues: {
@@ -344,6 +323,22 @@ export type Metric =
         // such as iOS, Android, etc.
         // eslint-disable-next-line camelcase
         application_type: string;
+      };
+    }
+  | {
+      name: MetricName.EventPersonaLiveness;
+      value: number;
+      labelValues: {
+        // eslint-disable-next-line camelcase
+        event_type: string;
+      };
+    }
+  | {
+      name: MetricName.SolveTimePersonaLiveness;
+      value: number;
+      labelValues: {
+        // eslint-disable-next-line camelcase
+        event_type: string;
       };
     };
 

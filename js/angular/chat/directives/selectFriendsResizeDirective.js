@@ -7,19 +7,20 @@ function selectFriendsResize(chatUtility, $log) {
   return {
     restrict: 'A',
     link(scope, element, attrs) {
-      let heightOfHeader = scope.chatLibrary.layout.topBarHeight;
+      const heightOfHeader = scope.chatLibrary.layout.topBarHeight;
       scope.$watch(
-        function() {
+        function () {
           return element.innerHeight();
         },
-        function(newValue, oldValue) {
+        function (newValue, oldValue) {
           if (newValue && newValue !== oldValue) {
-            var dialogElm = '#' + scope.dialogData.layoutId + ' .dialog-container';
-            var scrollbarElm = '#' + scope.dialogData.layoutId + ' ' + scope.friendsScrollbarElm;
-            let dialogObj = angular.element(dialogElm);
-            let scrollbarObj = angular.element(scrollbarElm);
-            let heightOfDialog; var heightOfScrollbar;
-            var valueExcludedFromHeight =
+            const dialogElm = `#${scope.dialogData.layoutId} .dialog-container`;
+            const scrollbarElm = `#${scope.dialogData.layoutId} ${scope.friendsScrollbarElm}`;
+            const dialogObj = angular.element(dialogElm);
+            const scrollbarObj = angular.element(scrollbarElm);
+            let heightOfDialog;
+            let heightOfScrollbar;
+            let valueExcludedFromHeight =
               heightOfHeader + scope.chatLibrary.layout.detailsActionHeight + newValue;
             if (scope.dialogData.dialogType === chatUtility.dialogType.NEWGROUPCHAT) {
               valueExcludedFromHeight += scope.chatLibrary.layout.detailsInputHeight;

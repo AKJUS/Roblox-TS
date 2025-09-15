@@ -1,6 +1,6 @@
 import {
   ADD_PHONE_SUCCESS_PAGE,
-  PHONE_DISCOVERABILITY_CONSENT_PAGE
+  PHONE_DISCOVERABILITY_CONSENT_V2_PAGE
 } from '../constants/pageConstants';
 import { getPhoneDiscoverabilityPageMetadata } from '../services/phoneDiscoverabilityConsentService';
 
@@ -15,7 +15,7 @@ export const getPhoneVerificationSuccessPageAndAffirmativeConsentPrefill = async
     metadata?.isDiscoverabilitySettingsEnabled === true &&
     metadata?.showDiscoverabilityUpsells === true
   ) {
-    successPage = PHONE_DISCOVERABILITY_CONSENT_PAGE;
+    successPage = PHONE_DISCOVERABILITY_CONSENT_V2_PAGE;
     shouldPrefillAffirmativeDiscoverabilityConsent =
       metadata?.prefillDiscoverabilitySetting === true;
   }

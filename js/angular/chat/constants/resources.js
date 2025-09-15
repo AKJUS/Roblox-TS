@@ -28,7 +28,8 @@ const resources = {
     chatGameIcon: 'chat-game-icon',
     pendingStateTemplate: 'pending-state',
     contactCardTemplate: 'contact-card',
-    osaContextCardTemplate: 'osa-context-card'
+    osaContextCardTemplate: 'osa-context-card',
+    dialogAlertTemplate: 'dialog-alert'
   },
   eventStreamParams: {
     actions: {

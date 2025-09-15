@@ -2,17 +2,11 @@ import React, { useMemo } from 'react';
 import {
   AttributionRow,
   HeroUnit as HeroUnitContainer,
-  OverlayPill
+  OverlayPill,
+  TGradient
 } from '@rbx/discovery-sdui-components';
 import { THeroUnitAsset, TSduiCommonProps } from '../system/SduiTypes';
-
-export type TSduiGradient = {
-  startColor: string;
-  endColor: string;
-  startOpacity: number;
-  endOpacity: number;
-  degree: number;
-};
+import { TSduiParsedAction } from '../system/SduiActionParserRegistry';
 
 type THeroUnitProps = {
   title: string;
@@ -20,18 +14,21 @@ type THeroUnitProps = {
 
   bottomRowComponent?: { string: React.ReactNode };
 
-  gradient: TSduiGradient;
+  gradient: TGradient;
 
   gradientHeightPercent?: number;
   gradientWidthPercent?: number;
 
   // Component containing the foreground image
-  foregroundImage: React.ReactNode;
+  foregroundImage: JSX.Element | null;
 
   // Component containing the background image
-  backgroundImage: React.ReactNode;
+  backgroundImage: JSX.Element | null;
 
-  onActivated?: () => void;
+  // Component containing the title image
+  titleImage?: JSX.Element | null;
+
+  onActivated?: TSduiParsedAction;
 
   badgeText?: string;
 
@@ -41,6 +38,12 @@ type THeroUnitProps = {
 
   minForegroundHeightPercent?: number;
   maxForegroundHeightPercent?: number;
+
+  titleImageAspectRatio?: number;
+  titleImageHeightPercentage?: number;
+  minCardHeight?: number;
+
+  foregroundAspectRatio?: number;
 
   /**
   TODO https://roblox.atlassian.net/browse/CLIGROW-2197:
@@ -54,7 +57,6 @@ type THeroUnitProps = {
   hideSubtitle?: boolean;
   foregroundOverflow?: number;
   backgroundOverflow?: number;
-  foregroundAspectRatio?: number;
 
   contentPadding?: number;
   */
@@ -63,8 +65,10 @@ type THeroUnitProps = {
   };
 
 const HeroUnit = ({
+  sduiContext,
   title,
   subtitle,
+  titleImage,
   bottomRowComponent,
   gradient,
   gradientHeightPercent,
@@ -77,22 +81,32 @@ const HeroUnit = ({
   ctaButtonComponent,
   minForegroundHeightPercent,
   maxForegroundHeightPercent,
+  titleImageAspectRatio,
+  titleImageHeightPercentage,
+  minCardHeight,
+  foregroundAspectRatio,
   children
 }: THeroUnitProps): JSX.Element => {
   const attributionRow = useMemo(() => {
+    const { tokens } = sduiContext.dependencies;
     if (asset) {
       return (
         <AttributionRow
           title={asset.title}
+          titleFontStyle={tokens.Typography.TitleMedium}
           subtitle={asset.subtitle}
-          leftAssetComponent={asset.image}
-          rightButtonComponent={ctaButtonComponent}
+          subtitleFontStyle={tokens.Typography.BodyMedium}
+          imageComponent={asset.image}
+          rightButtonContent={ctaButtonComponent}
+          subtitleMaxLines={1}
+          textColor='white'
+          height={40}
         />
       );
     }
 
     return <React.Fragment />;
-  }, [asset, ctaButtonComponent]);
+  }, [asset, ctaButtonComponent, sduiContext]);
 
   const overlayComponent = useMemo(() => {
     if (badgeText) {
@@ -102,21 +116,51 @@ const HeroUnit = ({
     return <React.Fragment />;
   }, [badgeText]);
 
+  const finalGradientHeightPercent = useMemo(() => {
+    if (gradientHeightPercent !== undefined) {
+      return gradientHeightPercent;
+    }
+    if (gradient.degree === 0 || gradient.degree === 180) {
+      return 1;
+    }
+    return 0.5;
+  }, [gradientHeightPercent, gradient]);
+
+  const finalGradientWidthPercent = useMemo(() => {
+    if (gradientWidthPercent !== undefined) {
+      return gradientWidthPercent;
+    }
+    if (gradient.degree === 0 || gradient.degree === 180) {
+      return 0.5;
+    }
+    return 1;
+  }, [gradientWidthPercent, gradient]);
+
   const heroUnit = useMemo(() => {
     return (
       <HeroUnitContainer
         title={title}
         subtitle={subtitle}
+        titleImageComponent={titleImage}
         foregroundImageComponent={foregroundImage}
         backgroundImageComponent={backgroundImage}
-        gradient={gradient}
-        gradientHeightPercent={gradientHeightPercent}
-        gradientWidthPercent={gradientWidthPercent}
+        gradient={{
+          ...gradient,
+          heightPercent: finalGradientHeightPercent,
+          widthPercent: finalGradientWidthPercent
+        }}
+        gradientHeightPercent={finalGradientHeightPercent}
+        gradientWidthPercent={finalGradientWidthPercent}
         overlayPillComponent={overlayComponent}
-        backgroundClickAction={onActivated}
+        backgroundClickAction={onActivated?.onActivated}
+        backgroundClickLinkPath={onActivated?.linkPath}
         bottomRowComponent={bottomRowComponent ?? attributionRow}
         minForegroundHeightPercent={minForegroundHeightPercent}
-        maxForegroundHeightPercent={maxForegroundHeightPercent}>
+        maxForegroundHeightPercent={maxForegroundHeightPercent}
+        titleImageAspectRatio={titleImageAspectRatio}
+        titleImageHeightPercentage={titleImageHeightPercentage}
+        minCardHeight={minCardHeight}
+        foregroundAspectRatio={foregroundAspectRatio}>
         {children}
       </HeroUnitContainer>
     );
@@ -127,14 +171,19 @@ const HeroUnit = ({
     attributionRow,
     foregroundImage,
     gradient,
-    gradientHeightPercent,
-    gradientWidthPercent,
+    finalGradientHeightPercent,
+    finalGradientWidthPercent,
     subtitle,
     title,
+    titleImage,
     children,
     overlayComponent,
     minForegroundHeightPercent,
-    maxForegroundHeightPercent
+    maxForegroundHeightPercent,
+    titleImageAspectRatio,
+    titleImageHeightPercentage,
+    minCardHeight,
+    foregroundAspectRatio
   ]);
 
   return heroUnit;

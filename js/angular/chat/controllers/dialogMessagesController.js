@@ -3,15 +3,12 @@ import chatModule from '../chatModule';
 function dialogMessagesController($scope, $log, messageUtility, chatUtility) {
   'ngInject';
 
-  $scope.canRenderMessage = function(message) {
+  $scope.canRenderMessage = function (message) {
     if (message.sendingMessage) {
       return true;
     }
 
-    return (
-      message.isSystemMessage ||
-      messageUtility.isMessageTypeLegal(message)
-    );
+    return message.isSystemMessage || messageUtility.isMessageTypeLegal(message);
   };
 
   $scope.isMessageOutgoingTrustedComms = function (message) {

@@ -54,7 +54,7 @@ const getGuildedUrl = (isProduction: boolean, domain: string) => {
     return "https://tarobi-dev-test.com";
   }
   if (domain === "sitetest2" || domain === "sitetest3") {
-    return "https://tarobi-dev-sandbox.com/";
+    return "https://tarobi-dev-sandbox.com";
   }
   return "https://tarobi-dev-test.com";
 };
@@ -118,12 +118,12 @@ const environmentUrls = {
   screenTimeApi: "https://apis.rcs.roblox.com/screen-time-api",
   shareApi: `https://share.${rootDomain}`,
   shareLinksApi: `https://apis.${rootDomain}/sharelinks`,
+  shareLinksApiV2: `https://apis.${rootDomain}/deeplinks`,
   showcasesApi: `https://apis.${rootDomain}/showcases-api`,
   thumbnailsApi: `https://thumbnails.${rootDomain}`,
   tradesApi: `https://trades.${rootDomain}`,
   translationRolesApi: `https://translationroles.${rootDomain}`,
   twoStepVerificationApi: `https://twostepverification.${rootDomain}`,
-  universalAppConfigurationApi: `https://apis.${rootDomain}/universal-app-configuration`,
   userAgreementsServiceApi: `https://apis.${rootDomain}/user-agreements`,
   userModerationApi: `https://usermoderation.${rootDomain}`,
   usersApi: `https://users.${rootDomain}`,

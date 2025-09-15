@@ -1,5 +1,7 @@
 import { Brand } from "@rbx/core-types";
+import environmentUrls from "@rbx/environment-urls";
 import queryString, { ParsedQuery } from "query-string";
+import normalizeUrl from "normalize-url";
 import * as endpoints from "../../endpoints";
 
 export const parseUrlAndQueryString = queryString.parseUrl;
@@ -125,5 +127,42 @@ export const isValidHttpUrl = (urlString: string): urlString is ValidHttpUrl => 
 
 export const isValidStripeCheckoutUrl = (urlString: string): urlString is ValidStripeCheckoutUrl =>
   isValidHttpUrl(urlString) && urlString.includes("checkout.stripe.com");
-
+/*
+ * This function is for a URL safety check.
+ * It should be implemented to ensure that the URL is safe to use.
+ * For example, it could check for malicious content or ensure that the URL
+ * does not lead to a phishing site, or trigger unwanted scripts
+ * Doc for normalizeUrl can be found here:
+ * https://github.com/sindresorhus/normalize-url
+ * @param urlString - The URL string to check for safety.
+ * @returns A URL that is safe to use in Roblox.
+ */
+export const urlSafetyValidation = (urlString: string): URL | undefined => {
+  let normalizedUrl: string;
+  try {
+    // Only allow https protocol by default
+    normalizedUrl = normalizeUrl(urlString, { defaultProtocol: "https", stripWWW: false });
+  } catch {
+    // If normalization fails, return undefined
+    return undefined;
+  }
+  if (!isValidHttpUrl(normalizedUrl)) {
+    return undefined;
+  }
+  // Ensure the domain is a Roblox domain
+  const urlObject = new URL(normalizedUrl);
+  const { domain } = environmentUrls;
+  // domain can be different length for different environments, e.g., roblox.com vs. sitetest1.robloxlab.com
+  // Extract the same length of domain from the hostname (e.g., sub.example.com -> example.com)
+  const robloxDomainParts = domain.split(".");
+  const hostnameParts = urlObject.hostname.split(".");
+  const urlDomain =
+    hostnameParts.length >= robloxDomainParts.length
+      ? hostnameParts.slice(-robloxDomainParts.length).join(".")
+      : urlObject.hostname;
+  if (urlDomain !== domain) {
+    return undefined;
+  }
+  return urlObject;
+};
 export * from "./url";

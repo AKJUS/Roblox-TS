@@ -1,23 +1,31 @@
 import React, { useMemo } from 'react';
 import SduiComponent from './SduiComponent';
 import { parseProps } from './parseProps';
-import { isValidSduiComponentConfig } from './SduiParsers';
+import { isValidParsedSduiComponentConfig } from './SduiParsers';
 import logSduiError, { SduiErrorNames } from '../utils/logSduiError';
-import { TAnalyticsContext, TAnalyticsData, TServerDrivenComponentConfig } from './SduiTypes';
+import {
+  TAnalyticsContext,
+  TAnalyticsData,
+  TRenderedSduiComponentConfig,
+  TSduiContext,
+  TServerDrivenComponentConfig
+} from './SduiTypes';
 
 const generateReactChildren = (
-  componentConfig: TServerDrivenComponentConfig,
-  parentAnalyticsContext: TAnalyticsContext
+  componentConfig: TRenderedSduiComponentConfig,
+  parentAnalyticsContext: TAnalyticsContext,
+  sduiContext: TSduiContext
 ): JSX.Element[] | null => {
   if (componentConfig.children) {
     return componentConfig.children.map(
-      (childConfig: TServerDrivenComponentConfig, index): JSX.Element => {
-        const id = `${childConfig.componentType}-${index}`;
+      (childConfig: TServerDrivenComponentConfig, index: number): JSX.Element => {
+        const id = `${childConfig.componentType ?? 'undefined'}-${index}`;
         return (
           <SduiComponent
             key={id}
             componentConfig={childConfig}
             parentAnalyticsContext={parentAnalyticsContext}
+            sduiContext={sduiContext}
           />
         );
       }
@@ -28,7 +36,7 @@ const generateReactChildren = (
 };
 
 const buildAnalyticsContext = (
-  componentConfig: TServerDrivenComponentConfig,
+  componentConfig: TRenderedSduiComponentConfig,
   parentAnalyticsContext: TAnalyticsContext,
   localAnalyticsData?: TAnalyticsData
 ): TAnalyticsContext => {
@@ -57,20 +65,24 @@ const buildAnalyticsContext = (
 };
 
 const buildReactPropsAndChildren = (
-  componentConfig: TServerDrivenComponentConfig,
+  componentConfig: TRenderedSduiComponentConfig,
   parentAnalyticsContext: TAnalyticsContext,
+  sduiContext: TSduiContext,
   localAnalyticsData?: TAnalyticsData,
-  responsivePropOverrides?: Record<string, unknown>
+  extraLocalProps?: Record<string, unknown>,
+  responsivePropOverrides?: Record<string, unknown>,
+  conditionalPropOverrides?: Record<string, unknown>
 ): {
   props: Record<string, unknown>;
   children: React.ReactNode;
 } => {
-  if (!isValidSduiComponentConfig(componentConfig)) {
+  if (!isValidParsedSduiComponentConfig(componentConfig)) {
     logSduiError(
       SduiErrorNames.SduiComponentBuildPropsAndChildrenInvalidConfig,
       `Invalid component config ${JSON.stringify(
         componentConfig
-      )} to build React props and children`
+      )} to build React props and children`,
+      sduiContext.pageContext
     );
 
     return {
@@ -90,13 +102,16 @@ const buildReactPropsAndChildren = (
   const reactProps = {
     ...componentConfig.props,
     componentConfig,
+    sduiContext,
     analyticsContext: builtAnalyticsContext,
-    ...responsivePropOverrides
+    ...extraLocalProps,
+    ...responsivePropOverrides,
+    ...conditionalPropOverrides
   };
 
-  const parsedProps = parseProps(componentType, reactProps, builtAnalyticsContext);
+  const parsedProps = parseProps(componentType, reactProps, builtAnalyticsContext, sduiContext);
 
-  const reactChildren = generateReactChildren(componentConfig, builtAnalyticsContext);
+  const reactChildren = generateReactChildren(componentConfig, builtAnalyticsContext, sduiContext);
 
   return {
     props: parsedProps,
@@ -105,14 +120,20 @@ const buildReactPropsAndChildren = (
 };
 
 // Expected input to wrapper / prop parsing operations
-export type TSduiComponentProps = {
-  componentConfig: TServerDrivenComponentConfig;
+export type TSduiComponentWrapperProps = {
+  componentConfig: TRenderedSduiComponentConfig;
 
   parentAnalyticsContext: TAnalyticsContext;
 
+  sduiContext: TSduiContext;
+
   localAnalyticsData?: TAnalyticsData;
 
+  extraLocalProps?: Record<string, unknown>;
+
   responsivePropOverrides?: Record<string, unknown>;
+
+  conditionalPropOverrides?: Record<string, unknown>;
 };
 
 /**
@@ -121,24 +142,31 @@ export type TSduiComponentProps = {
  * The wrapper maps the componentConfig and server props to the React props and children
  * that the wrapped component is expecting to receive
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const wrapComponentForSdui = (component: React.FC<any>): React.FC<TSduiComponentProps> => {
-  const WrappedComponent = React.memo((sduiProps: TSduiComponentProps) => {
+export const wrapComponentForSdui = (
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  component: React.FC<any>
+): React.FC<TSduiComponentWrapperProps> => {
+  const WrappedComponent = React.memo((sduiProps: TSduiComponentWrapperProps) => {
     return useMemo(() => {
       const { props, children } = buildReactPropsAndChildren(
         sduiProps.componentConfig,
         sduiProps.parentAnalyticsContext,
+        sduiProps.sduiContext,
         sduiProps.localAnalyticsData,
-        sduiProps.responsivePropOverrides
+        sduiProps.extraLocalProps,
+        sduiProps.responsivePropOverrides,
+        sduiProps.conditionalPropOverrides
       );
 
       return React.createElement(component, props, children);
     }, [
       sduiProps.componentConfig,
-      component,
       sduiProps.parentAnalyticsContext,
+      sduiProps.sduiContext,
       sduiProps.localAnalyticsData,
-      sduiProps.responsivePropOverrides
+      sduiProps.extraLocalProps,
+      sduiProps.responsivePropOverrides,
+      sduiProps.conditionalPropOverrides
     ]);
   });
 

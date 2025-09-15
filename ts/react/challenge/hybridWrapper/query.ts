@@ -2,10 +2,13 @@
 import { UrlParser } from 'Roblox';
 import { fido2Util } from 'core-roblox-utilities';
 import * as z from 'zod';
+import * as Option from 'fp-ts/Option';
+import { pipe } from 'fp-ts/lib/function';
+import * as NewChallengeMiddleware from '@rbx/generic-challenges';
+import * as NewChallengeTypes from '@rbx/generic-challenge-types';
 import { ActionType } from '../captcha/interface';
 import * as Generic from '../generic';
 import { ChallengeSpecificProperties, ChallengeType } from '../generic/interface';
-import { ReauthenticationType } from '../reauthentication/interface';
 import * as ProofOfSpace from '../proofOfSpace/interface';
 import * as Rostile from '../rostile/interface';
 import * as TwoStepVerification from '../twoStepVerification';
@@ -39,7 +42,8 @@ enum QueryParameterKey {
   AVAILABLE_TYPES = 'available-types',
   DEFAULT_TYPE_METADATA_JSON = 'default-type-metadata-json',
   GENERIC_CHALLENGE_ID = 'generic-challenge-id',
-  ORIGIN = 'origin'
+  ORIGIN = 'origin',
+  BIOMETRIC_TYPE = 'biometric-type'
 }
 
 /**
@@ -201,50 +205,6 @@ export const readQueryParametersForSecurityQuestions = (): QueryParametersForSec
   return result.data;
 };
 
-const QueryParametersForReauthenticationValidator = z.object({
-  defaultType: z.nativeEnum(ReauthenticationType),
-  availableTypes: z.array(z.nativeEnum(ReauthenticationType)),
-  defaultTypeMetadataJSON: z.string().optional()
-});
-
-export type QueryParametersForReauthentication = z.infer<
-  typeof QueryParametersForReauthenticationValidator
->;
-
-export const readQueryParametersForReauthentication = (): QueryParametersForReauthentication | null => {
-  const queryParameters = UrlParser.getParametersAsObject();
-  const queryParametersRenamed: Record<
-    keyof QueryParametersForReauthentication,
-    string | Array<string>
-  > = {
-    defaultType: queryParameters[QueryParameterKey.DEFAULT_TYPE],
-    availableTypes: queryParameters[QueryParameterKey.AVAILABLE_TYPES].split(','),
-    defaultTypeMetadataJSON: queryParameters[QueryParameterKey.DEFAULT_TYPE_METADATA_JSON]
-  };
-
-  const result = QueryParametersForReauthenticationValidator.safeParse(queryParametersRenamed);
-  if (!result.success) {
-    console.error(LOG_PREFIX, result.error);
-    return null;
-  }
-
-  const { defaultType, availableTypes, defaultTypeMetadataJSON } = result.data;
-
-  if (defaultTypeMetadataJSON === undefined) {
-    return result.data;
-  }
-  const defaultTypeMetadataJsonDecoded = decodeBase64Url(defaultTypeMetadataJSON);
-  if (defaultTypeMetadataJsonDecoded === null) {
-    return null;
-  }
-
-  return {
-    defaultType,
-    availableTypes,
-    defaultTypeMetadataJSON: defaultTypeMetadataJsonDecoded
-  };
-};
-
 const QueryParametersForProofOfWorkValidator = z.object({
   sessionId: z.string()
 });
@@ -350,6 +310,31 @@ export const readQueryParametersForDeviceIntegrity = (): QueryParametersForDevic
   return result.data;
 };
 
+const QueryParametersForBiometricValidator = z.object({
+  challengeId: z.string(),
+  biometricType: z.string()
+});
+
+export type QueryParametersForBiometric = z.infer<typeof QueryParametersForBiometricValidator>;
+/**
+ * Reads query parameters to render a hybrid biometric challenge.
+ */
+export const readQueryParametersForBiometric = (): QueryParametersForBiometric | null => {
+  const queryParameters = UrlParser.getParametersAsObject();
+  const queryParametersRenamed: Record<keyof QueryParametersForBiometric, string> = {
+    challengeId: queryParameters[QueryParameterKey.CHALLENGE_ID],
+    biometricType: queryParameters[QueryParameterKey.BIOMETRIC_TYPE]
+  };
+
+  const result = QueryParametersForBiometricValidator.safeParse(queryParametersRenamed);
+  if (!result.success) {
+    console.error(LOG_PREFIX, result.error);
+    return null;
+  }
+
+  return result.data;
+};
+
 const QueryParametersForProofOfSpaceValidator = z.object({
   challengeId: z.string(),
   artifacts: z.object({
@@ -391,7 +376,10 @@ const QueryParametersForGenericChallengeValidator = z.object({
   // This is the `generic-challenge-type` query parameter rather than the plain
   // `challenge-type` parameter. The latter will just be `generic` for a generic
   // challenge.
-  challengeType: z.nativeEnum(ChallengeType),
+  challengeType: z.union([
+    z.nativeEnum(NewChallengeTypes.ChallengeType),
+    z.nativeEnum(ChallengeType)
+  ]),
   challengeMetadataJson: z.string()
 });
 
@@ -424,9 +412,21 @@ export const readQueryParametersForGenericChallenge = (): ChallengeSpecificPrope
     return null;
   }
 
-  return Generic.parseChallengeSpecificProperties(
-    challengeId,
-    challengeType,
-    challegeMetadataJsonDecoded
+  return pipe(
+    Generic.parseChallengeSpecificProperties(
+      challengeId,
+      challengeType,
+      challegeMetadataJsonDecoded
+    ),
+    Option.fromNullable,
+    Option.alt(
+      () =>
+        (NewChallengeMiddleware.parseChallengeSpecificProperties(
+          challengeId,
+          challengeType,
+          challegeMetadataJsonDecoded
+        ) as unknown) as Option.Option<ChallengeSpecificProperties>
+    ),
+    Option.getOrElseW(() => null)
   );
 };

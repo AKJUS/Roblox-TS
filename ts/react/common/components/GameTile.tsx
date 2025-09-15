@@ -24,9 +24,9 @@ export type TGameTileProps = TSharedGameTileProps & {
   friendData?: TGetFriendsResponse[];
   className?: string;
   page?: PageContext;
-  shouldShowMetadata?: boolean;
   isOnScreen?: boolean;
   isSponsoredFooterAllowed?: boolean;
+  hideTileMetadata?: boolean;
   hoverStyle?: THoverStyle;
   translate: TranslateFunction;
 };
@@ -41,7 +41,7 @@ export const GameTile = forwardRef<HTMLDivElement, TGameTileProps>(
       className = 'grid-item-container game-card-container',
       friendData = [],
       isOnScreen = true,
-      shouldShowMetadata = true,
+      hideTileMetadata = false,
       isSponsoredFooterAllowed = false,
       topicId,
       translate
@@ -73,7 +73,7 @@ export const GameTile = forwardRef<HTMLDivElement, TGameTileProps>(
     }, [friendsInGame, gameDetails]);
 
     const getGameTileContent = (): JSX.Element => {
-      if (!shouldShowMetadata) {
+      if (hideTileMetadata) {
         return <React.Fragment />;
       }
 

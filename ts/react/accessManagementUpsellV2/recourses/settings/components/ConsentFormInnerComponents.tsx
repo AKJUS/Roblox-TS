@@ -4,7 +4,7 @@ import ConsentFormType from '../enums/ConsentFormType';
 export interface ConsentFormProps {
   isChecked?: boolean;
   setIsChecked?: (checked: boolean) => void;
-  wordsOfConsent: React.ReactNode;
+  wordsOfConsent: string;
 }
 
 // Checkbox Consent Form
@@ -13,7 +13,7 @@ const CheckboxConsentForm: React.FC<ConsentFormProps> = ({
   setIsChecked,
   wordsOfConsent
 }) => (
-  <React.Fragment>
+  <div className='small text'>
     <input
       id='consent-checkbox'
       type='checkbox'
@@ -23,7 +23,7 @@ const CheckboxConsentForm: React.FC<ConsentFormProps> = ({
     <label htmlFor='consent-checkbox' className='checkbox-label'>
       {wordsOfConsent}
     </label>
-  </React.Fragment>
+  </div>
 );
 CheckboxConsentForm.displayName = 'CheckboxConsentForm';
 

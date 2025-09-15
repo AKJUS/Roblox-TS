@@ -18,6 +18,7 @@ import useTwoStepVerificationContext from '../hooks/useTwoStepVerificationContex
 import { TwoStepVerificationActionType } from '../store/action';
 
 type Props = {
+  userEmailCopy: string;
   requestInFlight: boolean;
   setRequestInFlight: React.Dispatch<React.SetStateAction<boolean>>;
   // eslint-disable-next-line react/require-default-props
@@ -27,7 +28,12 @@ type Props = {
 /**
  * A container element for the email code input UI.
  */
-const EmailInput: React.FC<Props> = ({ requestInFlight, setRequestInFlight, children }: Props) => {
+const EmailInput: React.FC<Props> = ({
+  requestInFlight,
+  setRequestInFlight,
+  userEmailCopy,
+  children
+}: Props) => {
   const {
     state: {
       userId,
@@ -127,7 +133,9 @@ const EmailInput: React.FC<Props> = ({ requestInFlight, setRequestInFlight, chil
 
   const BodyElement = renderInline ? InlineChallengeBody : Modal.Body;
   const FooterElement = renderInline ? InlineChallengeFooter : FragmentModalFooter;
-  const lockIconClassName = renderInline ? 'inline-challenge-lock-icon' : 'modal-lock-icon';
+  const lockIconClassName = renderInline
+    ? 'inline-challenge-protection-shield-icon'
+    : 'modal-protection-shield-icon';
   const marginBottomClassName = renderInline
     ? 'inline-challenge-margin-bottom'
     : 'modal-margin-bottom';
@@ -144,7 +152,7 @@ const EmailInput: React.FC<Props> = ({ requestInFlight, setRequestInFlight, chil
       <React.Fragment>
         <BodyElement>
           <div className={lockIconClassName} />
-          <p className={marginBottomXLargeClassName}>{resources.Label.EnterEmailCode}</p>
+          <p className={marginBottomXLargeClassName}>{userEmailCopy}</p>
 
           <InputControl
             id='two-step-verification-code-input'

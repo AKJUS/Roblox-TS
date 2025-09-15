@@ -24,6 +24,13 @@ function chatBarController($scope, $log, chatClientStorageUtilityService, chatUt
     $scope.updateUnreadConversationCount();
     $scope.chatLibrary.chatLayout.chatBarInitialized = true;
     $scope.saveChatBarLayoutInCookie();
+    if (
+      !$scope.chatLibrary.chatLayout.collapsed &&
+      $scope.getIsChatEnabled() &&
+      !$scope.chatLibrary.hasChatLandingLoaded
+    ) {
+      $scope.initializeChatLanding();
+    }
   };
 
   $scope.isChatDisconnected = function () {
@@ -40,7 +47,7 @@ function chatBarController($scope, $log, chatClientStorageUtilityService, chatUt
     return chatLandingEnabled || !$scope.getIsChatEnabled();
   };
 
-  $scope.getIsChatEnabled = function() {
+  $scope.getIsChatEnabled = function () {
     return chatUtility.getIsChatEnabled($scope.chatLibrary);
   };
 

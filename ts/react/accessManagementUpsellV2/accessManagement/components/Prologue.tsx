@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { IModalService } from 'react-style-guide';
 import { useSelector } from 'react-redux';
 import { Recourse, UpsellStage } from '../../enums';
+import ExpNewChildModal from '../../enums/ExpNewChildModal';
 import {
   setVerificationStageRecourse,
   setStage,
@@ -16,11 +17,13 @@ import IdvPrologue from './DefaultPrologue/IdvPrologue';
 const Prologue = ({
   translate,
   onHide,
-  recourseParameters
+  recourseParameters,
+  expChildModalType
 }: {
   translate: TranslateFunction;
   onHide: () => void;
   recourseParameters?: Record<string, string> | null;
+  expChildModalType?: ExpNewChildModal;
 }): JSX.Element => {
   // Trigger the opening of the error modal in response to a user action or effect
   const dispatch = useAppDispatch();
@@ -38,7 +41,8 @@ const Prologue = ({
         [prologueModal, prologueModelService] = VpcPrologue({
           translate,
           onHide,
-          recourseParameters
+          recourseParameters,
+          expChildModalType
         });
         break;
       case Recourse.GovernmentId:

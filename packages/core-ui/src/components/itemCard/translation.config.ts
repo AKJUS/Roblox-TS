@@ -1,4 +1,1 @@
-export default {
-  common: [""],
-  feature: "Feature.Catalog",
-};
+export default ["Feature.Catalog"];

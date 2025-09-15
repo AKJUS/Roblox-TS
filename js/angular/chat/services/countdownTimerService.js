@@ -4,7 +4,7 @@ function countdownTimerService($timeout) {
   'ngInject';
 
   return {
-    start: function (endTimestamp, onTick) {
+    start(endTimestamp, onTick) {
       const ref = {};
 
       const initialize = function () {
@@ -49,21 +49,20 @@ function countdownTimerService($timeout) {
 
       return ref;
     },
-    cancel: function (ref) {
+    cancel(ref) {
       $timeout.cancel(ref?.timeout);
       delete ref?.timeout;
     },
     // formats a duration in hh:mm:ss format
-    format: function (duration) {
+    format(duration) {
       const hours = Math.floor(duration / 3600);
       const minutes = Math.floor((duration % 3600) / 60);
       const seconds = duration % 60;
 
       if (hours > 0) {
         return `${hours}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-      } else {
-        return `${minutes}:${String(seconds).padStart(2, '0')}`;
       }
+      return `${minutes}:${String(seconds).padStart(2, '0')}`;
     }
   };
 }

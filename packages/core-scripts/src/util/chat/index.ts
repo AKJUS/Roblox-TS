@@ -2,8 +2,10 @@ import $ from "jquery";
 import { getDeviceMeta } from "@rbx/core-scripts/meta/device";
 import { sendEventWithTarget } from "../../event-stream";
 
-export const startDesktopAndMobileWebChat = ({ userId }: { userId?: number }): void => {
-  if (userId) {
+export const startDesktopAndMobileWebChat = ({ userId }: { userId: number | string }): void => {
+  // JS can call this function
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  if (userId != null) {
     const deviceType = getDeviceMeta();
     if (deviceType?.isAndroidApp) {
       window.location.href = `roblox://navigation/chat?userId=${userId}&entryPoint=AppShellWebView`;
@@ -20,7 +22,6 @@ export const startDesktopAndMobileWebChat = ({ userId }: { userId?: number }): v
     }
     sendEventWithTarget("startChatByUser", "click", { userId });
   } else {
-    // eslint-disable-next-line no-console
-    console.log("missing valid params to start web chat");
+    console.error("missing valid params to start web chat");
   }
 };

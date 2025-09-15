@@ -12,15 +12,15 @@ function dialogMinimize(chatUtility, resources, $log) {
     },
     templateUrl: resources.templates.dialogMinimizeTemplate,
     link(scope, element, attrs) {
-      var updatePosition = function() {
-        let {chatLayout} = scope.chatLibrary;
-        let numberOfOpenDialogs = scope.chatLibrary.dialogIdList.length;
-        let widthOfChatContainer = chatLayout.widthOfChat;
-        var widthOfDialogs = chatUtility.calculateRightPosition(
+      const updatePosition = function () {
+        const { chatLayout } = scope.chatLibrary;
+        const numberOfOpenDialogs = scope.chatLibrary.dialogIdList.length;
+        const widthOfChatContainer = chatLayout.widthOfChat;
+        const widthOfDialogs = chatUtility.calculateRightPosition(
           scope.chatLibrary,
           numberOfOpenDialogs
         );
-        let right = +widthOfChatContainer + widthOfDialogs + chatLayout.spaceOfDialog;
+        const right = +widthOfChatContainer + widthOfDialogs + chatLayout.spaceOfDialog;
         element.css('right', right);
       };
 
@@ -28,23 +28,23 @@ function dialogMinimize(chatUtility, resources, $log) {
       scope.chatLibrary.hasMinimizedDialogs = false;
       scope.layoutIdHasClicked = false;
 
-      scope.openDialog = function(layoutId) {
-        $log.debug(' -------------------openDialog------------------ ' + layoutId);
-        let lastLayoutId = scope.chatLibrary.dialogIdList.pop();
+      scope.openDialog = function (layoutId) {
+        $log.debug(` -------------------openDialog------------------ ${layoutId}`);
+        const lastLayoutId = scope.chatLibrary.dialogIdList.pop();
         scope.chatLibrary.dialogDict[lastLayoutId].isUpdated = true;
         scope.chatLibrary.dialogDict[lastLayoutId].updateStatus = chatUtility.dialogStatus.MINIMIZE;
         scope.chatLibrary.dialogIdList.push(layoutId);
         scope.chatLibrary.dialogDict[layoutId].isUpdated = true;
         scope.chatLibrary.dialogDict[layoutId].updateStatus = chatUtility.dialogStatus.REPLACE;
-        let position = scope.chatLibrary.minimizedDialogIdList.indexOf(layoutId);
+        const position = scope.chatLibrary.minimizedDialogIdList.indexOf(layoutId);
         if (position > -1) {
           scope.chatLibrary.minimizedDialogIdList.splice(position, 1);
           delete scope.chatLibrary.minimizedDialogData[layoutId];
         }
       };
 
-      scope.remove = function(layoutId) {
-        let position = scope.chatLibrary.minimizedDialogIdList.indexOf(layoutId);
+      scope.remove = function (layoutId) {
+        const position = scope.chatLibrary.minimizedDialogIdList.indexOf(layoutId);
         if (position > -1) {
           scope.chatLibrary.minimizedDialogIdList.splice(position, 1);
           delete scope.chatLibrary.minimizedDialogData[layoutId];
@@ -59,10 +59,10 @@ function dialogMinimize(chatUtility, resources, $log) {
       );
 
       scope.$watch(
-        function() {
+        function () {
           return scope.chatLibrary.minimizedDialogIdList;
         },
-        function(newValue, oldValue) {
+        function (newValue, oldValue) {
           if (!angular.isUndefined(newValue) && newValue != oldValue) {
             $log.debug('------ watch minimizedDialogIdList ----- ');
             if (newValue.length > 0) {
@@ -79,12 +79,12 @@ function dialogMinimize(chatUtility, resources, $log) {
       );
 
       scope.$watch(
-        function() {
+        function () {
           return scope.chatLibrary.chatLayout.areDialogsUpdated;
         },
-        function(newValue, oldValue) {
+        function (newValue, oldValue) {
           if (newValue && newValue !== oldValue) {
-            scope.$evalAsync(function() {
+            scope.$evalAsync(function () {
               scope.chatLibrary.chatLayout.areDialogsUpdated = false;
             });
             updatePosition();

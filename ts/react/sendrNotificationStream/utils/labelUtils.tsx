@@ -12,7 +12,8 @@ type TextSlice = {
 };
 
 const FormatMapping: { [format: string]: (e: JSX.Element, key: number) => JSX.Element } = {
-  highlight: highlightElement
+  highlight: highlightElement,
+  warning: highlightElement
 };
 
 // Takes a StyledText object and returns the array of styled JSX elements

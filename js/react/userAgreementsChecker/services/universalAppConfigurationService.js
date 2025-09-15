@@ -1,9 +1,7 @@
-import { httpService } from 'core-utilities';
-import urlConstants from '../constants/urlConstants';
+import { Guac } from 'Roblox';
 
 export default {
   getCooldownPeriodInMs() {
-    const urlConfig = urlConstants.getCooldownPeriodInMsConfig();
-    return httpService.get(urlConfig);
+    return Guac.callBehaviour('user-agreements-policy');
   }
 };

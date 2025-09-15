@@ -3,7 +3,7 @@ import chatModule from '../chatModule';
 function userConversationInfoController($scope, $log, resources, eventStreamService) {
   'ngInject';
 
-  $scope.hasGameAlbum = function() {
+  $scope.hasGameAlbum = function () {
     let count = 0;
     let pinGameId = null;
     if ($scope.chatUser.pinGame) {
@@ -28,7 +28,7 @@ function userConversationInfoController($scope, $log, resources, eventStreamServ
     );
   };
 
-  $scope.openGameList = function() {
+  $scope.openGameList = function () {
     if ($scope.hoverPopoverParams && !$scope.hoverPopoverParams.isOpen) {
       const eventType = resources.eventStreamParams.openGameListInPlayTogether;
       const properties = {
@@ -41,17 +41,17 @@ function userConversationInfoController($scope, $log, resources, eventStreamServ
       );
     }
   };
-  $scope.setupHoverPopover = function() {
+  $scope.setupHoverPopover = function () {
     $scope.hoverPopoverParams = { ...resources.hoverPopoverParams };
     $scope.hoverPopoverParams.triggerSelector = `.chat-friend-${$scope.chatUser.id}`;
     $scope.hoverPopoverParams.hoverPopoverSelector = `.game-list-${$scope.chatUser.id}`;
   };
 
-  $scope.shouldShowUnread = function() {
+  $scope.shouldShowUnread = function () {
     return $scope.chatUser && $scope.chatUser.hasUnreadMessages && !$scope.chatUser.isUserPending;
   };
 
-  $scope.init = function() {
+  $scope.init = function () {
     $scope.gamesListTemplateUrl = resources.templates.gamesList;
     $scope.setupHoverPopover();
   };

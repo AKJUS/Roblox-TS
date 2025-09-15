@@ -25,6 +25,7 @@ import { usePageSession } from '../../common/utils/PageSessionContext';
 import GamesInfoTooltip from '../../common/components/GamesInfoTooltip';
 import { CommonGameSorts } from '../../common/constants/translationConstants';
 import { homePage } from '../../common/constants/configConstants';
+import HomeSortHeader from '../../common/components/HomeSortHeader';
 
 type THomePageGridDiscoveryApiProps = {
   gameData: TGameData[];
@@ -38,7 +39,9 @@ type THomePageGridDiscoveryApiProps = {
   itemsPerRow?: number;
   startingRow: number | undefined;
   isSponsoredFooterAllowed?: boolean;
+  hideTileMetadata?: boolean;
   isExpandHomeContentEnabled?: boolean;
+  isNewSortHeaderEnabled?: boolean;
   translate: WithTranslationsProps['translate'];
 };
 
@@ -54,7 +57,9 @@ export const HomePageGrid = ({
   itemsPerRow,
   startingRow,
   isSponsoredFooterAllowed,
+  hideTileMetadata,
   isExpandHomeContentEnabled,
+  isNewSortHeaderEnabled,
   translate
 }: THomePageGridDiscoveryApiProps): JSX.Element => {
   const gridRef = useRef<HTMLDivElement>(null);
@@ -136,19 +141,41 @@ export const HomePageGrid = ({
 
   return (
     <div data-testid='home-page-game-grid'>
-      <div className='container-header'>
-        <h2>
-          {sort.topic}
-          {sort.topicId === homePage.adSortHomePageId && (
-            <GamesInfoTooltip
-              tooltipText={
-                translate(CommonGameSorts.LabelSponsoredAdsDisclosureStatic) ||
+      {isNewSortHeaderEnabled ? (
+        <HomeSortHeader
+          titleText={sort.topic}
+          sendNavigateToSortLinkEvent={undefined}
+          titleLink={undefined}
+          isSortLinkOverrideEnabled={false}
+          subtitleText={undefined}
+          subtitleLink={undefined}
+          shouldShowSeparateSubtitleLink={false}
+          hasBackgroundMural={false}
+          tooltipText={
+            sort.topicId === homePage.adSortHomePageId
+              ? translate(CommonGameSorts.LabelSponsoredAdsDisclosureStatic) ||
                 'Sponsored experiences are paid for by Creators. They may be shown to you based on general information about your device type, location, and demographics.'
-              }
-            />
-          )}
-        </h2>
-      </div>
+              : undefined
+          }
+          hideSeeAll
+        />
+      ) : (
+        <div className='container-header'>
+          <h2>
+            {sort.topic}
+            {sort.topicId === homePage.adSortHomePageId && (
+              <GamesInfoTooltip
+                tooltipText={
+                  translate(CommonGameSorts.LabelSponsoredAdsDisclosureStatic) ||
+                  'Sponsored experiences are paid for by Creators. They may be shown to you based on general information about your device type, location, and demographics.'
+                }
+                placement='right'
+              />
+            )}
+          </h2>
+        </div>
+      )}
+
       <GameGrid
         ref={gridRef}
         tileRef={tileRef}
@@ -162,6 +189,7 @@ export const HomePageGrid = ({
         playerCountStyle={playerCountStyle}
         playButtonStyle={playButtonStyle}
         isSponsoredFooterAllowed={isSponsoredFooterAllowed}
+        hideTileMetadata={hideTileMetadata}
         hoverStyle={hoverStyle}
         topicId={sort.topicId?.toString()}
         isExpandHomeContentEnabled={isExpandHomeContentEnabled}
@@ -177,7 +205,9 @@ HomePageGrid.defaultProps = {
   hoverStyle: undefined,
   itemsPerRow: undefined,
   isSponsoredFooterAllowed: undefined,
-  isExpandHomeContentEnabled: undefined
+  hideTileMetadata: undefined,
+  isExpandHomeContentEnabled: undefined,
+  isNewSortHeaderEnabled: undefined
 };
 
 export default HomePageGrid;

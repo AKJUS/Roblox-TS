@@ -71,10 +71,6 @@ function friendsController(
             }
           });
         });
-
-      if (userIds && userIds.length > 0) {
-        usersService.getAvatarHeadshots(userIds, $scope.chatLibrary.friendsDict);
-      }
     }
   };
 

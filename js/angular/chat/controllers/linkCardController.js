@@ -59,7 +59,9 @@ function linkCardController(
   };
 
   $scope.playGame = function (rootPlaceId, eventType, addition) {
-    const joinAttemptId = GameLauncher.isJoinAttemptIdEnabled() ? uuidService.generateRandomUuid() : undefined;
+    const joinAttemptId = GameLauncher.isJoinAttemptIdEnabled()
+      ? uuidService.generateRandomUuid()
+      : undefined;
     const { context } = $scope.chatLibrary.eventStreamParams;
     $scope.sendEventStream(eventType, rootPlaceId, joinAttemptId);
     $scope.sendGamePlayEvent(rootPlaceId, joinAttemptId);
@@ -121,7 +123,7 @@ function linkCardController(
       universeId: place.universeId,
       placeId: rootPlaceId,
       position: 0,
-      page: $scope.chatLibrary.eventStreamParams.pageContext.linkCardInChat,
+      page: $scope.chatLibrary.eventStreamParams.pageContext.linkCardInChat
     };
 
     $scope.sendEventStream(eventType, rootPlaceId);

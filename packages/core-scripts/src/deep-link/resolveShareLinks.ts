@@ -19,6 +19,11 @@ const ResolveShareLinksUrlConfig = {
   withCredentials: true,
 };
 
+const ResolveShareLinksUrlV2Config = {
+  url: `${environmentUrls.shareLinksApiV2}/v2/resolve`,
+  withCredentials: true,
+};
+
 export type ResolveShareLinksResponse = {
   avatarItemDetailsData?: AvatarItemDetailsData;
   contentPostData?: ContentPostData;
@@ -33,7 +38,14 @@ export type ResolveShareLinksResponse = {
   experienceEventData?: ExperienceEventData;
 };
 
-const resolveShareLinks = (
+export type ResolveShareLinksV2Response = {
+  linkType: string;
+  targetId: string;
+  customData: string | null;
+  linkStatus: "Valid" | "Invalid" | "Expired";
+};
+
+export const resolveShareLinks = (
   linkId: string,
   linkType: ShareLinksType,
 ): Promise<{ data: ResolveShareLinksResponse }> =>
@@ -42,4 +54,9 @@ const resolveShareLinks = (
     linkType,
   });
 
-export default resolveShareLinks;
+export const resolveShareLinksV2 = (
+  linkId: string,
+): Promise<{ data: ResolveShareLinksV2Response }> =>
+  post<ResolveShareLinksV2Response>(ResolveShareLinksUrlV2Config, {
+    linkId,
+  });

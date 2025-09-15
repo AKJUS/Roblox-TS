@@ -129,10 +129,8 @@ const reducer = (oldState, action) => {
         let userEmailInputPlaceholderString;
         if (isUserOver13) {
           userEmailInputPlaceholderString = LabelEmailInputPlaceholderOver13;
-        } else if (action.settingsUiPolicy.isParentalControlsV2Enabled) {
-          userEmailInputPlaceholderString = LabelEmailInputPlaceholderUnder13V2;
         } else {
-          userEmailInputPlaceholderString = LabelEmailInputPlaceholderUnder13;
+          userEmailInputPlaceholderString = LabelEmailInputPlaceholderUnder13V2;
         }
         let primaryText = ActionSendConfirmationEmail;
         let secondaryText = '';
@@ -147,10 +145,8 @@ const reducer = (oldState, action) => {
             headingString = HeadingCompleteSetupOnLogout;
             if (isUserOver13) {
               bodyString = DescriptionAddEmailTextStrongMessaging;
-            } else if (action.settingsUiPolicy.isParentalControlsV2Enabled) {
-              bodyString = DescriptionAddEmailTextStrongMessagingU13;
             } else {
-              bodyString = DescriptionAddEmailTextStrongMessaging;
+              bodyString = DescriptionAddEmailTextStrongMessagingU13;
             }
             primaryText = ActionFinishSetup;
             secondaryText = ActionLogoutWithRisk;

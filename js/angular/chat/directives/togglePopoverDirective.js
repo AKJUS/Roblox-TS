@@ -18,7 +18,7 @@ function togglePopover($log, $document) {
         ? togglePopoverParams.isExclusiveClickSelector
         : 'is-exclusive-click';
 
-      element.on('click', function(event) {
+      element.on('click', function (event) {
         const target = angular.element(event.target);
         if (insideTrigger(target)) {
           scope.dialogLayout.togglePopoverParams.isOpen = !scope.dialogLayout.togglePopoverParams
@@ -27,7 +27,7 @@ function togglePopover($log, $document) {
       });
 
       function bindDocumentClick() {
-        $document.on('click', function(event) {
+        $document.on('click', function (event) {
           event.stopPropagation();
 
           const target = angular.element(event.target);
@@ -78,10 +78,10 @@ function togglePopover($log, $document) {
       }
 
       const watchPlayTogetherIds = scope.$watch(
-        function() {
+        function () {
           return scope.dialogData.playTogetherIds;
         },
-        function(newValue, oldValue) {
+        function (newValue, oldValue) {
           if (newValue !== oldValue && newValue && newValue.length > 0) {
             if (!scope.dialogLayout.togglePopoverParams.isOpen) {
               scope.dialogLayout.togglePopoverParams.isOpen = true;
@@ -92,10 +92,10 @@ function togglePopover($log, $document) {
       );
 
       const watchDialogFirstTimeOpen = scope.$watch(
-        function() {
+        function () {
           return scope.dialogLayout.togglePopoverParams.isFirstTimeOpen;
         },
-        function(newValue, oldValue) {
+        function (newValue, oldValue) {
           if (newValue) {
             bindDocumentClick();
           }
@@ -103,7 +103,7 @@ function togglePopover($log, $document) {
         true
       );
 
-      scope.$on('$destroy', function() {
+      scope.$on('$destroy', function () {
         watchPlayTogetherIds();
         watchDialogFirstTimeOpen();
       });

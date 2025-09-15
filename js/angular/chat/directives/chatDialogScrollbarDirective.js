@@ -15,7 +15,7 @@ function chatDialogScrollbar($log) {
           preventDefault: true
         },
         advanced: {
-            autoScrollOnFocus: false // prevents the browser from jumping to the 'Leave Group' button when clicking on it (SOC-279)
+          autoScrollOnFocus: false // prevents the browser from jumping to the 'Leave Group' button when clicking on it (SOC-279)
         }
       });
     }

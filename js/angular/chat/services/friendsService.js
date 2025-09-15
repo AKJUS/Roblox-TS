@@ -37,6 +37,13 @@ function friendsService($q, httpService, $log) {
         },
         params
       );
+    },
+    removeTrustedConnection(friendId) {
+      return httpService.httpPost({
+        url: `${EnvironmentUrls.friendsApi}/v1/users/${friendId}/remove-trusted-friend`,
+        retryable: true,
+        withCredentials: true
+      });
     }
   };
 }

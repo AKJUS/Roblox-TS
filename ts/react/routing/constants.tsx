@@ -74,15 +74,7 @@ const ComponentToSetupAndTeardownFuncs: Map<string, SetupAndTeardownFunctions> =
         render(HomeContainer, contentContainer);
       },
       teardown: () => {
-        const homeContainerIds = [
-          'home-page-upsell-card-container',
-          'reminder-of-norms-web-app-root',
-          'people-list-container',
-          'place-list'
-        ];
-        homeContainerIds.forEach(id => {
-          unmountElementId(id);
-        });
+        unmountElementId('places-list-web-app');
       }
     }
   ],

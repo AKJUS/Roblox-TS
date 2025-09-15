@@ -7,7 +7,7 @@ function removeFocus($log) {
     restrict: 'A',
     scope: true,
     link(scope, element, attrs) {
-      element.bind('click touchstart', function(e) {
+      element.bind('click touchstart', function (e) {
         e.preventDefault();
         scope.sendMessage();
       });

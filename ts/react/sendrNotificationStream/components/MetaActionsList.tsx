@@ -8,6 +8,7 @@ import eventConstants from '../constants/eventConstants';
 import { useSelectedNotification } from '../context/SelectedNotification';
 import {
   InteractibleVisualItem,
+  NotificationData,
   VisualItemMetaAction,
   VisualItemType
 } from '../types/NotificationTemplateTypes';
@@ -19,7 +20,7 @@ import NotificationView from './NotificationView';
 export type MetaActionsListProps = {
   show: boolean;
   closeModal: () => void;
-  showAbuseReport: () => void;
+  showAbuseReport: (notificationData: NotificationData) => void;
 };
 
 const metaActionIconMap: {
@@ -51,7 +52,9 @@ export const MetaActionsListBase = ({
         notificationData?.bundleIndex,
         notificationData?.bundleId
       );
-      showAbuseReport();
+      if (notificationData) {
+        showAbuseReport(notificationData);
+      }
     } else if (notificationProps?.handleActions) {
       notificationProps.handleActions(visualItem);
     }

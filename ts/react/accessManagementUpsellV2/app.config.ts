@@ -12,12 +12,12 @@ export const emailUpsellTranslationConfig = {
 
 export const updateSettingsTranslationConfig = {
   common: ['CommonUI.Controls'],
-  feature: 'Amp.AccountSettingsUpsell'
+  feature: 'Feature.LegallySensitiveContent'
 };
 
 export const legallySensitiveContentTranslationConfig = {
   common: ['CommonUI.Controls'],
-  feature: 'Amp.AccountSettingsUpsell'
+  feature: 'Feature.LegallySensitiveContent'
 };
 
 export const parentalRequestTranslationConfig = {

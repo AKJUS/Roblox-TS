@@ -84,6 +84,9 @@ function libraryInitialization(languageResource) {
       layoutIdList: [], // having all layoutIds
       minimizedDialogIdList: [],
       minimizedDialogData: {},
+      modals: {
+        conversationOverlays: {}
+      },
       userConversationsDict: {}, // used to store 1:1 conversation by userId,
       allConversationLayoutIdsDict: {},
       placesLibrary: {},

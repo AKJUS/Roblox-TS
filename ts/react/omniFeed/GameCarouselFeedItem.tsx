@@ -22,9 +22,9 @@ type THomePageDiscoveryApiProps = {
   loadMoreGames?: () => void;
   isLoadingMoreGames?: boolean;
   isExpandHomeContentEnabled?: boolean;
-  isChartsPageRenameEnabled?: boolean;
   isCarouselHorizontalScrollEnabled?: boolean;
   isNewScrollArrowsEnabled?: boolean;
+  isNewSortHeaderEnabled?: boolean;
 };
 
 export const GameCarouselFeedItem = ({
@@ -37,9 +37,9 @@ export const GameCarouselFeedItem = ({
   loadMoreGames,
   isLoadingMoreGames,
   isExpandHomeContentEnabled,
-  isChartsPageRenameEnabled,
   isCarouselHorizontalScrollEnabled,
-  isNewScrollArrowsEnabled
+  isNewScrollArrowsEnabled,
+  isNewSortHeaderEnabled
 }: THomePageDiscoveryApiProps): JSX.Element | null => {
   const friendsPresence = useFriendsPresence();
 
@@ -101,7 +101,6 @@ export const GameCarouselFeedItem = ({
         playButtonStyle={sort.topicLayoutData?.playButtonStyle}
         subtitleLinkPath={sort.topicLayoutData?.subtitleLinkPath}
         itemsPerRow={itemsPerRow}
-        isChartsPageRenameEnabled={isChartsPageRenameEnabled}
       />
     );
   }
@@ -141,9 +140,11 @@ export const GameCarouselFeedItem = ({
       subtitleLinkPath={sort.topicLayoutData?.subtitleLinkPath}
       endTimestamp={sort.topicLayoutData?.endTimestamp}
       countdownString={sort.topicLayoutData?.countdownString}
+      hideTileMetadata={sort.topicLayoutData?.hideTileMetadata === 'true'}
       isExpandHomeContentEnabled={isExpandHomeContentEnabled}
       isCarouselHorizontalScrollEnabled={isCarouselScrollEnabled}
       isNewScrollArrowsEnabled={isNewArrowsEnabled}
+      isNewSortHeaderEnabled={isNewSortHeaderEnabled}
     />
   );
 };
@@ -152,9 +153,9 @@ GameCarouselFeedItem.defaultProps = {
   loadMoreGames: undefined,
   isLoadingMoreGames: undefined,
   isExpandHomeContentEnabled: undefined,
-  isChartsPageRenameEnabled: undefined,
   isCarouselHorizontalScrollEnabled: undefined,
-  isNewScrollArrowsEnabled: undefined
+  isNewScrollArrowsEnabled: undefined,
+  isNewSortHeaderEnabled: undefined
 };
 
 export default GameCarouselFeedItem;

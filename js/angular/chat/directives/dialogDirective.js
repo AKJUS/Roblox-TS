@@ -32,7 +32,9 @@ function dialog(
       closeDialog: '&',
       sendInvite: '&',
       openConversationFromFriendId: '&',
-      updateFriendsDictBySearch: '&'
+      updateFriendsDictBySearch: '&',
+      getConversationOverlay: '&',
+      maybeFetchCountryRegions: '&'
     },
     link(scope, element, attrs) {
       const { limitMemberDisplay } = chatUtility.dialogLayout;
@@ -347,6 +349,7 @@ function dialog(
             scope.toastLayout.isNeeded = true;
             if (!scope.toastLayout.text) {
               scope.toastLayout.text = scope.dialogLayout.memberDisplay.toastText(
+                scope.chatLibrary.renameFriendsToConnections,
                 scope.chatLibrary.quotaOfGroupChatMembers
               );
             }
@@ -550,7 +553,8 @@ function dialog(
       };
 
       scope.refreshShowTimedOutInputBar = function () {
-        scope.showTimedOutInputBar = scope.timeoutExpiresAt && Date.now() < parseInt(scope.timeoutExpiresAt);
+        scope.showTimedOutInputBar =
+          scope.timeoutExpiresAt && Date.now() < parseInt(scope.timeoutExpiresAt);
       };
       scope.refreshShowTimedOutInputBar();
       scope.$watch('timeoutExpiresAt', function (newValue, oldValue) {

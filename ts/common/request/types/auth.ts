@@ -14,6 +14,15 @@ export enum AuthApiError {
   INVALID_CREDENTIAL_NICKNAME = 3
 }
 
+export enum PasswordResetError {
+  UNKNOWN = 0,
+  FEATURE_DISABLED = 1,
+  FLOODED = 2,
+  INVALID_PASSWORD = 20,
+  PASSWORDS_DO_NOT_MATCH = 21,
+  TWO_STEP_VERIFICATION_REQUIRED = 24
+}
+
 export type StartRegistrationReturnType = {
   creationOptions: CredentialCreationOptions;
   sessionId: string;
@@ -25,6 +34,15 @@ export type StartRegistrationReturnType = {
 export const START_REGISTRATION_CONFIG: UrlConfig = {
   withCredentials: true,
   url: `${authApiUrl}/v1/passkey/StartRegistration`,
+  timeout: AUTH_API_TIMEOUT
+};
+
+/**
+ * Request Type: `POST`.
+ */
+export const START_PRE_AUTH_REGISTRATION_CONFIG: UrlConfig = {
+  withCredentials: true,
+  url: `${authApiUrl}/v1/passkey/start-preauth-registration`,
   timeout: AUTH_API_TIMEOUT
 };
 
@@ -54,5 +72,20 @@ export type ListCredentialsReturnType = {
 export const LIST_CREDENTIALS_CONFIG: UrlConfig = {
   withCredentials: true,
   url: `${authApiUrl}/v1/passkey/ListCredentials`,
+  timeout: AUTH_API_TIMEOUT
+};
+
+export type ResetPasswordReturnType = {
+  shouldUpdateEmail: boolean;
+  recoveryEmail: string;
+  passkeyRegistrationSucceeded?: boolean;
+};
+
+/**
+ * Request Type: `POST`.
+ */
+export const RESET_PASSWORD_CONFIG: UrlConfig = {
+  withCredentials: true,
+  url: `${authApiUrl}/v2/passwords/reset`,
   timeout: AUTH_API_TIMEOUT
 };

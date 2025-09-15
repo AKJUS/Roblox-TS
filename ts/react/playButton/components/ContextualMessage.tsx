@@ -10,22 +10,27 @@ const { PlayabilityStatus } = playButtonConstants;
 
 export type TContextualMessageProps = {
   playabilityStatus: TPlayabilityStatus | undefined;
-  shouldShowNoticeAgreementIfPlayable: boolean | undefined;
+  shouldShowVpcPlayButtonUpsells: boolean | undefined;
+  shouldShowNoticeAgreementIfPlayable?: boolean;
+  unplayableDisplayText?: string;
   contextualMessageClassName?: string;
 };
 
 export const ContextualMessage = ({
   translate,
   playabilityStatus,
+  shouldShowVpcPlayButtonUpsells,
+  unplayableDisplayText,
   shouldShowNoticeAgreementIfPlayable,
   contextualMessageClassName = 'contextual-message'
 }: TContextualMessageProps & {
   translate: TranslateFunction;
 }): JSX.Element => {
-  if (shouldShowUnplayableButton(playabilityStatus)) {
+  if (shouldShowUnplayableButton(playabilityStatus, shouldShowVpcPlayButtonUpsells)) {
     return (
       <UnplayableError
         playabilityStatus={playabilityStatus}
+        unplayableDisplayText={unplayableDisplayText}
         errorClassName={contextualMessageClassName}
       />
     );

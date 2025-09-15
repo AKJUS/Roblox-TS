@@ -3,19 +3,21 @@
 // the types for the public interface separate in order to avoid compilation
 // errors arising from the strict mode mismatch.
 
-import { ParseChallengeSpecificProperties as NewParseChallengeSpecificProperties } from '@rbx/generic-challenge-types';
+import {
+  ParseChallengeSpecificProperties as NewParseChallengeSpecificProperties,
+  ForceActionRedirect
+} from '@rbx/generic-challenge-types';
 import * as Captcha from '../../captcha/interface';
 import * as DeviceIntegrity from '../../deviceIntegrity/interface';
 import * as EmailVerification from '../../emailVerification/interface';
-import * as ForceActionRedirect from '../../forceActionRedirect/interface';
 import * as PhoneVerification from '../../phoneVerification/interface';
 import * as PrivateAccessToken from '../../privateAccessToken/interface';
 import * as ProofOfSpace from '../../proofOfSpace/interface';
 import * as ProofOfWork from '../../proofOfWork/interface';
-import * as Reauthentication from '../../reauthentication/interface';
 import * as Rostile from '../../rostile/interface';
 import * as SecurityQuestions from '../../securityQuestions/interface';
 import * as TwoStepVerification from '../../twoStepVerification/interface';
+import * as Biometric from '../../biometric/interface';
 import ChallengeType from './challengeType';
 import * as Metadata from './metadata/interface';
 
@@ -37,7 +39,6 @@ export type ErrorCode<T extends ChallengeType> = {
   [ChallengeType.FORCE_AUTHENTICATOR]: ForceActionRedirect.ErrorCode;
   [ChallengeType.FORCE_TWO_STEP_VERIFICATION]: ForceActionRedirect.ErrorCode;
   [ChallengeType.SECURITY_QUESTIONS]: SecurityQuestions.ErrorCode;
-  [ChallengeType.REAUTHENTICATION]: Reauthentication.ErrorCode;
   [ChallengeType.PROOF_OF_WORK]: ProofOfWork.ErrorCode;
   [ChallengeType.ROSTILE]: Rostile.ErrorCode;
   [ChallengeType.PRIVATE_ACCESS_TOKEN]: PrivateAccessToken.ErrorCode;
@@ -46,6 +47,7 @@ export type ErrorCode<T extends ChallengeType> = {
   [ChallengeType.EMAIL_VERIFICATION]: EmailVerification.ErrorCode;
   [ChallengeType.PHONE_VERIFICATION]: PhoneVerification.ErrorCode;
   [ChallengeType.BLOCK_SESSION]: ForceActionRedirect.ErrorCode;
+  [ChallengeType.BIOMETRIC]: Biometric.ErrorCode;
 }[T];
 
 /*
@@ -143,6 +145,25 @@ export type OnChallengeInvalidatedCallback = (data: OnChallengeInvalidatedData) 
 
 export type OnModalChallengeAbandonedCallback = (restoreModal: () => void) => unknown;
 
+export type OnChallengeAbandonedCallback = () => unknown; // Abandon callback support for in-line challenges.
+/*
+ * Challenge Container Styling
+ */
+
+/**
+ * Flexible styling configuration for challenge containers.
+ * Can contain CSS properties or a className to apply.
+ */
+export type ChallengeContainerStyling = {
+  [key: string]: string | boolean | undefined;
+  className?: string;
+};
+
+/**
+ * Function type for challenge-specific container styling.
+ */
+export type GetChallengeContainerStyling = () => ChallengeContainerStyling | undefined;
+
 /*
  * Challenge Method
  */
@@ -150,11 +171,13 @@ export type OnModalChallengeAbandonedCallback = (restoreModal: () => void) => un
 type ChallengeParametersWithModal = {
   renderInline: false;
   onModalChallengeAbandoned: OnModalChallengeAbandonedCallback;
+  onChallengeAbandoned: null;
 };
 
 type ChallengeParametersWithNoModal = {
   renderInline: true;
   onModalChallengeAbandoned: null;
+  onChallengeAbandoned: OnChallengeAbandonedCallback;
 };
 
 /**
@@ -175,6 +198,10 @@ export type ChallengeBaseProperties = {
    * history during logical navigation (if supported by a given challenge).
    */
   shouldModifyBrowserHistory?: boolean;
+  /**
+   * Container styling configuration for the challenge.
+   */
+  containerStyling?: ChallengeContainerStyling;
   onChallengeCompleted: OnChallengeCompletedCallback;
   onChallengeInvalidated: OnChallengeInvalidatedCallback;
   onChallengeDisplayed?: OnChallengeDisplayedCallback;
@@ -183,7 +210,7 @@ export type ChallengeBaseProperties = {
   // fail all derived-type discriminants.
   newRenderChallenge?: RenderChallenge;
   // This uses the new parse challenge interface because the new interface exposes zero
-  // derived types (everthing is just `string`).
+  // derived types (everything is just `string`).
   newParseChallenge?: NewParseChallengeSpecificProperties;
 } & (ChallengeParametersWithModal | ChallengeParametersWithNoModal);
 
@@ -198,6 +225,7 @@ export type ChallengeSpecificProperties = {
     challengeId: string;
     challengeType: T;
     challengeMetadata: Metadata.Challenge<T>;
+    getContainerStyling?: GetChallengeContainerStyling;
   };
 }[ChallengeType];
 

@@ -20,9 +20,9 @@ function storageService(resources, $log, localStorageService) {
     },
 
     getStorageName(name, params) {
-      var chatDataLSName = resources.chatDataLSNamePrefix + '.' + name;
-      angular.forEach(params, function(param) {
-        chatDataLSName = chatDataLSName + '.' + param;
+      let chatDataLSName = `${resources.chatDataLSNamePrefix}.${name}`;
+      angular.forEach(params, function (param) {
+        chatDataLSName = `${chatDataLSName}.${param}`;
       });
       return chatDataLSName;
     },
@@ -41,9 +41,9 @@ function storageService(resources, $log, localStorageService) {
     },
 
     clearLocalStorage() {
-      let storageData = localStorageService.storage();
+      const storageData = localStorageService.storage();
       if (storageData) {
-        for (let key in storageData) {
+        for (const key in storageData) {
           if (key && key.search(resources.chatDataLSNamePrefix) > -1) {
             localStorageService.removeLocalStorage(key);
           }

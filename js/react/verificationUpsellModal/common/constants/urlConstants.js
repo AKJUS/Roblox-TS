@@ -81,12 +81,6 @@ const verificationUpsellModalLogoutExperimentParameters = {
   secondaryButton: 'alt_secondary_button_text'
 };
 
-const getSettingsUiPolicyConfig = () => ({
-  retryable: true,
-  withCredentials: true,
-  url: `${apiGatewayUrl}/universal-app-configuration/v1/behaviors/account-settings-ui/content`
-});
-
 const supportPageUrl = 'https://en.help.roblox.com/hc/articles/203313350';
 
 export {
@@ -102,7 +96,6 @@ export {
   getLogoutContactMethodModalExperimentConfig,
   getPhoneDiscoverabilityPageMetadataConfig,
   setPhoneDiscoverabilityConsentConfig,
-  getSettingsUiPolicyConfig,
   verificationUpsellModalLogoutExperimentParameters,
   supportPageUrl
 };

@@ -23,6 +23,7 @@ export type TGameCarouselProps = {
   playButtonStyle?: TPlayButtonStyle;
   navigationRootPlaceId?: string;
   isSponsoredFooterAllowed?: boolean;
+  hideTileMetadata?: boolean;
   hoverStyle?: THoverStyle;
   topicId?: string;
   isExpandHomeContentEnabled?: boolean;
@@ -40,6 +41,7 @@ export const GameCarousel = forwardRef<HTMLDivElement, TGameCarouselProps>(
       playButtonStyle,
       navigationRootPlaceId,
       isSponsoredFooterAllowed,
+      hideTileMetadata,
       hoverStyle,
       topicId,
       isExpandHomeContentEnabled,
@@ -70,6 +72,7 @@ export const GameCarousel = forwardRef<HTMLDivElement, TGameCarouselProps>(
             playButtonStyle={playButtonStyle}
             navigationRootPlaceId={navigationRootPlaceId}
             isSponsoredFooterAllowed={isSponsoredFooterAllowed}
+            hideTileMetadata={hideTileMetadata}
             hoverStyle={hoverStyle}
             topicId={topicId}
             ref={tileRef}

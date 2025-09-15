@@ -40,7 +40,10 @@ function dialogAttributes(languageResource) {
       linkName: lang.get('Label.SeeMore'),
       seeMoreLink: lang.get('Label.SeeMore'),
       seeLessLink: lang.get('Label.SeeLess'),
-      toastText(friendsCount) {
+      toastText(renameFriendsToConnections, friendsCount) {
+        if (renameFriendsToConnections) {
+          return lang.get('Message.AddConnectionsLimit', { connectionsNum: friendsCount });
+        }
         return lang.get('Message.ToastText', { friendNum: friendsCount });
       },
       timeoutToast: 5000
@@ -196,14 +199,22 @@ function dialogAttributes(languageResource) {
       isErrorMsg: false
     },
     modalSequence: {
-      CONVERSATION_INLINE_TOP_MODAL: 'conversation_inline_top_modal'
+      CONVERSATION_INLINE_TOP_MODAL: 'conversation_inline_top_modal',
+      CONVERSATION_OVERLAY: 'conversation_overlay'
     },
     modalVariant: {
-      OSA_CONTEXT_CARD: 'osa_context_card'
+      OSA_CONTEXT_CARD: 'osa_context_card',
+      TRUSTED_CONNECTION_UPSELL_O18: 'conversation_trusted_connection_upsell18_plus',
+      TRUSTED_CONNECTION_UPSELL_U18: 'conversation_trusted_connection_upsell_non18_plus',
+      TRUSTED_CONNECTION_CREATED: 'conversation_trusted_connection_created'
     },
     modalActionType: {
       RECORD_HAS_SEEN: 'record_has_seen',
       RECORD_DONT_SHOW_AGAIN: 'record_dont_show_again'
+    },
+    friendshipOriginType: {
+      QR_CODE: 6,
+      PHONE_CONTACT_IMPORTER: 8
     }
   };
 }

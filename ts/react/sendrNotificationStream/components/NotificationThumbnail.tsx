@@ -38,12 +38,22 @@ const ThumbnailData: {
     type: ThumbnailTypes.bundleThumbnail,
     class: 'asset-icon-container',
     format: ThumbnailFormat.webp
+  },
+  [ThumbnailType.GamePass]: {
+    type: ThumbnailTypes.gamePassIcon,
+    class: 'asset-icon-container',
+    format: ThumbnailFormat.webp
+  },
+  [ThumbnailType.AvatarImageUrl]: {
+    type: ThumbnailTypes.avatarImageUrl,
+    class: 'avatar-icon-container',
+    format: ThumbnailFormat.webp
   }
 };
 
 const iconClassMap: { [icon: string]: string } = {
   reported: 'icon-status-alert-xl',
-  roblox: 'icon-logo-r-silver-blackbg',
+  roblox: 'app-icon-bluebg app-icon-windows size-1200',
   premium: 'icon-default-premium',
   safety: 'icon-default-safety'
 };
@@ -62,6 +72,16 @@ export const NotificationThumbnail = ({
   const thumbnailSettings = thumbnailItem && ThumbnailData[thumbnailItem.idType];
   if (!thumbnailItem || !thumbnailSettings) {
     return null;
+  }
+
+  if (thumbnailItem.idType === ThumbnailType.AvatarImageUrl) {
+    return (
+      <div className='avatar avatar-headshot-sm avatar-sndr-overides'>
+        <div className='avatar-card-image'>
+          <img src={thumbnailItem.id} alt='Avatar' className='avatar-icon-container' />
+        </div>
+      </div>
+    );
   }
 
   return thumbnailItem.idType === ThumbnailType.User ? (

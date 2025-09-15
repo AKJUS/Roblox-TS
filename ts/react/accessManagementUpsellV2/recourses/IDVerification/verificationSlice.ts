@@ -12,7 +12,6 @@ import {
   VerificationViewState
 } from '../../enums';
 import {
-  fetchQRCode,
   getPersonaVerificationStatus,
   startPersonaIdVerification
 } from './services/IDverificationAPI';
@@ -84,7 +83,6 @@ export const startIDVerification = createAsyncThunk(
   async (ageEstimation: boolean, thunkAPI) => {
     try {
       const response = (await startPersonaIdVerification(ageEstimation)) as VendorVerificationData;
-      response.qrCode = fetchQRCode(response.verificationLink);
       return response;
     } catch (error) {
       reportEvent(ReportEvent.VerificationFailed, Recourse.GovernmentId, {

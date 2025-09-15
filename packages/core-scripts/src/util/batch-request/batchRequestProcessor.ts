@@ -12,7 +12,7 @@ import {
 } from "./batchRequestConstants";
 import CacheStore from "./cacheStore";
 
-class BatchRequestProcessor<T, V> {
+export default class BatchRequestProcessor<T, V> {
   private completeItems: CacheStore;
 
   private requestQueue: QueueItem<T>[] = [];
@@ -255,5 +255,3 @@ class BatchRequestProcessor<T, V> {
     this.completeItems.clear();
   }
 }
-
-export default BatchRequestProcessor;

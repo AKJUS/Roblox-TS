@@ -82,6 +82,7 @@ export const urlService = {
   parseUrlAndQueryString: url.parseUrlAndQueryString,
   // eslint-disable-next-line @typescript-eslint/no-deprecated
   resolveUrl: url.resolveUrl,
+  urlSafetyValidation: url.urlSafetyValidation,
 };
 export const uuidService = {
   generateRandomUuid: coreUuidService.generateRandomUuid,

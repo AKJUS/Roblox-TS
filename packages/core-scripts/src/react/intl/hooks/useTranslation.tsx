@@ -12,8 +12,6 @@ import { TranslationContext } from "../components/TranslationProvider";
 const useTranslation: () => WithTranslationsProps = () => {
   const translationProps = useContext(TranslationContext);
 
-  // TODO: old, migrated code
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   if (!translationProps) {
     throw Error(
       "invalid use of `useTranslation` hook. Ensure your component has an ancestor wrapped in `TranslationProvider`",

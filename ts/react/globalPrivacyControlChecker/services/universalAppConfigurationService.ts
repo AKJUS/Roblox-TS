@@ -1,5 +1,4 @@
-import { AxiosPromise, httpService } from 'core-utilities';
-import urlConstants from '../constants/urlConstants';
+import { Guac } from 'Roblox';
 
 export type UserSettingsGlobalPrivacyControlGuacPolicy = {
   // This is a Roblox defined GPC Version, usable to force re-evaluation of globalPrivacyControl if versions do not match.
@@ -11,8 +10,9 @@ export type UserSettingsGlobalPrivacyControlGuacPolicy = {
 };
 
 export default {
-  getUserSettingsGlobalPrivacyControlGuacPolicy(): AxiosPromise<UserSettingsGlobalPrivacyControlGuacPolicy> {
-    const urlConfig = urlConstants.getUserSettingsGlobalPrivacyControlConfig();
-    return httpService.get(urlConfig);
+  getUserSettingsGlobalPrivacyControlGuacPolicy(): Promise<UserSettingsGlobalPrivacyControlGuacPolicy> {
+    return Guac.callBehaviour<UserSettingsGlobalPrivacyControlGuacPolicy>(
+      'user-settings-global-privacy-control-policy'
+    );
   }
 };

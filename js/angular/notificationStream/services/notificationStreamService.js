@@ -1,4 +1,4 @@
-import { EnvironmentUrls } from 'Roblox';
+import { EnvironmentUrls, Guac } from 'Roblox';
 import notificationStreamModule from '../notificationStreamModule';
 
 function notificationStreamService(httpService, $log, urlService) {
@@ -34,11 +34,6 @@ function notificationStreamService(httpService, $log, urlService) {
         url: `${notificationApi}/v2/notifications/update-notification-settings`,
         retryable: false,
         withCredentials: true
-      },
-      getAccountSettingsPolicy: {
-        url: `${EnvironmentUrls.universalAppConfigurationApi}/v1/behaviors/account-settings-ui/content`,
-        withCredentials: true,
-        noCache: false
       }
     },
 
@@ -48,8 +43,7 @@ function notificationStreamService(httpService, $log, urlService) {
     },
 
     getAccountSettingsPolicy() {
-      const params = {};
-      return httpService.httpGet(this.endpoints.getAccountSettingsPolicy, params);
+      return Guac.callBehaviour('account-settings-ui');
     },
 
     unreadCount() {

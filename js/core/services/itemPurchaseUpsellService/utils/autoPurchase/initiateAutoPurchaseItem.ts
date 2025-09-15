@@ -104,7 +104,7 @@ async function purchaseWithUrl(
         'LibraryAssetAcquired',
         'Marketplace',
         obj,
-        EventStream.TargetTypes.WWW
+        EventStream.TargetTypes.WWW!
       );
     }
 
@@ -129,7 +129,7 @@ async function purchaseWithUrl(
       openTryAgainLaterErrorModal(itemPurchaseObj, translationResource);
     } else {
       try {
-        const errObj = JSON.parse(purchaseError.responseText) as { [key: string]: unknown };
+        const errObj = JSON.parse(purchaseError.responseText || '') as { [key: string]: unknown };
         ItemPurchase().openErrorView(errObj);
         invalidateCurrentAutoPurchaseFlow();
       } catch (parseErr) {

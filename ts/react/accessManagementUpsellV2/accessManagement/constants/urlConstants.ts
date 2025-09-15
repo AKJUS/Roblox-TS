@@ -17,13 +17,16 @@ const getAmpUpsellUrlConfig = (featureName: string) => ({
 const getAmpUpsellWithParametersUrlConfig = (
   featureName: string,
   extraParameters: string = null,
-  recourses: string = null
+  recourses: string = null,
+  namespace: string = null
 ) => ({
   retryable: true,
   withCredentials: true,
   url: `${apiGatewayUrl}/access-management/v1/upsell-feature-access?featureName=${featureName}${
     extraParameters ? `&extraParameters=${extraParameters}` : ``
-  }${recourses ? `&successfulActions=${recourses}` : ``}`
+  }${recourses ? `&successfulActions=${recourses}` : ``}${
+    namespace ? `&namespace=${encodeURIComponent(namespace)}` : ``
+  }`
 });
 
 export { getAmpFeatureCheckUrlConfig, getAmpUpsellUrlConfig, getAmpUpsellWithParametersUrlConfig };

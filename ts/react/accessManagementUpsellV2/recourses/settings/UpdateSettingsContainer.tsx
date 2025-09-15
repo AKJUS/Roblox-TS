@@ -4,6 +4,7 @@ import { TUpdateSettingsModalProps } from 'Roblox';
 import { updateSettingsTranslationConfig } from '../../app.config';
 import useUpdateSettingsModal from './hooks/useUpdateSettingsModal';
 import { RecourseResponse } from '../../types/AmpTypes';
+import { getModalShownEvent } from './services/eventService';
 
 const UpdateSettingsContainer = ({
   translate,
@@ -16,10 +17,12 @@ const UpdateSettingsContainer = ({
 }): JSX.Element => {
   const [updateSettingsModal, updateSettingsModalService] = useUpdateSettingsModal(
     translate,
-    updateSettingsModalProps
+    updateSettingsModalProps,
+    recourse.userSettings
   );
 
   useEffect(() => {
+    getModalShownEvent(recourse.userSettings.settingName, recourse.userSettings.settingValue);
     updateSettingsModalService.open();
   }, []);
 

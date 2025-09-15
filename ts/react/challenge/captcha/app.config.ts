@@ -20,7 +20,7 @@ export const EVENT_CONSTANTS = {
   eventName: {
     captcha: 'captcha',
     captchaInitiated: 'captchaInitiated',
-    captchaV2Experimentation: 'captchaV2Experimentation'
+    captchaIframeRemovalExperiment: 'captchaIframeRemovalExperiment'
   },
   captchaInitiatedChallengeType: {
     visible: 'visible',
@@ -80,7 +80,8 @@ export const FUNCAPTCHA_PUBLIC_KEY_MAP: funCaptchaPublicKeyMap = {
   Generic: 'ACTION_TYPE_GENERIC_CHALLENGE',
   GameCardRedeem: 'ACTION_TYPE_WEB_GAMECARD_REDEMPTION',
   AssetComment: 'ACTION_TYPE_ASSET_COMMENT',
-  Marketplace: 'ACTION_TYPE_MARKETPLACE'
+  Marketplace: 'ACTION_TYPE_MARKETPLACE',
+  Passive: 'ACTION_TYPE_PASSIVE'
 };
 
 /**
@@ -89,16 +90,6 @@ export const FUNCAPTCHA_PUBLIC_KEY_MAP: funCaptchaPublicKeyMap = {
 export const FUNCAPTCHA_VERSION_V2: string = 'V2' as const;
 
 /**
- * Probability for a user to see CaptchaV2 will be `1 / EXPERIMENT_BUCKETS`.
+ * Captcha version with lightbox modal.
  */
-export const EXPERIMENT_BUCKETS = 1;
-
-/**
- * Decimal value of a hexadecimal base.
- */
-export const HEXADECIMAL_BASE = 16;
-
-/**
- * Number of digits used for bucketing for CaptchaV2 experimentation.
- */
-export const DIGITS_USED_FOR_BUCKETING = 2;
+export const USE_LIGHTBOX_MODAL: string = 'UseLightboxModal' as const;

@@ -6,16 +6,18 @@ import Roblox, {
   IdentityVerificationService
 } from 'Roblox';
 import { eventStreamService, playGameService, TJoinDataProperties } from 'core-roblox-utilities';
-import { uuidService } from 'core-utilities';
+import { uuidService, urlService } from 'core-utilities';
 import { deviceMeta as DeviceMeta, jsClientDeviceIdentifier } from 'header-scripts';
 import playButtonConstants, { PlayabilityStatus } from '../constants/playButtonConstants';
 import {
   TAgeGuidelinesResponse,
+  TAppsFlyerReferralProperties,
+  TContentMaturityRating,
   TPlayabilityStatus,
   TPlayabilityStatusWithUnplayableError
 } from '../types/playButtonTypes';
 
-const { unlockPlayIntentConstants } = playButtonConstants;
+const { unlockPlayIntentConstants, defaultAfReferralProperties } = playButtonConstants;
 
 type TEventProperties = Record<string, string | number | undefined>;
 type TJoinAttemptProperties = {
@@ -85,7 +87,8 @@ export const launchGame = (
   privateServerLinkCode?: string,
   gameInstanceId?: string,
   eventProperties: TEventProperties = {},
-  joinData: TJoinDataProperties = {}
+  joinData: TJoinDataProperties = {},
+  appsFlyerReferralProperties: TAppsFlyerReferralProperties = {}
 ): void => {
   const deviceMeta = DeviceMeta.getDeviceMeta();
   if (
@@ -99,9 +102,14 @@ export const launchGame = (
       placeId,
       joinData
     );
+
     const encodedUniversalLink = getEncodedUniversalLink(placeId, playGameClickedEventProperties);
+    const afDeeplinkParams = urlService.composeQueryString({
+      ...defaultAfReferralProperties,
+      ...appsFlyerReferralProperties
+    });
     window.open(
-      `https://ro.blox.com/Ebh5?pid=experiencestart_mobileweb&is_retargeting=false&af_dp=${encodedUniversalLink}&af_web_dp=${encodedUniversalLink}&deep_link_value=${encodedUniversalLink}`,
+      `https://ro.blox.com/Ebh5?${afDeeplinkParams}&af_dp=${encodedUniversalLink}&af_web_dp=${encodedUniversalLink}&deep_link_value=${encodedUniversalLink}`,
       '_self'
     );
   } else {
@@ -137,7 +145,10 @@ export const launchGame = (
   }
 };
 
-export const launchLogin = (placeId: string): void => {
+export const launchLogin = (
+  placeId: string,
+  appsFlyerReferralProperties: TAppsFlyerReferralProperties = {}
+): void => {
   const deviceMeta = DeviceMeta.getDeviceMeta();
   if (
     deviceMeta?.isIosDevice ||
@@ -147,8 +158,12 @@ export const launchLogin = (placeId: string): void => {
   ) {
     const playGameClickedEventProperties = sendPlayGameClickedEvent({}, placeId, {});
     const encodedUniversalLink = getEncodedUniversalLink(placeId, playGameClickedEventProperties);
+    const afDeeplinkParams = urlService.composeQueryString({
+      ...defaultAfReferralProperties,
+      ...appsFlyerReferralProperties
+    });
     window.open(
-      `https://ro.blox.com/Ebh5?pid=experiencestart_mobileweb&is_retargeting=false&af_dp=${encodedUniversalLink}&af_web_dp=${encodedUniversalLink}&deep_link_value=${encodedUniversalLink}`,
+      `https://ro.blox.com/Ebh5?${afDeeplinkParams}&af_dp=${encodedUniversalLink}&af_web_dp=${encodedUniversalLink}&deep_link_value=${encodedUniversalLink}`,
       '_self'
     );
   } else {
@@ -229,28 +244,17 @@ export const handleShareLinkEventLogging = (placeId: string, universeId: string)
 };
 
 /**
- * Extract minimumAge from the AgeRecommendation API response,
- * with a special mapping for unrated games to -1.
+ * Extract contentMaturity rating from the AgeRecommendation API response.
  */
-export const getMinimumAgeFromAgeRecommendationResponse = (
+export const getContentMaturityRatingFromAgeRecommendationResponse = (
   response: TAgeGuidelinesResponse
-): number | undefined => {
-  if (
-    response?.ageRecommendationDetails?.summary &&
-    !response.ageRecommendationDetails.summary.ageRecommendation
-  ) {
-    // The Age Recommendations data exists in the response,
-    // but the actual recommendation is empty.
-    // This means the game is unrated, and the user
-    // must have a setting of "Ages 13+" or higher to play
-    return -1;
-  }
-
-  return response?.ageRecommendationDetails?.summary?.ageRecommendation?.minimumAge;
+): TContentMaturityRating | undefined => {
+  return response?.ageRecommendationDetails?.summary?.ageRecommendation?.contentMaturity;
 };
 
 export const shouldShowUnplayableButton = (
-  playabilityStatus: TPlayabilityStatus | undefined
+  playabilityStatus: TPlayabilityStatus | undefined,
+  shouldShowVpcPlayButtonUpsells: boolean | undefined
 ): playabilityStatus is TPlayabilityStatusWithUnplayableError => {
   // playability is loading
   if (playabilityStatus === undefined) {
@@ -263,8 +267,16 @@ export const shouldShowUnplayableButton = (
     playabilityStatus === PlayabilityStatus.GuestProhibited ||
     playabilityStatus === PlayabilityStatus.PurchaseRequired ||
     playabilityStatus === PlayabilityStatus.ContextualPlayabilityUnverifiedSeventeenPlusUser ||
-    playabilityStatus === PlayabilityStatus.FiatPurchaseRequired ||
-    playabilityStatus === PlayabilityStatus.ContextualPlayabilityAgeRecommendationParentalControls
+    playabilityStatus === PlayabilityStatus.FiatPurchaseRequired
+  ) {
+    return false;
+  }
+
+  // This status should show Locked Join instead of Unplayable if VPC play button upsells are enabled
+  if (
+    playabilityStatus ===
+      PlayabilityStatus.ContextualPlayabilityAgeRecommendationParentalControls &&
+    shouldShowVpcPlayButtonUpsells
   ) {
     return false;
   }

@@ -8,6 +8,7 @@ import { fireEvent } from 'roblox-event-tracker';
 import playButtonConstants from '../constants/playButtonConstants';
 import playButtonService from '../services/playButtonService';
 import {
+  TAppsFlyerReferralProperties,
   TPlayabilityStatus,
   TPlayabilityStatuses,
   TShowAgeVerificationOverlayResponse,
@@ -136,6 +137,7 @@ export type TPlayButtonProps = {
   buttonWidth?: ValueOf<typeof Button.widths>;
   buttonClassName?: string;
   eventProperties?: Record<string, string | number | undefined>;
+  appsFlyerReferralProperties?: TAppsFlyerReferralProperties;
   status: TPlayabilityStatuses['Playable'] | TPlayabilityStatuses['GuestProhibited'];
   disableLoadingState?: boolean;
   buttonText?: string | undefined;
@@ -151,6 +153,7 @@ export const PlayButton = ({
   gameInstanceId,
   status,
   eventProperties = {},
+  appsFlyerReferralProperties = {},
   iconClassName = 'icon-common-play',
   buttonWidth = Button.widths.full,
   buttonClassName = 'btn-common-play-game-lg',
@@ -282,7 +285,8 @@ export const PlayButton = ({
               privateServerLinkCode,
               gameInstanceId,
               eventProperties,
-              joinData
+              joinData,
+              appsFlyerReferralProperties
             );
           } else if (status === PlayabilityStatus.GuestProhibited) {
             // if it is vng, redirect user to login page directly
@@ -290,7 +294,7 @@ export const PlayButton = ({
               // redirct to login page
               NavigationService?.navigateToLoginWithRedirect();
             } else {
-              launchLogin(placeId);
+              launchLogin(placeId, appsFlyerReferralProperties);
             }
           }
 
@@ -317,10 +321,12 @@ export type TDefaultPlayButtonProps = {
   hideButtonText?: boolean;
   showUnplayableError?: boolean;
   eventProperties?: Record<string, number | string | undefined>;
+  appsFlyerReferralProperties?: TAppsFlyerReferralProperties;
   disableLoadingState?: boolean;
   buttonClassName?: string;
   redirectPurchaseUrl?: TValidHttpUrl;
   showDefaultPurchaseText?: boolean;
+  shouldShowVpcPlayButtonUpsells?: boolean;
 };
 
 export const DefaultPlayButton = ({
@@ -333,10 +339,12 @@ export const DefaultPlayButton = ({
   playabilityStatus,
   hideButtonText,
   eventProperties = {},
+  appsFlyerReferralProperties = {},
   disableLoadingState,
   buttonClassName,
   redirectPurchaseUrl,
-  showDefaultPurchaseText
+  showDefaultPurchaseText,
+  shouldShowVpcPlayButtonUpsells
 }: TDefaultPlayButtonProps): JSX.Element => {
   switch (playabilityStatus) {
     case undefined:
@@ -353,6 +361,7 @@ export const DefaultPlayButton = ({
           gameInstanceId={gameInstanceId}
           status={PlayabilityStatus.Playable}
           eventProperties={eventProperties}
+          appsFlyerReferralProperties={appsFlyerReferralProperties}
           disableLoadingState={disableLoadingState}
           buttonClassName={buttonClassName}
         />
@@ -368,6 +377,7 @@ export const DefaultPlayButton = ({
           gameInstanceId={gameInstanceId}
           status={playabilityStatus}
           eventProperties={eventProperties}
+          appsFlyerReferralProperties={appsFlyerReferralProperties}
           disableLoadingState={disableLoadingState}
           buttonClassName={buttonClassName}
         />
@@ -397,20 +407,28 @@ export const DefaultPlayButton = ({
         />
       );
     case PlayabilityStatus.ContextualPlayabilityAgeRecommendationParentalControls:
-      fireEvent(counterEvents.ActionNeeded);
+      if (shouldShowVpcPlayButtonUpsells) {
+        fireEvent(counterEvents.ActionNeeded);
 
-      return (
-        <ParentalControlsActionNeededButton
-          universeId={universeId}
-          hideButtonText={hideButtonText}
-          buttonClassName={buttonClassName}
-          placeId={placeId}
-          rootPlaceId={rootPlaceId}
-          privateServerLinkCode={privateServerLinkCode}
-          gameInstanceId={gameInstanceId}
-          eventProperties={eventProperties}
-        />
-      );
+        return (
+          <ParentalControlsActionNeededButton
+            universeId={universeId}
+            hideButtonText={hideButtonText}
+            buttonClassName={buttonClassName}
+            placeId={placeId}
+            rootPlaceId={rootPlaceId}
+            privateServerLinkCode={privateServerLinkCode}
+            gameInstanceId={gameInstanceId}
+            eventProperties={eventProperties}
+            appsFlyerReferralProperties={appsFlyerReferralProperties}
+          />
+        );
+      }
+
+      // If policy is false, fall back to unplayable behavior
+      fireEvent(counterEvents.Unplayable);
+
+      return <UnplayableButton hideButtonText={hideButtonText} buttonClassName={buttonClassName} />;
     default:
       fireEvent(counterEvents.Unplayable);
 

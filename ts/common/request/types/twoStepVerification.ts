@@ -62,6 +62,7 @@ export type GetMetadataReturnType = {
   isSmsTwoStepVerificationAvailable: boolean;
   isSecurityKeyTwoStepVerificationAvailable: boolean;
   isAndroidSecurityKeyEnabled: boolean;
+  isSettingsTabRedesignEnabled: boolean;
 };
 
 /**

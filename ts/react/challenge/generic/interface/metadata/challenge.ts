@@ -4,10 +4,6 @@
 // errors arising from the strict mode mismatch.
 
 import * as CaptchaInterface from '../../../captcha/interface';
-import {
-  ReauthenticationType,
-  ReauthenticationMetadata
-} from '../../../reauthentication/interface';
 import * as ProofOfSpaceInterface from '../../../proofOfSpace/interface';
 import * as RostileInterface from '../../../rostile/interface';
 import * as TwoStepVerificationInterface from '../../../twoStepVerification/interface';
@@ -62,17 +58,6 @@ export type SecurityQuestions = {
 } & Shared;
 
 /**
- * The challenge metadata type returned by the GCS for `Reauthentication` with
- * any custom properties added by clients.
- */
-export type Reauthentication = {
-  defaultType: ReauthenticationType;
-  availableTypes: ReauthenticationType[];
-  // defaultTypeMetadata will either be populated or explicitly null, but never undefined.
-  defaultTypeMetadata: ReauthenticationMetadata | null;
-} & Shared;
-
-/**
  * The challenge metadata type returned by the GCS for `ForceAuthenticator` with
  * any custom properties added by clients.
  */
@@ -116,6 +101,16 @@ export type PrivateAccessToken = {
 export type DeviceIntegrity = {
   integrityType: string;
   requestHash: string;
+} & Shared;
+
+/**
+ * The challenge metadata type returned by the GCS for `Biometric` with
+ * any custom properties added by clients.
+ */
+export type Biometric = {
+  challengeId: string;
+  biometricType: string;
+  userId: string;
 } & Shared;
 
 /**

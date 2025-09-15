@@ -1,5 +1,4 @@
 import environmentUrls from "@rbx/environment-urls";
-import { get } from "@rbx/core-scripts/http";
 import { sendEventWithTarget, targetTypes } from "@rbx/core-scripts/event-stream";
 import {
   activeEvents,
@@ -7,8 +6,9 @@ import {
   defaultActivityTimeoutMs,
   defaultHeartbeatPulseIntervalMs,
   defaultWorkerVersion,
-  guacUrlSuffix,
+  guacBehaviourName,
 } from "@rbx/page-heartbeat-worker";
+import { callBehaviour } from "@rbx/core-scripts/guac";
 
 const { CurrentUser } = window.Roblox;
 
@@ -55,7 +55,7 @@ class PageHeartbeatScheduler {
     // TODO: old, migrated code
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     const websiteUrl = environmentUrls.websiteUrl ?? URL_NOT_FOUND;
-    const workerUrl = `${websiteUrl}/worker-resources/script/?component=${WORKER_COMPONENT}&?v=${this.workerVersion}`;
+    const workerUrl = `${websiteUrl}/worker-resources/script/?component=${WORKER_COMPONENT}&v=${this.workerVersion}`;
 
     const worker = new Worker(workerUrl);
     return worker;
@@ -121,15 +121,8 @@ type GuacConfig = {
 };
 
 const loadGuacConfig = async (): Promise<GuacConfig> => {
-  const { apiGatewayUrl } = environmentUrls;
   try {
-    const config = await get<GuacResponse>({
-      url: `${apiGatewayUrl}${guacUrlSuffix}`,
-    });
-
-    // TODO: old, migrated code
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/consistent-type-assertions
-    const data = config?.data;
+    const data = await callBehaviour<GuacResponse>(guacBehaviourName);
 
     // TODO: old, migrated code
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
@@ -162,15 +155,14 @@ const loadGuacConfig = async (): Promise<GuacConfig> => {
 };
 
 export default async (): Promise<void> => {
+  // Avoid calling guac behaviour if the user is not logged in
+  if (!CurrentUser?.userId) {
+    return;
+  }
+
   const config = await loadGuacConfig();
 
-  if (
-    !(
-      config.isEnabled &&
-      CurrentUser?.userId &&
-      parseInt(CurrentUser.userId, 10) % 1000 < config.rolloutPermille
-    )
-  ) {
+  if (!(config.isEnabled && parseInt(CurrentUser.userId, 10) % 1000 < config.rolloutPermille)) {
     return;
   }
 

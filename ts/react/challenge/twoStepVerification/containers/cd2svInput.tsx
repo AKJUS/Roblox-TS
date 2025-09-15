@@ -168,7 +168,9 @@ const CD2SVInput: React.FC<Props> = ({
     ? 'inline-margin-bottom-xlarge'
     : 'modal-margin-bottom-xlarge';
   const textErrorClassName = marginBottomLargeClassName.concat(' ', 'text-error xsmall');
-  const lockIconClassName = renderInline ? 'inline-challenge-lock-icon' : 'modal-lock-icon';
+  const lockIconClassName = renderInline
+    ? 'inline-challenge-protection-shield-icon'
+    : 'modal-protection-shield-icon';
 
   useEffect(() => {
     if (!shouldDebounceRetry) return undefined;

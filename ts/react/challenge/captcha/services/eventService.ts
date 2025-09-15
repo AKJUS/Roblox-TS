@@ -58,25 +58,6 @@ export class EventServiceDefault {
       Roblox.EventStream.TargetTypes.WWW
     );
   }
-
-  sendCaptchaV2ExperimentationEvent(
-    actionType: ActionType,
-    unifiedCaptchaId: string,
-    browserTrackerId: string,
-    captchaVersion: string
-  ): void {
-    Roblox.EventStream.SendEventWithTarget(
-      EVENT_CONSTANTS.eventName.captchaV2Experimentation,
-      actionType,
-      {
-        btid: browserTrackerId,
-        provider: this.provider,
-        ucid: unifiedCaptchaId || '',
-        captchaVersion
-      },
-      Roblox.EventStream.TargetTypes.WWW
-    );
-  }
 }
 
 /**

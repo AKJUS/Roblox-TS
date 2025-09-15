@@ -26,7 +26,8 @@ export enum ActionType {
   Generic = 'Generic',
   SupportRequest = 'SupportRequest',
   AssetComment = 'AssetComment',
-  Marketplace = 'Marketplace'
+  Marketplace = 'Marketplace',
+  Passive = 'Passive'
 }
 
 /**

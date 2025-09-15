@@ -1,5 +1,4 @@
 import { httpService } from 'core-utilities';
-import * as QRCode from 'qrcode';
 import {
   startPersonaIdVerificationUrlConfig,
   getPersonaVerificationStatusUrlConfig
@@ -32,12 +31,4 @@ export const getPersonaVerificationStatus = (token: string) => {
       const errorCode = httpService.parseErrorCode(err) as VerificationErrorCode;
       throw new Error(`Error to get ID verification status: ${errorCode || 'unknown'}`);
     });
-};
-
-export const fetchQRCode = (verificationLink: string) => {
-  let qrcode;
-  QRCode.toDataURL(verificationLink, (error, url) => {
-    qrcode = url;
-  });
-  return qrcode;
 };

@@ -35,6 +35,7 @@ type TGamesPageGameCarouselProps = {
   friendData?: TGetFriendsResponse[];
   navigationRootPlaceId?: string;
   isSponsoredFooterAllowed?: boolean;
+  hideTileMetadata?: boolean;
   hoverStyle?: THoverStyle;
   topicId?: string;
   isExpandHomeContentEnabled?: boolean;
@@ -70,6 +71,7 @@ export const GameCarouselHorizontalScroll = ({
   friendData,
   navigationRootPlaceId,
   isSponsoredFooterAllowed,
+  hideTileMetadata,
   hoverStyle,
   topicId,
   isExpandHomeContentEnabled,
@@ -305,6 +307,7 @@ export const GameCarouselHorizontalScroll = ({
                   topicId={topicId}
                   friendData={friendData}
                   isSponsoredFooterAllowed={isSponsoredFooterAllowed}
+                  hideTileMetadata={hideTileMetadata}
                   navigationRootPlaceId={navigationRootPlaceId}
                 />
               ) : (
@@ -325,6 +328,7 @@ export const GameCarouselHorizontalScroll = ({
                     topicId={topicId}
                     friendData={friendData}
                     isSponsoredFooterAllowed={isSponsoredFooterAllowed}
+                    hideTileMetadata={hideTileMetadata}
                     navigationRootPlaceId={navigationRootPlaceId}
                   />
                 </li>
@@ -354,6 +358,7 @@ GameCarouselHorizontalScroll.defaultProps = {
   friendData: undefined,
   navigationRootPlaceId: undefined,
   isSponsoredFooterAllowed: undefined,
+  hideTileMetadata: undefined,
   hoverStyle: undefined,
   topicId: undefined,
   isExpandHomeContentEnabled: undefined,

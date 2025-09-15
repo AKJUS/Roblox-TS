@@ -1,11 +1,16 @@
 import { parseMaybeStringNumberField, parseStringField } from '../utils/analyticsParsingUtils';
 import logSduiError, { SduiErrorNames } from '../utils/logSduiError';
-import { SduiRegisteredComponents } from './SduiComponentRegistry';
-import { TAnalyticsData, TCollectionAnalyticsData, TItemAnalyticsData } from './SduiTypes';
+import {
+  TAnalyticsData,
+  TCollectionAnalyticsData,
+  TItemAnalyticsData,
+  TSduiContext
+} from './SduiTypes';
 
 export const DUMMY_ITEM_DATA: TItemAnalyticsData = {
   id: 'Unknown',
-  itemPosition: -1
+  itemPosition: -1,
+  itemComponentType: 'Unknown'
 };
 
 export const DUMMY_COLLECTION_DATA: TCollectionAnalyticsData = {
@@ -13,7 +18,8 @@ export const DUMMY_COLLECTION_DATA: TCollectionAnalyticsData = {
   contentType: 'Unknown',
   itemsPerRow: -1,
   collectionPosition: -1,
-  totalNumberOfItems: -1
+  totalNumberOfItems: -1,
+  collectionComponentType: 'Unknown'
 };
 
 export const isValidCollectionAnalyticsData = (data: TCollectionAnalyticsData): boolean => {
@@ -21,8 +27,6 @@ export const isValidCollectionAnalyticsData = (data: TCollectionAnalyticsData): 
     data.collectionId === undefined ||
     data.collectionId < 0 ||
     data.contentType === undefined ||
-    data.itemsPerRow === undefined ||
-    data.itemsPerRow < 0 ||
     data.collectionPosition === undefined ||
     data.collectionPosition < 0 ||
     data.totalNumberOfItems === undefined ||
@@ -37,9 +41,10 @@ export const isValidCollectionAnalyticsData = (data: TCollectionAnalyticsData): 
 export const buildAndValidateCollectionAnalyticsData = (
   ancestorAnalyticsData: TAnalyticsData,
   analyticsData: TAnalyticsData,
-  componentType: keyof typeof SduiRegisteredComponents,
+  componentType: string | undefined,
   itemsPerRow: number,
-  totalNumberOfItems: number
+  totalNumberOfItems: number,
+  sduiContext: TSduiContext
 ): TCollectionAnalyticsData => {
   const collectionAnalyticsData = {
     ...ancestorAnalyticsData,
@@ -58,15 +63,17 @@ export const buildAndValidateCollectionAnalyticsData = (
       DUMMY_COLLECTION_DATA.contentType
     ),
     itemsPerRow,
-    totalNumberOfItems
+    totalNumberOfItems,
+    collectionComponentType: componentType || DUMMY_COLLECTION_DATA.collectionComponentType
   };
 
   if (!isValidCollectionAnalyticsData(resultCollectionAnalyticsData)) {
     logSduiError(
       SduiErrorNames.AnalyticsBuilderInvalidCollectionAnalyticsData,
-      `Collection analytics data for component type ${componentType} is invalid: ${JSON.stringify(
-        resultCollectionAnalyticsData
-      )}`
+      `Collection analytics data for component type ${
+        componentType || DUMMY_COLLECTION_DATA.collectionComponentType
+      } is invalid: ${JSON.stringify(resultCollectionAnalyticsData)}`,
+      sduiContext.pageContext
     );
 
     // Fill in any missing fields with dummy data
@@ -80,7 +87,7 @@ export const buildAndValidateCollectionAnalyticsData = (
 };
 
 export const isValidItemAnalyticsData = (data: TItemAnalyticsData): boolean => {
-  if (data.id === undefined || data.itemPosition === undefined || data.itemPosition < 0) {
+  if (data.id === undefined || data.itemPosition < 0) {
     return false;
   }
 
@@ -90,7 +97,8 @@ export const isValidItemAnalyticsData = (data: TItemAnalyticsData): boolean => {
 export const buildAndValidateItemAnalyticsData = (
   analyticsData: TAnalyticsData,
   parentAnalyticsData: TAnalyticsData,
-  localAnalyticsData: TAnalyticsData | undefined
+  localAnalyticsData: TAnalyticsData | undefined,
+  sduiContext: TSduiContext
 ): TItemAnalyticsData => {
   const itemAnalyticsData = {
     ...parentAnalyticsData,
@@ -104,13 +112,18 @@ export const buildAndValidateItemAnalyticsData = (
     itemPosition: parseMaybeStringNumberField(
       itemAnalyticsData.itemPosition,
       DUMMY_ITEM_DATA.itemPosition
+    ),
+    itemComponentType: parseStringField(
+      itemAnalyticsData.itemComponentType,
+      DUMMY_ITEM_DATA.itemComponentType
     )
   };
 
   if (!isValidItemAnalyticsData(resultItemAnalyticsData)) {
     logSduiError(
       SduiErrorNames.AnalyticsBuilderInvalidItemAnalyticsData,
-      `Item analytics data is invalid: ${JSON.stringify(resultItemAnalyticsData)}`
+      `Item analytics data is invalid: ${JSON.stringify(resultItemAnalyticsData)}`,
+      sduiContext.pageContext
     );
 
     // Fill in any missing fields with dummy data

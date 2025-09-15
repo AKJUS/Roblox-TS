@@ -5,7 +5,6 @@ const notificationsName = {
   ChatMigrationNotifications: 'ChatMigration',
   ChatModerationTypeEligibilityNotifications: 'ChatModerationTypeEligibility',
   ChatNotifications: 'ChatNotifications',
-  ExperienceIntervention: 'ExperienceIntervention',
   FeatureIntervention: 'FeatureIntervention',
   FriendshipNotifications: 'FriendshipNotifications',
   PresenceNotifications: 'PresenceNotifications',

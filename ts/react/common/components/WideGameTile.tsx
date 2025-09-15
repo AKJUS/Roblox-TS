@@ -6,12 +6,7 @@ import configConstants from '../constants/configConstants';
 import { FeaturePlacesList } from '../constants/translationConstants';
 import useFocused from '../hooks/useFocused';
 import bedev1Services from '../services/bedev1Services';
-import {
-  TGameData,
-  TGetFriendsResponse,
-  TLayoutComponentType,
-  TLayoutMetadata
-} from '../types/bedev1Types';
+import { TGameData, TGetFriendsResponse } from '../types/bedev1Types';
 import {
   TComponentType,
   THoverStyle,
@@ -68,6 +63,7 @@ export type TWideGameTileProps = {
   playButtonStyle?: TPlayButtonStyle;
   navigationRootPlaceId?: string;
   isSponsoredFooterAllowed?: boolean;
+  hideTileMetadata?: boolean;
   wideTileType: TComponentType.GridTile | TComponentType.EventTile | TComponentType.InterestTile;
   hoverStyle?: THoverStyle;
   topicId?: string;
@@ -88,6 +84,7 @@ const WideGameTile = React.forwardRef(
       playButtonStyle,
       navigationRootPlaceId,
       isSponsoredFooterAllowed = false,
+      hideTileMetadata = false,
       wideTileType,
       hoverStyle,
       topicId,
@@ -167,6 +164,10 @@ const WideGameTile = React.forwardRef(
       if (isFocused && hoverStyle === THoverStyle.imageOverlay && hoverTileMetadata) {
         return hoverTileMetadata;
       }
+
+      if (hideTileMetadata) {
+        return <React.Fragment />;
+      }
       if (gameData.isShowSponsoredLabel || (gameData.isSponsored && isSponsoredFooterAllowed)) {
         return <WideGameTileSponsoredFooter translate={translate} />;
       }
@@ -218,7 +219,9 @@ const WideGameTile = React.forwardRef(
     const showPlayButton = (): boolean => {
       if (
         wideTileType === TComponentType.GridTile &&
-        playButtonStyle === TPlayButtonStyle.Disabled
+        // HACK: This is a temporary fix to disable the play button on grid tiles by default
+        // More info here: https://roblox.atlassian.net/browse/CLIGROW-2386.
+        playButtonStyle !== TPlayButtonStyle.Enabled
       ) {
         return false;
       }

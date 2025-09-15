@@ -36,8 +36,8 @@ const url = {
     url: `${apiGatewayUrl}/rocap/v1/locations/${locationName}/annotations`,
     withCredentials: true
   }),
-  getGuacAppPolicyBehaviorData: (): UrlConfig => ({
-    url: `${apiGatewayUrl}/universal-app-configuration/v1/behaviors/app-policy/content`,
+  getLandingPageData: (): UrlConfig => ({
+    url: `${apiGatewayUrl}/landing-page-api/landing-page`,
     withCredentials: true
   })
 };

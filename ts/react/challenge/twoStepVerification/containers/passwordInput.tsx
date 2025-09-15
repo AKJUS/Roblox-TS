@@ -127,7 +127,9 @@ const PasswordInput: React.FC<Props> = ({
 
   const BodyElement = renderInline ? InlineChallengeBody : Modal.Body;
   const FooterElement = renderInline ? InlineChallengeFooter : FragmentModalFooter;
-  const lockIconClassName = renderInline ? 'inline-challenge-lock-icon' : 'modal-lock-icon';
+  const lockIconClassName = renderInline
+    ? 'inline-challenge-protection-shield-icon'
+    : 'modal-protection-shield-icon';
   const marginBottomClassName = renderInline
     ? 'inline-challenge-margin-bottom'
     : 'modal-margin-bottom';

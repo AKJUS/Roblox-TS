@@ -48,6 +48,7 @@ type Props = {
   appType: string | null;
   dataExchangeBlob: string;
   unifiedCaptchaId: string;
+  captchaVersion: string;
   renderInline: boolean;
   requestService: RequestService;
   metadataResponse: GetMetadataReturnType;
@@ -72,6 +73,7 @@ export const CaptchaContextProvider = ({
   renderInline,
   dataExchangeBlob,
   unifiedCaptchaId,
+  captchaVersion,
   requestService,
   metadataResponse,
   eventService,
@@ -94,6 +96,7 @@ export const CaptchaContextProvider = ({
     unifiedCaptchaId,
     renderInline,
     metadataResponse,
+    captchaVersion,
 
     // Immutable state:
     resources,

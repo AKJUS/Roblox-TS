@@ -8,7 +8,7 @@ function systemMessages(languageResource) {
   return {
     playTogether: {
       pinGameUpdate(userName, gameName) {
-        return lang.get('Message.PinGameUpdate', { userName: userName, gameName: gameName }); // "{userName} chose a game to play together: {gameName}"
+        return lang.get('Message.PinGameUpdate', { userName, gameName }); // "{userName} chose a game to play together: {gameName}"
       },
       playGameUpdate: lang.get('Message.PlayGameUpdate') // " is playing the pinned game: "
     }

@@ -1,16 +1,20 @@
 import {
-  EventContext,
   EventNames,
   ItemActionMetadata,
   parseEventParams,
   SharedEventMetadata
 } from '@rbx/unified-logging';
 import { eventStreamService } from 'core-roblox-utilities';
-import { TAnalyticsContext, TCollectionAnalyticsData, TItemAnalyticsData } from './SduiTypes';
+import {
+  TAnalyticsContext,
+  TCollectionAnalyticsData,
+  TItemAnalyticsData,
+  TSduiContext
+} from './SduiTypes';
 import logSduiError, { SduiErrorNames } from '../utils/logSduiError';
 import { buildAndValidateItemAnalyticsData, DUMMY_COLLECTION_DATA } from './buildAnalyticsData';
-import { TSduiActionConfig } from './SduiActionHandlerRegistry';
-import { filterInvalidEventParams } from '../utils/analyticsParsingUtils';
+import { TSduiActionConfig } from './SduiActionParserRegistry';
+import { filterInvalidEventParams, getEventContext } from '../utils/analyticsParsingUtils';
 
 export const buildBaseActionParams = (
   item: TItemAnalyticsData,
@@ -18,13 +22,16 @@ export const buildBaseActionParams = (
   contentType: string,
   collectionPosition: number,
   collectionId: number,
+  collectionComponentType: string,
   totalNumberOfItems: number,
-  actionType: string
+  actionType: string,
+  sduiContext: TSduiContext
 ): Record<string, string | number | boolean> => {
   if (!item) {
     logSduiError(
       SduiErrorNames.BuildBaseActionParamsMissingItem,
-      `Item is nil when sending action for collection ${collectionId}`
+      `Item is nil when sending action for collection ${collectionId}`,
+      sduiContext.pageContext
     );
 
     return {};
@@ -34,11 +41,12 @@ export const buildBaseActionParams = (
     [SharedEventMetadata.CollectionId]: collectionId,
     [SharedEventMetadata.CollectionPosition]: collectionPosition,
     [SharedEventMetadata.ContentType]: contentType,
+    [SharedEventMetadata.CollectionComponentType]: collectionComponentType,
     [ItemActionMetadata.TotalNumberOfItems]: totalNumberOfItems,
     [ItemActionMetadata.ItemId]: item.id,
-    // incremented to match app
-    [ItemActionMetadata.ItemPosition]: entryIndex + 1,
-    [ItemActionMetadata.PositionInTopic]: entryIndex + 1,
+    [ItemActionMetadata.ItemPosition]: entryIndex,
+    [ItemActionMetadata.PositionInTopic]: entryIndex,
+    [ItemActionMetadata.ItemComponentType]: item.itemComponentType,
     [ItemActionMetadata.ActionType]: actionType
   };
 };
@@ -46,12 +54,14 @@ export const buildBaseActionParams = (
 export const reportActionAnalytics = (
   actionConfig: TSduiActionConfig,
   analyticsContext: TAnalyticsContext,
+  sduiContext: TSduiContext,
   collectionAnalyticsData: TCollectionAnalyticsData | null
 ): void => {
   const itemAnalyticsData = buildAndValidateItemAnalyticsData(
     analyticsContext.analyticsData ?? {},
     analyticsContext.ancestorAnalyticsData ?? {},
-    undefined
+    undefined,
+    sduiContext
   );
 
   const resultCollectionAnalyticsData =
@@ -62,7 +72,8 @@ export const reportActionAnalytics = (
   if (!resultCollectionAnalyticsData) {
     logSduiError(
       SduiErrorNames.ReportItemActionMissingCollectionData,
-      `Collection data is missing when sending action ${JSON.stringify(actionConfig)}`
+      `Collection data is missing when sending action ${JSON.stringify(actionConfig)}`,
+      sduiContext.pageContext
     );
   }
 
@@ -74,14 +85,16 @@ export const reportActionAnalytics = (
     finalCollectionAnalyticsData.contentType,
     finalCollectionAnalyticsData.collectionPosition,
     finalCollectionAnalyticsData.collectionId,
+    finalCollectionAnalyticsData.collectionComponentType,
     finalCollectionAnalyticsData.totalNumberOfItems,
-    actionConfig.actionType
+    actionConfig.actionType,
+    sduiContext
   );
 
   const params = {
-    ...itemAnalyticsData,
     ...finalCollectionAnalyticsData,
-    ...filterInvalidEventParams(actionConfig.actionParams),
+    ...itemAnalyticsData,
+    ...filterInvalidEventParams(actionConfig.actionParams, sduiContext.pageContext),
     ...baseParams
   };
 
@@ -89,9 +102,7 @@ export const reportActionAnalytics = (
     {
       name: EventNames.ItemAction,
       type: EventNames.ItemAction,
-      // TODO https://roblox.atlassian.net/browse/CLIGROW-2205
-      // context should come from sduiContext.pageContext
-      context: EventContext.Home
+      context: getEventContext(sduiContext.pageContext) ?? 'unknown'
     },
     parseEventParams({ ...params })
   );

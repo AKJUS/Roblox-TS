@@ -223,22 +223,21 @@ export const formatCredentialAuthenticationResponseWeb = (
   // TODO: old, migrated code
   // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
   const response = credential.response as AuthenticatorAssertionResponse;
-  const authData = new Uint8Array(response.authenticatorData);
-  const clientDataJSON = new Uint8Array(response.clientDataJSON);
-  const rawId = new Uint8Array(credential.rawId);
-  const signature = new Uint8Array(response.signature);
-  // TODO: old, migrated code
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  const userHandle = new Uint8Array(response.userHandle!);
+  const { authenticatorData, clientDataJSON, signature, userHandle } = response;
+  const { rawId } = credential;
   const publicKeyCredential = {
     id: credential.id,
     rawId: base64StringToBase64UrlString(arrayBufferToBase64String(rawId)),
     type: credential.type,
     response: {
-      authenticatorData: base64StringToBase64UrlString(arrayBufferToBase64String(authData)),
+      authenticatorData: base64StringToBase64UrlString(
+        arrayBufferToBase64String(authenticatorData),
+      ),
       clientDataJSON: base64StringToBase64UrlString(arrayBufferToBase64String(clientDataJSON)),
       signature: base64StringToBase64UrlString(arrayBufferToBase64String(signature)),
-      userHandle: base64StringToBase64UrlString(arrayBufferToBase64String(userHandle)),
+      // TODO: old, migrated code
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      userHandle: base64StringToBase64UrlString(arrayBufferToBase64String(userHandle!)),
     },
   };
   return JSON.stringify(publicKeyCredential);
@@ -250,9 +249,8 @@ export const formatCredentialRegistrationResponseWeb = (
   // TODO: old, migrated code
   // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
   const response = credential.response as AuthenticatorAttestationResponse;
-  const attestationObject = new Uint8Array(response.attestationObject);
-  const clientDataJSON = new Uint8Array(response.clientDataJSON);
-  const rawId = new Uint8Array(credential.rawId);
+  const { attestationObject, clientDataJSON } = response;
+  const { rawId } = credential;
   return JSON.stringify({
     // For some reason this will always fail to build without an explicit any typecast.
     // Although PublicKeyCredential should always have authenticatorAttachment, the compiler is somehow unaware.

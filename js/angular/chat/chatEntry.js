@@ -16,7 +16,7 @@ const chatTemplateContext = require.context('./', true, /\.html$/);
 const templates = templateCacheGenerator(angular, 'chatAppTemplates', chatTemplateContext);
 
 // self manual initialization
-angular.element(function() {
-  angular.element("#chat-container").hide();
+angular.element(function () {
+  angular.element('#chat-container').hide();
   angular.bootstrap('#chat-container', [chatModule.name, templates.name]);
 });

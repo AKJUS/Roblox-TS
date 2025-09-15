@@ -26,7 +26,7 @@ export const logoutSession = async (
   );
 
 export const logoutFromAllSessionsAndReauthenticate = async (
-  secureAuthenticationIntent: TSecureAuthIntent
+  secureAuthenticationIntent: TSecureAuthIntent | null
 ): Promise<
   Result<SessionManagement.LogoutFromAllSessionsReturnType, SessionManagement.AuthError | null>
 > =>

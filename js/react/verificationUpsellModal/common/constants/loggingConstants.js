@@ -12,6 +12,7 @@ export const sectionValues = {
 export const originValues = {
   unset: 'unset',
   homepage: 'homepage',
-  accountSettingsPage: 'accountSettingsPage',
+  accountSettingsPage: 'settingsAccountInfo',
+  friendDiscoverySettingPage: 'friendDiscoverySetting',
   challenge: 'challenge'
 };

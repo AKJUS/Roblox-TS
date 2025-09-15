@@ -18,6 +18,7 @@ type THomePageDiscoveryApiProps = {
   startingRow: number | undefined;
   recommendations: TOmniRecommendationGame[];
   isExpandHomeContentEnabled?: boolean;
+  isNewSortHeaderEnabled?: boolean;
 };
 
 const { sortlessGridMaxTilesMetadataToFetch } = homePage;
@@ -29,7 +30,8 @@ export const GameGridFeedItem = ({
   itemsPerRow,
   startingRow,
   recommendations,
-  isExpandHomeContentEnabled
+  isExpandHomeContentEnabled,
+  isNewSortHeaderEnabled
 }: THomePageDiscoveryApiProps): JSX.Element | null => {
   const friendsPresence = useFriendsPresence();
 
@@ -83,13 +85,16 @@ export const GameGridFeedItem = ({
       playButtonStyle={sort.topicLayoutData?.playButtonStyle}
       hoverStyle={sort.topicLayoutData?.hoverStyle}
       isSponsoredFooterAllowed={sort.topicLayoutData?.isSponsoredFooterAllowed === 'true'}
+      hideTileMetadata={sort.topicLayoutData?.hideTileMetadata === 'true'}
       isExpandHomeContentEnabled={isExpandHomeContentEnabled}
+      isNewSortHeaderEnabled={isNewSortHeaderEnabled}
     />
   );
 };
 
 GameGridFeedItem.defaultProps = {
-  isExpandHomeContentEnabled: undefined
+  isExpandHomeContentEnabled: undefined,
+  isNewSortHeaderEnabled: undefined
 };
 
 export default GameGridFeedItem;

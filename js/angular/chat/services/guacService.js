@@ -1,4 +1,4 @@
-import { EnvironmentUrls } from 'Roblox';
+import { EnvironmentUrls, Guac } from 'Roblox';
 import chatModule from '../chatModule';
 
 function guacService($q, httpService, $log) {
@@ -6,25 +6,16 @@ function guacService($q, httpService, $log) {
 
   return {
     getChatUiPolicies() {
-      return httpService.httpGet({
-        url: `${EnvironmentUrls.apiGatewayUrl}/universal-app-configuration/v1/behaviors/chat-ui/content`,
-        retryable: true,
-        withCredentials: true
-      });
+      return Guac.callBehaviour('chat-ui');
     },
     getAppPolicies() {
-      return httpService.httpGet({
-        url: `${EnvironmentUrls.apiGatewayUrl}/universal-app-configuration/v1/behaviors/app-policy/content`,
-        retryable: true,
-        withCredentials: true
-      });
+      return Guac.callBehaviour('app-policy');
     },
     getAbuseReportRevampPolicies() {
-      return httpService.httpGet({
-        url: `${EnvironmentUrls.universalAppConfigurationApi}/v1/behaviors/abuse-reporting-revamp/content`,
-        retryable: true,
-        withCredentials: true
-      });
+      return Guac.callBehaviour('abuse-reporting-revamp');
+    },
+    getRenameFriendsPolicies() {
+      return Promise.resolve({ renameFriendsToConnections: true });
     }
   };
 }

@@ -8,7 +8,10 @@ import { PageContext } from '../common/types/pageContext';
 import FriendCarouselFeedItem from './FriendCarouselFeedItem';
 import FiltersFeedItem from './FiltersFeedItem';
 import SduiFeedItem from './SduiFeedItem';
-import { TOmniRecommendationSduiTree } from '../sdui/system/SduiTypes';
+import SongCarouselFeedItem from './SongCarouselFeedItem';
+import { TOmniRecommendationSduiTree, TSduiPageContextType } from '../sdui/system/SduiTypes';
+import { logSduiError, SduiErrorNames } from '../sdui/utils/logSduiError';
+import { isSupportedSduiPage } from '../sdui/utils/sduiValidationUtils';
 
 type TOmniFeedItemProps = {
   translate: WithTranslationsProps['translate'];
@@ -21,9 +24,10 @@ type TOmniFeedItemProps = {
   loadMoreGames?: () => void;
   isLoadingMoreGames?: boolean;
   isExpandHomeContentEnabled?: boolean;
-  isChartsPageRenameEnabled?: boolean;
+  isMusicChartsCarouselEnabled?: boolean;
   isCarouselHorizontalScrollEnabled?: boolean;
   isNewScrollArrowsEnabled?: boolean;
+  isNewSortHeaderEnabled?: boolean;
   sduiRoot?: TOmniRecommendationSduiTree;
   fetchGamesPageData?: (filters: Map<string, string>) => void;
 };
@@ -39,9 +43,10 @@ export const OmniFeedItem = ({
   loadMoreGames,
   isLoadingMoreGames,
   isExpandHomeContentEnabled,
-  isChartsPageRenameEnabled,
+  isMusicChartsCarouselEnabled,
   isCarouselHorizontalScrollEnabled,
   isNewScrollArrowsEnabled,
+  isNewSortHeaderEnabled,
   sduiRoot,
   fetchGamesPageData
 }: TOmniFeedItemProps): JSX.Element | null => {
@@ -58,8 +63,8 @@ export const OmniFeedItem = ({
           loadMoreGames={loadMoreGames}
           isLoadingMoreGames={isLoadingMoreGames}
           isExpandHomeContentEnabled={isExpandHomeContentEnabled}
-          isChartsPageRenameEnabled={isChartsPageRenameEnabled}
           isCarouselHorizontalScrollEnabled={isCarouselHorizontalScrollEnabled}
+          isNewSortHeaderEnabled={isNewSortHeaderEnabled}
           isNewScrollArrowsEnabled={isNewScrollArrowsEnabled}
         />
       );
@@ -75,10 +80,30 @@ export const OmniFeedItem = ({
           startingRow={startingRow}
           recommendations={gridRecommendations ?? []}
           isExpandHomeContentEnabled={isExpandHomeContentEnabled}
+          isNewSortHeaderEnabled={isNewSortHeaderEnabled}
         />
       );
     case TTreatmentType.FriendCarousel:
       return <FriendCarouselFeedItem sortId={sort.topicId} sortPosition={positionId} />;
+    case TTreatmentType.SongCarousel:
+      // MUS-2078 TODO: Remove this condition once the Music surfaces are ready
+      // for launch
+      if (!isMusicChartsCarouselEnabled) {
+        return <React.Fragment />;
+      }
+
+      if (!isSupportedSduiPage(currentPage)) {
+        logSduiError(
+          SduiErrorNames.UnsupportedSduiPage,
+          `${currentPage} is not supported for SongCarouselFeedItem`,
+          {
+            pageName: currentPage as TSduiPageContextType
+          }
+        );
+        return <React.Fragment />;
+      }
+
+      return <SongCarouselFeedItem sort={sort} positionId={positionId} currentPage={currentPage} />;
     case TTreatmentType.Pills:
       return (
         <FiltersFeedItem
@@ -89,6 +114,16 @@ export const OmniFeedItem = ({
         />
       );
     case TTreatmentType.Sdui:
+      if (!isSupportedSduiPage(currentPage)) {
+        logSduiError(
+          SduiErrorNames.UnsupportedSduiPage,
+          `${currentPage} is not supported for SduiFeedItem`,
+          {
+            pageName: currentPage as TSduiPageContextType
+          }
+        );
+        return <React.Fragment />;
+      }
       return <SduiFeedItem sort={sort} sduiRoot={sduiRoot} currentPage={currentPage} />;
     default:
       return null;
@@ -100,10 +135,11 @@ OmniFeedItem.defaultProps = {
   isLoadingMoreGames: undefined,
   gridRecommendations: [],
   isExpandHomeContentEnabled: undefined,
-  isChartsPageRenameEnabled: undefined,
+  isMusicChartsCarouselEnabled: undefined,
   isCarouselHorizontalScrollEnabled: undefined,
   fetchGamesPageData: undefined,
-  isNewScrollArrowsEnabled: undefined
+  isNewScrollArrowsEnabled: undefined,
+  isNewSortHeaderEnabled: undefined
 };
 
 export default OmniFeedItem;

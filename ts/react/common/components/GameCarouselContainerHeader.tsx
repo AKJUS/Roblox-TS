@@ -12,6 +12,7 @@ import eventStreamConstants, {
   TBuildNavigateToSortLinkEventProperties
 } from '../constants/eventStreamConstants';
 import GameCarouselSubtitle from './GameCarouselSubtitle';
+import HomeSortHeader from './HomeSortHeader';
 
 type TGameCarouselContainerHeaderProps = {
   sortTitle: string;
@@ -28,6 +29,7 @@ type TGameCarouselContainerHeaderProps = {
   endTimestamp?: string;
   countdownString?: string;
   backgroundImageAssetId?: number;
+  isNewSortHeaderEnabled?: boolean;
   translate: TranslateFunction;
 };
 
@@ -46,6 +48,7 @@ const GameCarouselContainerHeader = ({
   endTimestamp,
   countdownString,
   backgroundImageAssetId,
+  isNewSortHeaderEnabled,
   translate
 }: TGameCarouselContainerHeaderProps): JSX.Element => {
   const tooltipText = useMemo(() => {
@@ -79,12 +82,29 @@ const GameCarouselContainerHeader = ({
     }
   }, [isSortLinkOverrideEnabled, buildNavigateToSortLinkEventProperties]);
 
+  if (isNewSortHeaderEnabled) {
+    return (
+      <HomeSortHeader
+        titleText={sortTitle}
+        sendNavigateToSortLinkEvent={handleSeeAllLinkClick}
+        titleLink={seeAllLink}
+        isSortLinkOverrideEnabled={isSortLinkOverrideEnabled}
+        subtitleText={sortSubtitle}
+        subtitleLink={subtitleLink}
+        shouldShowSeparateSubtitleLink={shouldShowSeparateSubtitleLink}
+        hasBackgroundMural={!!backgroundImageAssetId}
+        tooltipText={tooltipText}
+        hideSeeAll={hideSeeAll}
+      />
+    );
+  }
+
   return (
     <div className='game-sort-header-container'>
       <div className={titleContainerClassName}>
         <h2 className='sort-header'>
           {hideSeeAll ? <span>{sortTitle}</span> : <Link url={seeAllLink}>{sortTitle}</Link>}
-          {tooltipText && <GamesInfoTooltip tooltipText={tooltipText} />}
+          {tooltipText && <GamesInfoTooltip tooltipText={tooltipText} placement='right' />}
         </h2>
         {!hideSeeAll && (
           <Link
@@ -115,7 +135,8 @@ GameCarouselContainerHeader.defaultProps = {
   endTimestamp: undefined,
   countdownString: undefined,
   buildNavigateToSortLinkEventProperties: undefined,
-  backgroundImageAssetId: undefined
+  backgroundImageAssetId: undefined,
+  isNewSortHeaderEnabled: undefined
 };
 
 export default GameCarouselContainerHeader;

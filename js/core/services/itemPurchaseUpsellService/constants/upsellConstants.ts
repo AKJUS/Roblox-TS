@@ -173,5 +173,4 @@ export const UPSELL_COUNTER_NAMES = {
   U13PaymentModalNoAction: 'U13PaymentModalNoAction'
 };
 
-export const GET_VNG_BUY_ROBUX_BEHAVIOR_URL = '/v1/behaviors/vng-buy-robux/content';
 export const GET_VNG_SHOP_URL_PATH = '/vng-payments/v1/getVngShopUrl';

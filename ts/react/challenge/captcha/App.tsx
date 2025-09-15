@@ -2,8 +2,7 @@ import React from 'react';
 import { WithTranslationsProps, withTranslations } from 'react-utilities';
 import { RequestService } from '../../../common/request';
 import { GetMetadataReturnType } from '../../../common/request/types/captcha';
-import { FUNCAPTCHA_VERSION_V2, TRANSLATION_CONFIG } from './app.config';
-import CaptchaV1 from './containers/captchaV1';
+import { TRANSLATION_CONFIG } from './app.config';
 import CaptchaV2 from './containers/captchaV2';
 import {
   ActionType,
@@ -56,6 +55,7 @@ export const App: React.FC<Props> = ({
       appType={appType}
       dataExchangeBlob={dataExchangeBlob}
       unifiedCaptchaId={unifiedCaptchaId}
+      captchaVersion={captchaVersion}
       renderInline={renderInline}
       requestService={requestService}
       translate={translate}
@@ -66,7 +66,7 @@ export const App: React.FC<Props> = ({
       onChallengeCompleted={onChallengeCompleted}
       onChallengeInvalidated={onChallengeInvalidated}
       onModalChallengeAbandoned={onModalChallengeAbandoned}>
-      {captchaVersion === FUNCAPTCHA_VERSION_V2 ? <CaptchaV2 /> : <CaptchaV1 />}
+      <CaptchaV2 />
     </CaptchaContextProvider>
   );
 };

@@ -89,7 +89,7 @@ function playTogetherService($log) {
 
       if (conversation.playTogetherDict[rootPlaceId]) {
         const numberOfPlayers = conversation.playTogetherDict[rootPlaceId].playerIds.length;
-        angular.forEach(conversation.playTogetherIds, function(placeId, idx) {
+        angular.forEach(conversation.playTogetherIds, function (placeId, idx) {
           const existingPlayerIds = conversation.playTogetherDict[placeId].playerIds;
           if (existingPlayerIds.indexOf(playerId) > -1 && rootPlaceId !== placeId) {
             // means player also existed in other place, should remove

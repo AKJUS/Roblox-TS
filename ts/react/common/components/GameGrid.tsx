@@ -28,6 +28,7 @@ export type TGameGridProps = {
   topicId?: string;
   isHomeGameGrid?: boolean;
   isSponsoredFooterAllowed?: boolean;
+  hideTileMetadata?: boolean;
   hoverStyle?: THoverStyle;
   isExpandHomeContentEnabled?: boolean;
   interestedUniverses?: Set<number>;
@@ -50,6 +51,7 @@ export const GameGrid = forwardRef<HTMLDivElement, TGameGridProps>(
       playButtonStyle,
       isHomeGameGrid,
       isSponsoredFooterAllowed,
+      hideTileMetadata,
       hoverStyle,
       topicId,
       isExpandHomeContentEnabled,
@@ -94,7 +96,8 @@ export const GameGrid = forwardRef<HTMLDivElement, TGameGridProps>(
                 tileRef.current = ref;
               }
             }}
-            key={data.universeId}
+            // key should differentiate sponsored and organic tiles to prevent key collisions when the same universe appears as both sponsored and organic in an interleaved sort
+            key={`${data.universeId}-isSponsored=${(data.isSponsored ?? false).toString()}`}
             id={positionId}
             gameData={data}
             translate={translate}
@@ -105,6 +108,7 @@ export const GameGrid = forwardRef<HTMLDivElement, TGameGridProps>(
             playerCountStyle={playerCountStyle}
             playButtonStyle={playButtonStyle}
             isSponsoredFooterAllowed={isSponsoredFooterAllowed}
+            hideTileMetadata={hideTileMetadata}
             hoverStyle={hoverStyle}
             topicId={topicId}
             isInterestedUniverse={interestedUniverses?.has(data.universeId)}
@@ -125,6 +129,7 @@ GameGrid.defaultProps = {
   playButtonStyle: undefined,
   isHomeGameGrid: false,
   isSponsoredFooterAllowed: undefined,
+  hideTileMetadata: undefined,
   hoverStyle: undefined,
   topicId: undefined,
   isExpandHomeContentEnabled: undefined,

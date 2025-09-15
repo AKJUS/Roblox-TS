@@ -1,17 +1,17 @@
 import { useState, useEffect } from 'react';
 import playButtonService from '../services/playButtonService';
-import { TSettingResponse } from '../types/playButtonTypes';
-import { getMinimumAgeFromAgeRecommendationResponse } from '../utils/playButtonUtils';
+import { TContentMaturityRating, TSettingResponse } from '../types/playButtonTypes';
+import { getContentMaturityRatingFromAgeRecommendationResponse } from '../utils/playButtonUtils';
 
 type TParentalControlsUpsellData = {
   contentAgeRestriction: TSettingResponse | undefined;
-  minimumAge: number | undefined;
+  contentMaturityRating: TContentMaturityRating | undefined;
   isFetching: boolean;
   hasError: boolean;
 };
 
 /**
- * Fetches the experience's minimumAge and the user's contentAgeRestriction setting,
+ * Fetches the experience's contentMaturityRating and the user's contentAgeRestriction setting,
  * which will be used to determine which upsell modal to display.
  */
 const useFetchParentalControlsUpsellData = (universeId: string): TParentalControlsUpsellData => {
@@ -20,7 +20,9 @@ const useFetchParentalControlsUpsellData = (universeId: string): TParentalContro
   >(undefined);
   const [isFetchingSettings, setIsFetchingSettings] = useState<boolean>(false);
 
-  const [minimumAge, setMinimumAge] = useState<number | undefined>(undefined);
+  const [contentMaturityRating, setContentMaturityRating] = useState<
+    TContentMaturityRating | undefined
+  >(undefined);
   const [isFetchingAgeRecommendation, setIsFetchingAgeRecommendation] = useState<boolean>(false);
 
   const [hasError, setHasError] = useState<boolean>(false);
@@ -41,7 +43,7 @@ const useFetchParentalControlsUpsellData = (universeId: string): TParentalContro
     playButtonService
       .getAgeRecommendation(universeId)
       .then(response => {
-        setMinimumAge(getMinimumAgeFromAgeRecommendationResponse(response));
+        setContentMaturityRating(getContentMaturityRatingFromAgeRecommendationResponse(response));
       })
       .catch(() => setHasError(true))
       .finally(() => setIsFetchingAgeRecommendation(false));
@@ -49,7 +51,7 @@ const useFetchParentalControlsUpsellData = (universeId: string): TParentalContro
 
   return {
     contentAgeRestriction,
-    minimumAge,
+    contentMaturityRating,
     isFetching: isFetchingSettings || isFetchingAgeRecommendation,
     hasError
   };

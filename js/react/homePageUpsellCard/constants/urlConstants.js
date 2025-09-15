@@ -14,11 +14,5 @@ const optUserInToVoiceChatConfig = () => ({
   url: `${voiceApi}/v1/settings/user-opt-in`
 });
 
-const getVoicePolicyConfig = () => ({
-  retryable: true,
-  withCredentials: true,
-  url: `${EnvironmentUrls.apiGatewayUrl}/universal-app-configuration/v1/behaviors/free-communication-infographics/content`
-});
-
 // eslint-disable-next-line import/prefer-default-export
-export { getUpsellCardTypeUrlConfig, getVoicePolicyConfig, optUserInToVoiceChatConfig };
+export { getUpsellCardTypeUrlConfig, optUserInToVoiceChatConfig };

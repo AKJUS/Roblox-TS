@@ -1,26 +1,29 @@
 import React from 'react';
 import { WithTranslationsProps } from 'react-utilities';
+import { ForceActionRedirect as ForceActionRedirectTypes } from '@rbx/generic-challenge-types';
 import ForceActionRedirect from './containers/forceActionRedirect';
-import { ForceActionRedirectChallengeConfig, OnModalChallengeAbandonedCallback } from './interface';
 import { ForceActionRedirectContextProvider } from './store/contextProvider';
 
 type Props = {
-  forceActionRedirectChallengeConfig: ForceActionRedirectChallengeConfig;
+  forceActionRedirectChallengeConfig: ForceActionRedirectTypes.ForceActionRedirectChallengeConfig;
   renderInline: boolean;
-  onModalChallengeAbandoned: OnModalChallengeAbandonedCallback | null;
+  onModalChallengeAbandoned: ForceActionRedirectTypes.OnModalChallengeAbandonedCallback | null;
+  onChallengeAbandoned: ForceActionRedirectTypes.OnChallengeAbandonedCallback | null;
 } & WithTranslationsProps;
 
 const App: React.FC<Props> = ({
   renderInline,
   forceActionRedirectChallengeConfig,
   translate,
-  onModalChallengeAbandoned
+  onModalChallengeAbandoned,
+  onChallengeAbandoned
 }: Props) => {
   return (
     <ForceActionRedirectContextProvider
       renderInline={renderInline}
       forceActionRedirectChallengeConfig={forceActionRedirectChallengeConfig}
       translate={translate}
+      onChallengeAbandoned={onChallengeAbandoned}
       onModalChallengeAbandoned={onModalChallengeAbandoned}>
       <ForceActionRedirect />
     </ForceActionRedirectContextProvider>

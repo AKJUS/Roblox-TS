@@ -1,30 +1,25 @@
 import { EnvironmentUrls, CurrentUser } from 'Roblox';
 import chatModule from '../chatModule';
 
-function chatService(
-    $q,
-    chatUtility,
-    httpService,
-    $log,
-    apiParamsInitialization
-) {
+function chatService($q, chatUtility, httpService, $log, apiParamsInitialization) {
   'ngInject';
 
-  const getConversations = function(conversationIds) {
+  const getConversations = function (conversationIds) {
     const params = {
       ids: conversationIds,
       include_messages: true,
       include_participants: true,
       include_user_data: true
     };
-    return httpService.httpPost(this.apiSets.getConversationsApi, params)
-        .then(function success(data) {
-          convertChannels(data.conversations);
-          return data.conversations;
-        });
+    return httpService
+      .httpPost(this.apiSets.getConversationsApi, params)
+      .then(function success(data) {
+        convertChannels(data.conversations);
+        return data.conversations;
+      });
   };
 
-  const shouldRetrieveNextMessages = function(conversation, data) {
+  const shouldRetrieveNextMessages = function (conversation, data) {
     // first message
     if (!conversation || !conversation.chatMessages || conversation.chatMessages.length <= 0) {
       return false;
@@ -39,15 +34,18 @@ function chatService(
     return true;
   };
 
-  const convertChannels = function(conversations) {
+  const convertChannels = function (conversations) {
     for (const conversationIndex in conversations) {
       const conversation = conversations[conversationIndex];
-      const participants = conversation.participants = [];
+      conversation.participants = [];
+      const { participants } = conversation;
       for (const participantIndex in conversation.participant_user_ids) {
-        const participant = Object.assign({}, conversation.user_data[conversation.participant_user_ids[participantIndex]]);
+        const participant = {
+          ...conversation.user_data[conversation.participant_user_ids[participantIndex]]
+        };
         participants.push(participant);
       }
-      conversation.initiator = Object.assign({}, conversation.user_data[conversation.created_by]);
+      conversation.initiator = { ...conversation.user_data[conversation.created_by] };
       conversation.hasUnreadMessages = conversation.unread_message_count > 0;
       conversation.hasDefaultName = !conversation.name;
       conversation.conversationTitle = {
@@ -135,6 +133,11 @@ function chatService(
         retryable: false,
         withCredentials: true
       };
+      this.apiSets.getModalSequenceApi = {
+        url: `${chatDomain}/v2/get-modal-sequence`,
+        retryable: true,
+        withCredentials: true
+      };
       this.apiSets.recordModalSequenceResponseApi = {
         url: `${chatDomain}/v1/record-modal-sequence-response`,
         retryable: true,
@@ -161,10 +164,11 @@ function chatService(
     },
 
     getUnreadConversationCount() {
-      return httpService.httpGet(this.apiSets.getUnreadConversationCountApi, null)
-          .then(function(data) {
-            return { count: data.global_unread_message_count > 0 ? 1 : 0 }
-          });
+      return httpService
+        .httpGet(this.apiSets.getUnreadConversationCountApi, null)
+        .then(function (data) {
+          return { count: data.global_unread_message_count > 0 ? 1 : 0 };
+        });
     },
 
     getUserConversations(cursor, pageSizeOfConversations, friendsDict) {
@@ -175,11 +179,11 @@ function chatService(
       };
 
       return httpService
-          .httpGet(this.apiSets.userConversationsApi, paramsOfConvs)
-          .then(function (data) {
-            convertChannels(data.conversations);
-            return data;
-          });
+        .httpGet(this.apiSets.userConversationsApi, paramsOfConvs)
+        .then(function (data) {
+          convertChannels(data.conversations);
+          return data;
+        });
     },
 
     getConversations,
@@ -195,9 +199,7 @@ function chatService(
     removeFromConversation(participantUserId, conversationId) {
       const data = {
         conversation_id: conversationId,
-        user_ids: [
-          participantUserId
-        ]
+        user_ids: [participantUserId]
       };
       return httpService.httpPost(this.apiSets.removeFromConversationApi, data);
     },
@@ -206,44 +208,43 @@ function chatService(
       const data = {
         conversations: [
           {
-            type: "one_to_one",
-            participant_user_ids: [
-              participantUserId
-            ]
+            type: 'one_to_one',
+            participant_user_ids: [participantUserId]
           }
         ],
         include_user_data: true
       };
       return httpService
-          .httpPost(this.apiSets.startOneToOneConversationApi, data)
-          .then(function (data) {
-            convertChannels(data.conversations);
-            return data.conversations[0];
-          });
+        .httpPost(this.apiSets.startOneToOneConversationApi, data)
+        .then(function (data) {
+          convertChannels(data.conversations);
+          return data.conversations[0];
+        });
     },
 
     startGroupConversation(participantUserIds, title) {
       const data = {
         conversations: [
           {
-            type: "group",
+            type: 'group',
             name: title,
             participant_user_ids: participantUserIds
           }
         ],
         include_user_data: true
       };
-      return httpService.httpPost(this.apiSets.startGroupConversationApi, data)
-          .then(function (data) {
-            convertChannels(data.conversations);
-            return data.conversations[0];
-          });
+      return httpService
+        .httpPost(this.apiSets.startGroupConversationApi, data)
+        .then(function (data) {
+          convertChannels(data.conversations);
+          return data.conversations[0];
+        });
     },
 
     getMessages(conversationId, cursor) {
       // this prevents failed calls for placeholder conversations
       if (!conversationId) {
-        return new Promise((resolve) => {
+        return new Promise(resolve => {
           return {
             messages: []
           };
@@ -271,35 +272,35 @@ function chatService(
     },
 
     getMessagesByPageSize(
-        conversation,
-        cursor,
-        pageSize,
-        allData,
-        update,
-        messageReceiveStartTime
+      conversation,
+      cursor,
+      pageSize,
+      allData,
+      update,
+      messageReceiveStartTime
     ) {
       const chatService = this;
-      this.getMessages(conversation.id, cursor, pageSize).then(function(response) {
+      this.getMessages(conversation.id, cursor, pageSize).then(function (response) {
         const data = response.messages;
         if (data && data.length > 0) {
           const nextPageSize = pageSize * 2;
-          data.forEach(function(message) {
+          data.forEach(function (message) {
             allData.push(message);
           });
 
           // repeat if all messages have not been retrieved nor reached max page size
           if (
-              shouldRetrieveNextMessages(conversation, data) &&
-              nextPageSize <= chatUtility.dialogParams.pageSizeOfGetMessages &&
-              data.length === pageSize
+            shouldRetrieveNextMessages(conversation, data) &&
+            nextPageSize <= chatUtility.dialogParams.pageSizeOfGetMessages &&
+            data.length === pageSize
           ) {
             chatService.getMessagesByPageSize(
-                conversation,
-                response.next_cursor,
-                nextPageSize,
-                allData,
-                update,
-                messageReceiveStartTime
+              conversation,
+              response.next_cursor,
+              nextPageSize,
+              allData,
+              update,
+              messageReceiveStartTime
             );
           } else {
             update(messageReceiveStartTime);
@@ -326,9 +327,7 @@ function chatService(
 
     markAsRead(conversationId) {
       const data = {
-        conversation_ids: [
-          conversationId
-        ]
+        conversation_ids: [conversationId]
       };
       return httpService.httpPost(this.apiSets.markAsReadApi, data);
     },
@@ -342,7 +341,7 @@ function chatService(
           }
         ]
       };
-      return httpService.httpPost(this.apiSets.sendMessageApi, params).then(function(data) {
+      return httpService.httpPost(this.apiSets.sendMessageApi, params).then(function (data) {
         return { data: data.messages[0] };
       });
     },
@@ -357,10 +356,10 @@ function chatService(
         ]
       };
       return httpService
-          .httpPost(this.apiSets.renameGroupConversationApi, params)
-          .then(function (data) {
-            return data?.conversations?.[0] ?? {};
-          });
+        .httpPost(this.apiSets.renameGroupConversationApi, params)
+        .then(function (data) {
+          return data?.conversations?.[0] ?? {};
+        });
     },
 
     updateUserTypingStatus(conversationId, isTyping) {
@@ -370,7 +369,24 @@ function chatService(
       return httpService.httpPost(this.apiSets.updateUserTypingStatusApi, data);
     },
 
-    recordModalSequenceResponse({ conversationId, friendId, modalSequence, modalVariant, modalId, actionType }) {
+    getModalSequence({ conversationId, friendId, modalSequence }) {
+      const data = {
+        conversation_id: conversationId,
+        friend_id: friendId,
+        modal_sequence: modalSequence,
+        is_in_experience: false
+      };
+      return httpService.httpPost(this.apiSets.getModalSequenceApi, data);
+    },
+
+    recordModalSequenceResponse({
+      conversationId,
+      friendId,
+      modalSequence,
+      modalVariant,
+      modalId,
+      actionType
+    }) {
       const data = {
         conversation_id: conversationId,
         friend_id: friendId,

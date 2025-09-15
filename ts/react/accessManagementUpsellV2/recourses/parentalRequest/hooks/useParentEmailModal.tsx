@@ -14,6 +14,7 @@ import {
   sendParentEmailSubmitEvent,
   sendInteractParentEmailFormEvent
 } from '../services/eventService';
+import universalAppConfigurationService from '../services/universalAppConfigurationService';
 import ParentalRequestErrorReason from '../enums/ParentalRequestErrorReason';
 import fetchFeatureCheckResponse from '../../../accessManagement/accessManagementAPI';
 import AmpResponse from '../../../accessManagement/AmpResponse';
@@ -37,6 +38,7 @@ const useParentEmailModal = (
   const { gatherParentEmail } = translationKeys;
   const [modalOpen, setModalOpen] = useState<boolean>(false);
   const [isChildSubjectToPC, setIsChildSubjectToPC] = useState<boolean>(false);
+  const [isTeenLaunchEnabled, setIsTeenLaunchEnabled] = useState<boolean>(false);
   const [sendEmailBtnLoadingStatus, setSendEmailBtnLoadingStatus] = useState<boolean>(false);
   const [parentEmailInput, setParentEmailInput] = useState<string>('');
   const [modalTitle, setModalTitle] = useState<string>(translate(gatherParentEmail.title));
@@ -75,10 +77,27 @@ const useParentEmailModal = (
       // Handle error if needed
     }
   };
+  const fetchVpcLaunchStatus = async () => {
+    try {
+      const {
+        isTeenLaunchEnabled: teenLaunchEnabled
+      } = await universalAppConfigurationService.getVpcLaunchStatus();
+      if (teenLaunchEnabled) {
+        setIsTeenLaunchEnabled(teenLaunchEnabled);
+      }
+    } catch (error) {
+      // Handle error if needed
+    }
+  };
   useEffect(() => {
     // eslint-disable-next-line no-void
     void fetchIsChildSubjectToPC();
   }, []);
+  useEffect(() => {
+    // eslint-disable-next-line no-void
+    void fetchVpcLaunchStatus();
+  }, []);
+
   const regex = new RegExp(emailRegex);
   const getSetEmailErrorMessage = () => {
     if (parentEmailInput.length > 0 && !regex.test(parentEmailInput)) {
@@ -124,12 +143,30 @@ const useParentEmailModal = (
   };
 
   useEffect(() => {
-    const descriptionTranslationKey = isChildSubjectToPC
-      ? gatherParentEmail.body
-      : gatherParentEmail.bodyWithoutPC;
+    let descriptionTranslationKey = gatherParentEmail.bodyWithoutPC;
+    if (isChildSubjectToPC && isTeenLaunchEnabled) {
+      // New copy for U13 after teen launch
+      descriptionTranslationKey = gatherParentEmail.bodyWithPC;
+    } else if (isChildSubjectToPC) {
+      // Old copy for U13 before teen launch
+      descriptionTranslationKey = gatherParentEmail.body;
+    } else if (isTeenLaunchEnabled) {
+      // New copy for teens after teen launch
+      descriptionTranslationKey = gatherParentEmail.bodyForTeens;
+    }
+
     const expBodyTranslationKey = isChildSubjectToPC
       ? gatherParentEmail.combinedBody
       : gatherParentEmail.combinedBodyWithoutPC;
+    // New experiment T1/T2 variants
+    const expBodyTranslationKeyT1 = isChildSubjectToPC
+      ? gatherParentEmail.combinedBodyExpT1
+      : gatherParentEmail.combinedBodyWithoutPCExpT1;
+    const expBodyTranslationKeyT3 = isChildSubjectToPC
+      ? gatherParentEmail.combinedBodyExpT3
+      : gatherParentEmail.combinedBodyWithoutPCExpT3;
+
+    // First, check for legacy experiment variants that only apply to EnablePurchases.
     if (settingName === parentalRequestConstants.settingName.enablePurchases) {
       switch (expChildModalType) {
         case ExpNewChildModal.askYourParentTitle:
@@ -142,7 +179,7 @@ const useParentEmailModal = (
               <span>{translate(expBodyTranslationKey)}</span>
             </span>
           );
-          break;
+          return;
         case ExpNewChildModal.permissionNeededTitle:
           setModalTitle(translate(gatherParentEmail.permissionNeededTitle));
           setDescription(
@@ -153,7 +190,7 @@ const useParentEmailModal = (
               <span>{translate(expBodyTranslationKey)}</span>
             </span>
           );
-          break;
+          return;
         case ExpNewChildModal.visualized:
           setModalTitle(translate(gatherParentEmail.askYourParentTitle));
           setDescription(
@@ -165,26 +202,56 @@ const useParentEmailModal = (
               <span>{translate(expBodyTranslationKey)}</span>
             </div>
           );
-          break;
-        default:
+          return;
+        case ExpNewChildModal.newOneScreenVisual:
+          setModalTitle(translate(gatherParentEmail.askYourParentTitle));
           setDescription(
+            <div>
+              <div className='parent-email-image' />
+              <span>{translate(expBodyTranslationKeyT3, { lineBreak: '<br /><br />' })}</span>
+            </div>
+          );
+          return;
+        default:
+          // Fall through to the main switch statement below
+          break;
+      }
+    }
+
+    switch (expChildModalType) {
+      case ExpNewChildModal.newPrologueNoVisual:
+        setModalTitle(translate(gatherParentEmail.askYourParentTitle));
+        setDescription(
+          <span
+            dangerouslySetInnerHTML={{
+              __html: translate(expBodyTranslationKeyT1, { lineBreak: '<br /><br />' })
+            }}
+          />
+        );
+        break;
+      case ExpNewChildModal.newPrologueVisual:
+        setModalTitle(translate(gatherParentEmail.askYourParentTitle));
+        setDescription(
+          <div>
+            <div className='parent-email-image' />
             <span
               dangerouslySetInnerHTML={{
-                __html: translate(descriptionTranslationKey, { lineBreak: '<br /><br />' })
+                __html: translate(expBodyTranslationKeyT1, { lineBreak: '<br /><br />' })
               }}
             />
-          );
-      }
-    } else {
-      setDescription(
-        <span
-          dangerouslySetInnerHTML={{
-            __html: translate(descriptionTranslationKey, { lineBreak: '<br /><br />' })
-          }}
-        />
-      );
+          </div>
+        );
+        break;
+      default:
+        setDescription(
+          <span
+            dangerouslySetInnerHTML={{
+              __html: translate(descriptionTranslationKey, { lineBreak: '<br /><br />' })
+            }}
+          />
+        );
     }
-  }, [expChildModalType, isChildSubjectToPC, settingName]);
+  }, [expChildModalType, isChildSubjectToPC, isTeenLaunchEnabled, settingName]);
 
   const modalBody = (
     <React.Fragment>

@@ -1,17 +1,17 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { Button, IModalService, Modal } from 'react-style-guide';
+import { IModalService, Modal } from 'react-style-guide';
+import { Button } from '@rbx/foundation-ui';
 import { LegallySensitiveContentService } from 'Roblox';
 import settingTranslationConstants from '../constants/settingTranslationConstants';
 import { TCreateSettingsModal } from '../../../types/AmpTypes';
-import { booleanToSettingValue } from '../utils/settingUtils';
 import { ConsentFormInnerComponents } from '../components/ConsentFormInnerComponents';
 import ConsentFormType from '../enums/ConsentFormType';
-import UserSetting from '../../../../legallySensitiveContent/enums/UserSetting';
+import { getConsentNameForSetting, getSettingNameForSetting } from '../constants/consentConstants';
+import { getCancelEvent, getCloseModalEvent, getConfirmEvent } from '../services/eventService';
 
 const useUpdateSettingsModal: TCreateSettingsModal = (
   translate,
   {
-    settingName,
     title,
     body,
     actionButtonText,
@@ -19,15 +19,17 @@ const useUpdateSettingsModal: TCreateSettingsModal = (
     onAction,
     onHide,
     onNeutral,
-    consentFormType
-  }
+    consentFormType,
+    surface,
+    context
+  },
+  settingsRecourseMetadata
 ) => {
+  const consentName = getConsentNameForSetting(settingsRecourseMetadata.settingName);
   const [
     legallySensitiveContent,
     legallySensitiveActions
-  ] = LegallySensitiveContentService.useLegallySensitiveContentAndActions(
-    settingName as UserSetting
-  );
+  ] = LegallySensitiveContentService.useLegallySensitiveContentAndActions(consentName, surface);
 
   const [modalOpen, setModalOpen] = useState<boolean>(false);
   const modalService: IModalService = useMemo(
@@ -51,11 +53,11 @@ const useUpdateSettingsModal: TCreateSettingsModal = (
     if (!ConsentFormInnerComponent) return <React.Fragment />;
 
     return (
-      <div className='consent-form small text'>
+      <div className='consent-form'>
         <ConsentFormInnerComponent
           isChecked={isChecked}
           setIsChecked={setIsChecked}
-          wordsOfConsent={legallySensitiveContent.wordsOfConsent}
+          wordsOfConsent={legallySensitiveContent.wordsOfConsent.consent}
         />
       </div>
     );
@@ -76,13 +78,16 @@ const useUpdateSettingsModal: TCreateSettingsModal = (
       centered>
       <Modal.Header useBaseBootstrapComponent>
         <div className='user-settings-modal-title-container'>
-          <Modal.Title id='user-settings-modal-title'>{title}</Modal.Title>
+          <Modal.Title id='user-settings-modal-title'>
+            {legallySensitiveContent.wordsOfConsent.title || title}
+          </Modal.Title>
         </div>
         <button
           type='button'
           className='close close-button'
           title={translate(settingTranslationConstants.close)}
           onClick={() => {
+            getCloseModalEvent(settingsRecourseMetadata.settingName, context);
             modalService.close();
             onHide();
           }}>
@@ -96,30 +101,32 @@ const useUpdateSettingsModal: TCreateSettingsModal = (
       <Modal.Footer>
         <Button
           className='modal-half-width-button'
-          variant={Button.variants.control}
-          size={Button.sizes.medium}
+          variant='Standard'
+          size='Medium'
           onClick={() => {
+            getCancelEvent(settingsRecourseMetadata.settingName, context);
             modalService.close();
             onNeutral?.();
             onHide();
           }}>
-          {neutralButtonText}
+          {legallySensitiveContent.wordsOfConsent.neutralButtonText || neutralButtonText}
         </Button>
         <Button
           className='modal-half-width-button modal-primary-button'
-          variant={Button.variants.control}
-          size={Button.sizes.medium}
-          isDisabled={!isChecked}
+          variant='Emphasis'
+          size='Medium'
+          disabled={!isChecked}
           onClick={() => {
+            getConfirmEvent(settingsRecourseMetadata.settingName, context);
             modalService.close();
             legallySensitiveActions.updateSettingWithAuditing(
-              settingName as UserSetting,
-              booleanToSettingValue(isChecked, settingName as UserSetting)
+              getSettingNameForSetting(settingsRecourseMetadata.settingName),
+              settingsRecourseMetadata.settingValue
             );
             onAction?.();
             onHide();
           }}>
-          {actionButtonText}
+          {legallySensitiveContent.wordsOfConsent.actionButtonText || actionButtonText}
         </Button>
       </Modal.Footer>
     </Modal>

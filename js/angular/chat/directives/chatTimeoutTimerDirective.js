@@ -9,7 +9,7 @@ function chatTimeoutTimer(countdownTimerService) {
       expiresAt: '@',
       onExpiry: '&'
     },
-    link: function (scope, element) {
+    link(scope, element) {
       const update = function (remainingDuration) {
         element.text(countdownTimerService.format(remainingDuration));
         if (remainingDuration <= 0) {

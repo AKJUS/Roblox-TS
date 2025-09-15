@@ -14,6 +14,7 @@ export const homePage = {
   missingNumberOfRowsForLoggingErrorEvent: 'HomePageMissingNumberOfRowsForLoggingError',
   omniRecommendationEndpointErrorEvent: 'HomePageOmniRecommendationEndpointError',
   omniRecommendationEndpointSuccessEvent: 'HomePageOmniRecommendationEndpointSuccess',
+  omniRecommendationFeedStatsLoggingErrorEvent: 'HomePageOmniRecommendationFeedStatsLoggingError',
   linkStartDelimiter: '{linkStart}',
   linkEndDelimiter: '{linkEnd}'
 };
@@ -31,8 +32,6 @@ export const gameDetailsPage = {
   maxTilesPerCarouselPage: 6,
   visitsTruncationDigitsAfterDecimalPoint: 1,
   surveyImpressionsIntersectionThreshold: 0.5,
-  eventsRedesignExposureLogError: 'EventsRedesignExposureLogError',
-  eventsRedesignExposureLogServiceMissing: 'EventsRedesignExposureLogServiceMissing',
   requestRefundError: 'RequestRefundError',
   votingPanelLoadFailure: 'VotingPanelLoadFailure'
 };
@@ -74,9 +73,20 @@ export const searchLandingPage = {
   numberOfTilesPerCarousel: 5
 };
 
+export const sortDetailPage = {
+  mismatchedGamesSortMergeError: 'MismatchedGamesSortMergeError',
+  mismatchedSongsSortMergeError: 'MismatchedSongsSortMergeError'
+};
+
+export const errorContainer = {
+  retryText: 'Action.Retry', // CommonUI.Controls
+  somethingWentWrongText: 'Response.SomethingWentWrong' // CommonUI.Messages
+};
+
 export default {
   homePage,
   gamesPage,
   gameDetailsPage,
+  errorContainer,
   common
 };

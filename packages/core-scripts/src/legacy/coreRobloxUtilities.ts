@@ -4,6 +4,7 @@ import * as fido2 from "../auth/fido2";
 import * as hba from "../auth/hba";
 import * as hybridResponse from "../auth/hybridResponse";
 import * as sai from "../auth/secureAuthIntent";
+import * as saiv2 from "../auth/secureAuthIntentV2";
 import * as deepLink from "../deep-link";
 import * as entityUrls from "../entity-url";
 import * as eventStream from "../event-stream";
@@ -28,6 +29,7 @@ export const cryptoUtil = {
   ...crypto,
   getHbaMeta: hba.hbaMeta,
   generateSecureAuthIntent: sai.generateSecureAuthIntent,
+  generateSecureAuthIntentV2: saiv2.generateSecureAuthIntent,
 };
 export { default as dataStores } from "../data-store/stores";
 export const deepLinkService = {

@@ -1,6 +1,6 @@
 import "../global";
 import { getDeviceMeta } from "@rbx/core-scripts/meta/device";
-import { DeepLink, DeepLinkParams, PathPart } from "./deepLinkConstants";
+import { DeepLink, DeepLinkParams, ItemType, PathPart } from "./deepLinkConstants";
 import deepLinkNavigate from "./deepLinkNavigate";
 import deepLinkGameJoin from "./deepLinkGameJoin";
 import deepLinkFollowUserToExperience from "./deepLinkFollowUserToExperience";
@@ -95,4 +95,4 @@ const ShareLinks = {
   ExperienceEventStatus,
 };
 
-export { parseDeepLink, navigateToDeepLink, ShareLinksType, ShareLinks };
+export { parseDeepLink, navigateToDeepLink, ShareLinksType, ShareLinks, ItemType };

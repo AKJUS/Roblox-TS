@@ -2,7 +2,7 @@ import {
   ADD_PHONE_NUMBER_PAGE,
   VERIFY_PHONE_NUMBER_PAGE,
   ADD_PHONE_SUCCESS_PAGE,
-  PHONE_DISCOVERABILITY_CONSENT_PAGE
+  PHONE_DISCOVERABILITY_CONSENT_V2_PAGE
 } from '../constants/pageConstants';
 import { sectionValues } from '../../common/constants/loggingConstants';
 
@@ -14,7 +14,7 @@ const getSectionValueForPage = pageName => {
       return sectionValues.verifyPhone;
     case ADD_PHONE_SUCCESS_PAGE:
       return sectionValues.phoneAdded;
-    case PHONE_DISCOVERABILITY_CONSENT_PAGE:
+    case PHONE_DISCOVERABILITY_CONSENT_V2_PAGE:
       return sectionValues.discoverabilityConsent;
 
     default:

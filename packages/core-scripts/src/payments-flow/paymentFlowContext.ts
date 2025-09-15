@@ -1,20 +1,20 @@
 import environmentUrls from "@rbx/environment-urls";
-import { COOKIE_NAME, COOKIE_REGEX, COOKIE_TIMESPAN, TRIGGERING_CONTEXT } from "./constants";
-
-const isLen3 = <T>(arr: T[]): arr is [T, T, T] => arr.length >= 3;
+import { isEnumMember } from "@rbx/core-types";
+import { COOKIE_NAME, COOKIE_TIMESPAN, TRIGGERING_CONTEXT } from "./constants";
+import { getCookie } from "../cookie";
 
 export default class PaymentFlowContext {
-  public purchaseFlowUuid: string;
+  public purchaseFlowUuid?: string;
 
-  public triggeringContext: TRIGGERING_CONTEXT;
+  public triggeringContext?: TRIGGERING_CONTEXT;
 
-  constructor(purchaseFlowUuid: string, triggeringContext: TRIGGERING_CONTEXT) {
+  constructor(purchaseFlowUuid?: string, triggeringContext?: TRIGGERING_CONTEXT) {
     this.purchaseFlowUuid = purchaseFlowUuid;
     this.triggeringContext = triggeringContext;
   }
 
   public save(): void {
-    const flowCtx = `${this.purchaseFlowUuid},${this.triggeringContext}`;
+    const flowCtx = `${this.purchaseFlowUuid ?? ""},${this.triggeringContext ?? ""}`;
     document.cookie = `${COOKIE_NAME}=${flowCtx}; domain=.${environmentUrls.domain}; path=/; max-age=${COOKIE_TIMESPAN}`;
   }
 
@@ -23,16 +23,16 @@ export default class PaymentFlowContext {
   }
 
   public static loadFromCookie(): PaymentFlowContext | null {
-    const cookieDataArr = COOKIE_REGEX.exec(document.cookie);
-    COOKIE_REGEX.lastIndex = 0;
-
-    if (cookieDataArr != null && isLen3(cookieDataArr)) {
-      const [, uuid, context] = cookieDataArr;
-      // TODO: old, migrated code
-      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-      return new PaymentFlowContext(uuid, context as TRIGGERING_CONTEXT);
+    // get the cookie value
+    const cookie = getCookie(COOKIE_NAME);
+    if (!cookie) {
+      return null;
     }
-
-    return null;
+    // split the value into uuid and context
+    const [uuid, context] = cookie.split(",");
+    const purchaseFlowUuid = uuid ?? undefined;
+    const triggerContext =
+      context != null && isEnumMember(context, TRIGGERING_CONTEXT) ? context : undefined;
+    return new PaymentFlowContext(purchaseFlowUuid, triggerContext);
   }
 }

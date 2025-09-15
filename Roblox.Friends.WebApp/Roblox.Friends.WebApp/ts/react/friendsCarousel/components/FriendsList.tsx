@@ -4,6 +4,7 @@ import FriendTile from './FriendTile';
 import { TFriend } from '../types/friendsCarouselTypes';
 import useFriendsCarouselImpressionTracker from '../hooks/useFriendsCarouselImpressionTracker';
 import FriendCarouselNames from '../constants/friendCarouselNames';
+import AddFriendsTile from './AddFriendsTile';
 
 const FRIEND_TILE_WIDTH = 110;
 
@@ -16,7 +17,9 @@ const FriendsList = ({
   eventContext,
   homePageSessionInfo,
   sortId,
-  sortPosition
+  sortPosition,
+  badgeCount,
+  isAddFriendsTileEnabled
 }: {
   friendsList: TFriend[] | null;
   isOwnUser: boolean;
@@ -27,6 +30,8 @@ const FriendsList = ({
   homePageSessionInfo: string | undefined;
   sortId: number | undefined;
   sortPosition: number | undefined;
+  badgeCount: number;
+  isAddFriendsTileEnabled: boolean;
 }): JSX.Element => {
   const parentRef = useRef<HTMLElement | null>(null);
   const [visibleFriendsList, setVisibleFriendsList] = useState(friendsList);
@@ -37,12 +42,18 @@ const FriendsList = ({
 
   useEffect(() => {
     const totalWidth = parentRef.current?.offsetWidth;
-    setListIsFull(FRIEND_TILE_WIDTH * (friendsList?.length ?? 0) > (totalWidth ?? 0));
+    const friendListLength = friendsList?.length ?? 0;
+
     if (totalWidth != null && friendsList != null) {
       const visibleTileCount = Math.floor(totalWidth / FRIEND_TILE_WIDTH);
-      setVisibleFriendsList(friendsList.slice(0, visibleTileCount));
+      const totalTilesNeeded = isAddFriendsTileEnabled ? friendListLength + 1 : friendListLength;
+
+      setListIsFull(FRIEND_TILE_WIDTH * totalTilesNeeded > totalWidth);
+      setVisibleFriendsList(
+        friendsList.slice(0, visibleTileCount - (isAddFriendsTileEnabled ? 1 : 0))
+      );
     }
-  }, [parentRef.current?.offsetWidth, friendsList]);
+  }, [parentRef.current?.offsetWidth, friendsList, isAddFriendsTileEnabled]);
 
   useFriendsCarouselImpressionTracker(
     containerRef,
@@ -75,6 +86,15 @@ const FriendsList = ({
                 ? 'friends-carousel-list-container'
                 : 'friends-carousel-list-container-not-full'
             }>
+            {carouselName === FriendCarouselNames.WebHomeFriendsCarousel &&
+            isAddFriendsTileEnabled ? (
+              <AddFriendsTile
+                key='add-friends-tile'
+                translate={translate}
+                badgeCount={badgeCount}
+                data-testid='add-friends-tile'
+              />
+            ) : null}
             {visibleFriendsList.map((item, index) => {
               return (
                 <div key={item.id}>

@@ -2,17 +2,25 @@
 /* eslint-disable no-case-declarations */
 import { EnvironmentUrls, Hybrid } from 'Roblox';
 import '../../../../css/challenge/captcha/captcha.scss';
+import * as Option from 'fp-ts/Option';
+import * as NewChallengeMiddleware from '@rbx/generic-challenges';
+import * as NewChallengeTypes from '@rbx/generic-challenge-types';
+import * as boolean from 'fp-ts/boolean';
+import { pipe } from 'fp-ts/lib/function';
+import { withContinueMode } from '@rbx/generic-challenges';
 import * as Captcha from '../captcha';
 import * as DeviceIntegrity from '../deviceIntegrity';
+import * as Biometric from '../biometric';
 import * as ForceActionRedirect from '../forceActionRedirect';
-import { ForceActionRedirectChallengeType } from '../forceActionRedirect/interface';
 import * as Generic from '../generic';
-import { ChallengeType } from '../generic/interface';
+import {
+  ChallengeBaseProperties,
+  ChallengeSpecificProperties,
+  ChallengeType
+} from '../generic/interface';
 import * as PrivateAccessToken from '../privateAccessToken';
 import * as ProofOfSpace from '../proofOfSpace';
 import * as ProofOfWork from '../proofOfWork';
-import * as Reauthentication from '../reauthentication';
-import { ReauthenticationMetadata } from '../reauthentication/interface';
 import * as Rostile from '../rostile';
 import * as SecurityQuestions from '../securityQuestions';
 import * as TwoStepVerification from '../twoStepVerification';
@@ -26,16 +34,20 @@ import {
   readQueryParametersForPrivateAccessToken,
   readQueryParametersForProofOfSpace,
   readQueryParametersForProofOfWork,
-  readQueryParametersForReauthentication,
   readQueryParametersForRostile,
   readQueryParametersForSecurityQuestions,
-  readQueryParametersForTwoStepVerification
+  readQueryParametersForTwoStepVerification,
+  readQueryParametersForBiometric
 } from './query';
+import { recordHybridEventMetric } from './metrics';
 
 const HYBRID_TARGET_KEY = 'feature';
 const CALLBACK_EVENT_NAME = 'callbackInputChanged';
 const CLASS_LIGHT_MODE = 'light-theme';
 const CLASS_DARK_MODE = 'dark-theme';
+
+// For when we fail @ parsing or something, for Generic challenges.
+const unknownChallengeType = 'unknown' as ChallengeType;
 
 // Export some additional enums that are declared in the shared interface (they
 // are also defined in the shared interface, but we need to expose them in the
@@ -76,13 +88,16 @@ const dispatchPostMessageEvent = (
  * Studio, which does not support the Roblox Hybrid library).
  */
 const dispatchNavigateToFeatureHybridEvent = (
+  challengeType: Generic.ChallengeType | NewChallengeTypes.ChallengeType,
   hybridTargetToCallbackInputId: Record<HybridTarget, string>,
   hybridTarget: HybridTarget,
   data: Record<string, unknown>,
   origin?: string
-) => {
-  console.log(LOG_PREFIX, 'Sending hybrid call:', hybridTarget);
-  Hybrid.Navigation?.navigateToFeature(
+): void => {
+  recordHybridEventMetric({ hybridTarget, challengeType, data }); // Fire & forget a metric.
+
+  console.log(LOG_PREFIX, 'Sending hybrid call:', hybridTarget, ' to origin: ', origin);
+  Hybrid?.Navigation?.navigateToFeature(
     {
       [HYBRID_TARGET_KEY]: hybridTarget,
       data
@@ -126,6 +141,7 @@ const renderCaptchaChallengeFromQueryParameters = async (
   // Handle hybrid callbacks for parse.
   if (queryParameters === null) {
     dispatchNavigateToFeatureHybridEvent(
+      ChallengeType.CAPTCHA,
       hybridTargetToCallbackInputId,
       HybridTarget.CHALLENGE_PARSED,
       { parsed: false }
@@ -133,6 +149,7 @@ const renderCaptchaChallengeFromQueryParameters = async (
     return false;
   }
   dispatchNavigateToFeatureHybridEvent(
+    ChallengeType.CAPTCHA,
     hybridTargetToCallbackInputId,
     HybridTarget.CHALLENGE_PARSED,
     { parsed: true }
@@ -148,18 +165,21 @@ const renderCaptchaChallengeFromQueryParameters = async (
     renderInline: true,
     onChallengeDisplayed: data =>
       dispatchNavigateToFeatureHybridEvent(
+        ChallengeType.CAPTCHA,
         hybridTargetToCallbackInputId,
         HybridTarget.CHALLENGE_DISPLAYED,
         data
       ),
     onChallengeCompleted: data =>
       dispatchNavigateToFeatureHybridEvent(
+        ChallengeType.CAPTCHA,
         hybridTargetToCallbackInputId,
         HybridTarget.CHALLENGE_COMPLETED,
         data
       ),
     onChallengeInvalidated: data =>
       dispatchNavigateToFeatureHybridEvent(
+        ChallengeType.CAPTCHA,
         hybridTargetToCallbackInputId,
         HybridTarget.CHALLENGE_INVALIDATED,
         data
@@ -169,6 +189,7 @@ const renderCaptchaChallengeFromQueryParameters = async (
   // Handle hybrid callbacks for initialize.
   if (result === false) {
     dispatchNavigateToFeatureHybridEvent(
+      ChallengeType.CAPTCHA,
       hybridTargetToCallbackInputId,
       HybridTarget.CHALLENGE_INITIALIZED,
       { initialized: false }
@@ -176,6 +197,7 @@ const renderCaptchaChallengeFromQueryParameters = async (
     return false;
   }
   dispatchNavigateToFeatureHybridEvent(
+    ChallengeType.CAPTCHA,
     hybridTargetToCallbackInputId,
     HybridTarget.CHALLENGE_INITIALIZED,
     { initialized: true }
@@ -196,6 +218,7 @@ const renderTwoStepVerificationChallengeFromQueryParameters = (
   // Handle hybrid callbacks for parse.
   if (queryParameters === null) {
     dispatchNavigateToFeatureHybridEvent(
+      ChallengeType.TWO_STEP_VERIFICATION,
       hybridTargetToCallbackInputId,
       HybridTarget.CHALLENGE_PARSED,
       { parsed: false }
@@ -203,6 +226,7 @@ const renderTwoStepVerificationChallengeFromQueryParameters = (
     return false;
   }
   dispatchNavigateToFeatureHybridEvent(
+    ChallengeType.TWO_STEP_VERIFICATION,
     hybridTargetToCallbackInputId,
     HybridTarget.CHALLENGE_PARSED,
     { parsed: true }
@@ -222,12 +246,14 @@ const renderTwoStepVerificationChallengeFromQueryParameters = (
     shouldShowRememberDeviceCheckbox: allowRememberDevice,
     onChallengeCompleted: data =>
       dispatchNavigateToFeatureHybridEvent(
+        ChallengeType.TWO_STEP_VERIFICATION,
         hybridTargetToCallbackInputId,
         HybridTarget.CHALLENGE_COMPLETED,
         data
       ),
     onChallengeInvalidated: data =>
       dispatchNavigateToFeatureHybridEvent(
+        ChallengeType.TWO_STEP_VERIFICATION,
         hybridTargetToCallbackInputId,
         HybridTarget.CHALLENGE_INVALIDATED,
         data
@@ -237,6 +263,7 @@ const renderTwoStepVerificationChallengeFromQueryParameters = (
   // Handle hybrid callbacks for initialize.
   if (result === false) {
     dispatchNavigateToFeatureHybridEvent(
+      ChallengeType.TWO_STEP_VERIFICATION,
       hybridTargetToCallbackInputId,
       HybridTarget.CHALLENGE_INITIALIZED,
       { initialized: false }
@@ -244,6 +271,7 @@ const renderTwoStepVerificationChallengeFromQueryParameters = (
     return false;
   }
   dispatchNavigateToFeatureHybridEvent(
+    ChallengeType.TWO_STEP_VERIFICATION,
     hybridTargetToCallbackInputId,
     HybridTarget.CHALLENGE_INITIALIZED,
     { initialized: true }
@@ -252,6 +280,7 @@ const renderTwoStepVerificationChallengeFromQueryParameters = (
   // Note that for other challenge types, this hybrid callback might be
   // triggered internally to the component.
   dispatchNavigateToFeatureHybridEvent(
+    ChallengeType.TWO_STEP_VERIFICATION,
     hybridTargetToCallbackInputId,
     HybridTarget.CHALLENGE_DISPLAYED,
     { displayed: true }
@@ -271,6 +300,7 @@ const renderSecurityQuestionsChallengeFromQueryParameters = (
   // Handle hybrid callbacks for parse.
   if (queryParameters === null) {
     dispatchNavigateToFeatureHybridEvent(
+      ChallengeType.SECURITY_QUESTIONS,
       hybridTargetToCallbackInputId,
       HybridTarget.CHALLENGE_PARSED,
       { parsed: false }
@@ -278,6 +308,7 @@ const renderSecurityQuestionsChallengeFromQueryParameters = (
     return false;
   }
   dispatchNavigateToFeatureHybridEvent(
+    ChallengeType.SECURITY_QUESTIONS,
     hybridTargetToCallbackInputId,
     HybridTarget.CHALLENGE_PARSED,
     { parsed: true }
@@ -292,12 +323,14 @@ const renderSecurityQuestionsChallengeFromQueryParameters = (
     renderInline: true,
     onChallengeCompleted: data =>
       dispatchNavigateToFeatureHybridEvent(
+        ChallengeType.SECURITY_QUESTIONS,
         hybridTargetToCallbackInputId,
         HybridTarget.CHALLENGE_COMPLETED,
         data
       ),
     onChallengeInvalidated: data =>
       dispatchNavigateToFeatureHybridEvent(
+        ChallengeType.SECURITY_QUESTIONS,
         hybridTargetToCallbackInputId,
         HybridTarget.CHALLENGE_INVALIDATED,
         data
@@ -307,6 +340,7 @@ const renderSecurityQuestionsChallengeFromQueryParameters = (
   // Handle hybrid callbacks for initialize.
   if (result === false) {
     dispatchNavigateToFeatureHybridEvent(
+      ChallengeType.SECURITY_QUESTIONS,
       hybridTargetToCallbackInputId,
       HybridTarget.CHALLENGE_INITIALIZED,
       { initialized: false }
@@ -314,6 +348,7 @@ const renderSecurityQuestionsChallengeFromQueryParameters = (
     return false;
   }
   dispatchNavigateToFeatureHybridEvent(
+    ChallengeType.SECURITY_QUESTIONS,
     hybridTargetToCallbackInputId,
     HybridTarget.CHALLENGE_INITIALIZED,
     { initialized: true }
@@ -322,90 +357,7 @@ const renderSecurityQuestionsChallengeFromQueryParameters = (
   // Note that for other challenge types, this hybrid callback might be
   // triggered internally to the component.
   dispatchNavigateToFeatureHybridEvent(
-    hybridTargetToCallbackInputId,
-    HybridTarget.CHALLENGE_DISPLAYED,
-    { displayed: true }
-  );
-  return true;
-};
-
-/**
- * Helper function for re-authentication hybrid challenges.
- */
-const renderReauthenticationChallengeFromQueryParameters = (
-  containerId: string,
-  hybridTargetToCallbackInputId: Record<HybridTarget, string>,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  _appType: string
-): boolean => {
-  const queryParameters = readQueryParametersForReauthentication();
-
-  // Handle hybrid callbacks for parse.
-  if (queryParameters === null) {
-    dispatchNavigateToFeatureHybridEvent(
-      hybridTargetToCallbackInputId,
-      HybridTarget.CHALLENGE_PARSED,
-      { parsed: false }
-    );
-    return false;
-  }
-
-  dispatchNavigateToFeatureHybridEvent(
-    hybridTargetToCallbackInputId,
-    HybridTarget.CHALLENGE_PARSED,
-    { parsed: true }
-  );
-
-  const { defaultType, availableTypes, defaultTypeMetadataJSON } = queryParameters;
-
-  let defaultTypeMetadata: ReauthenticationMetadata | null = null;
-
-  if (defaultTypeMetadataJSON !== undefined) {
-    try {
-      defaultTypeMetadata = JSON.parse(defaultTypeMetadataJSON) as ReauthenticationMetadata;
-    } catch (error) {
-      return false;
-    }
-  }
-
-  const result = Reauthentication.renderChallenge({
-    containerId,
-    renderInline: true,
-    defaultType,
-    availableTypes,
-    defaultTypeMetadata,
-    onChallengeCompleted: data =>
-      dispatchNavigateToFeatureHybridEvent(
-        hybridTargetToCallbackInputId,
-        HybridTarget.CHALLENGE_COMPLETED,
-        data
-      ),
-    onChallengeInvalidated: data =>
-      dispatchNavigateToFeatureHybridEvent(
-        hybridTargetToCallbackInputId,
-        HybridTarget.CHALLENGE_INVALIDATED,
-        data
-      ),
-    onModalChallengeAbandoned: null
-  });
-  // Handle hybrid callbacks for initialize.
-  if (result === false) {
-    dispatchNavigateToFeatureHybridEvent(
-      hybridTargetToCallbackInputId,
-      HybridTarget.CHALLENGE_INITIALIZED,
-      { initialized: false }
-    );
-    return false;
-  }
-  dispatchNavigateToFeatureHybridEvent(
-    hybridTargetToCallbackInputId,
-    HybridTarget.CHALLENGE_INITIALIZED,
-    { initialized: true }
-  );
-
-  // Note that for other challenge types, this hybrid callback might be
-  // triggered internally to the component.
-  dispatchNavigateToFeatureHybridEvent(
+    ChallengeType.SECURITY_QUESTIONS,
     hybridTargetToCallbackInputId,
     HybridTarget.CHALLENGE_DISPLAYED,
     { displayed: true }
@@ -427,6 +379,7 @@ const renderPrivateAccessTokenChallengeFromQueryParameters = (
   // Handle hybrid callbacks for parse.
   if (queryParameters === null) {
     dispatchNavigateToFeatureHybridEvent(
+      ChallengeType.PRIVATE_ACCESS_TOKEN,
       hybridTargetToCallbackInputId,
       HybridTarget.CHALLENGE_PARSED,
       { parsed: false }
@@ -434,6 +387,7 @@ const renderPrivateAccessTokenChallengeFromQueryParameters = (
     return false;
   }
   dispatchNavigateToFeatureHybridEvent(
+    ChallengeType.PRIVATE_ACCESS_TOKEN,
     hybridTargetToCallbackInputId,
     HybridTarget.CHALLENGE_PARSED,
     { parsed: true }
@@ -446,18 +400,21 @@ const renderPrivateAccessTokenChallengeFromQueryParameters = (
     renderInline: true,
     onChallengeDisplayed: data =>
       dispatchNavigateToFeatureHybridEvent(
+        ChallengeType.PRIVATE_ACCESS_TOKEN,
         hybridTargetToCallbackInputId,
         HybridTarget.CHALLENGE_DISPLAYED,
         data
       ),
     onChallengeCompleted: data =>
       dispatchNavigateToFeatureHybridEvent(
+        ChallengeType.PRIVATE_ACCESS_TOKEN,
         hybridTargetToCallbackInputId,
         HybridTarget.CHALLENGE_COMPLETED,
         data
       ),
     onChallengeInvalidated: data =>
       dispatchNavigateToFeatureHybridEvent(
+        ChallengeType.PRIVATE_ACCESS_TOKEN,
         hybridTargetToCallbackInputId,
         HybridTarget.CHALLENGE_INVALIDATED,
         data
@@ -467,6 +424,7 @@ const renderPrivateAccessTokenChallengeFromQueryParameters = (
   // Handle hybrid callbacks for initialize.
   if (result === false) {
     dispatchNavigateToFeatureHybridEvent(
+      ChallengeType.PRIVATE_ACCESS_TOKEN,
       hybridTargetToCallbackInputId,
       HybridTarget.CHALLENGE_INITIALIZED,
       { initialized: false }
@@ -474,6 +432,7 @@ const renderPrivateAccessTokenChallengeFromQueryParameters = (
     return false;
   }
   dispatchNavigateToFeatureHybridEvent(
+    ChallengeType.PRIVATE_ACCESS_TOKEN,
     hybridTargetToCallbackInputId,
     HybridTarget.CHALLENGE_INITIALIZED,
     { initialized: true }
@@ -495,6 +454,7 @@ const renderProofOfWorkChallengeFromQueryParameters = (
   // Handle hybrid callbacks for parse.
   if (queryParameters === null) {
     dispatchNavigateToFeatureHybridEvent(
+      ChallengeType.PROOF_OF_WORK,
       hybridTargetToCallbackInputId,
       HybridTarget.CHALLENGE_PARSED,
       { parsed: false }
@@ -502,6 +462,7 @@ const renderProofOfWorkChallengeFromQueryParameters = (
     return false;
   }
   dispatchNavigateToFeatureHybridEvent(
+    ChallengeType.PROOF_OF_WORK,
     hybridTargetToCallbackInputId,
     HybridTarget.CHALLENGE_PARSED,
     { parsed: true }
@@ -514,18 +475,21 @@ const renderProofOfWorkChallengeFromQueryParameters = (
     renderInline: true,
     onChallengeDisplayed: data =>
       dispatchNavigateToFeatureHybridEvent(
+        ChallengeType.PROOF_OF_WORK,
         hybridTargetToCallbackInputId,
         HybridTarget.CHALLENGE_DISPLAYED,
         data
       ),
     onChallengeCompleted: data =>
       dispatchNavigateToFeatureHybridEvent(
+        ChallengeType.PROOF_OF_WORK,
         hybridTargetToCallbackInputId,
         HybridTarget.CHALLENGE_COMPLETED,
         data
       ),
     onChallengeInvalidated: data =>
       dispatchNavigateToFeatureHybridEvent(
+        ChallengeType.PROOF_OF_WORK,
         hybridTargetToCallbackInputId,
         HybridTarget.CHALLENGE_INVALIDATED,
         data
@@ -535,6 +499,7 @@ const renderProofOfWorkChallengeFromQueryParameters = (
   // Handle hybrid callbacks for initialize.
   if (result === false) {
     dispatchNavigateToFeatureHybridEvent(
+      ChallengeType.PROOF_OF_WORK,
       hybridTargetToCallbackInputId,
       HybridTarget.CHALLENGE_INITIALIZED,
       { initialized: false }
@@ -542,6 +507,7 @@ const renderProofOfWorkChallengeFromQueryParameters = (
     return false;
   }
   dispatchNavigateToFeatureHybridEvent(
+    ChallengeType.PROOF_OF_WORK,
     hybridTargetToCallbackInputId,
     HybridTarget.CHALLENGE_INITIALIZED,
     { initialized: true }
@@ -562,6 +528,7 @@ const renderRostileChallengeFromQueryParameters = (
   // Handle hybrid callbacks for parse.
   if (queryParameters === null) {
     dispatchNavigateToFeatureHybridEvent(
+      ChallengeType.ROSTILE,
       hybridTargetToCallbackInputId,
       HybridTarget.CHALLENGE_PARSED,
       { parsed: false }
@@ -569,6 +536,7 @@ const renderRostileChallengeFromQueryParameters = (
     return false;
   }
   dispatchNavigateToFeatureHybridEvent(
+    ChallengeType.ROSTILE,
     hybridTargetToCallbackInputId,
     HybridTarget.CHALLENGE_PARSED,
     { parsed: true }
@@ -583,18 +551,21 @@ const renderRostileChallengeFromQueryParameters = (
     renderInline: true,
     onChallengeDisplayed: data =>
       dispatchNavigateToFeatureHybridEvent(
+        ChallengeType.ROSTILE,
         hybridTargetToCallbackInputId,
         HybridTarget.CHALLENGE_DISPLAYED,
         data
       ),
     onChallengeCompleted: data =>
       dispatchNavigateToFeatureHybridEvent(
+        ChallengeType.ROSTILE,
         hybridTargetToCallbackInputId,
         HybridTarget.CHALLENGE_COMPLETED,
         data
       ),
     onChallengeInvalidated: data =>
       dispatchNavigateToFeatureHybridEvent(
+        ChallengeType.ROSTILE,
         hybridTargetToCallbackInputId,
         HybridTarget.CHALLENGE_INVALIDATED,
         data
@@ -604,6 +575,7 @@ const renderRostileChallengeFromQueryParameters = (
   // Handle hybrid callbacks for initialize.
   if (result === false) {
     dispatchNavigateToFeatureHybridEvent(
+      ChallengeType.ROSTILE,
       hybridTargetToCallbackInputId,
       HybridTarget.CHALLENGE_INITIALIZED,
       { initialized: false }
@@ -611,6 +583,7 @@ const renderRostileChallengeFromQueryParameters = (
     return false;
   }
   dispatchNavigateToFeatureHybridEvent(
+    ChallengeType.ROSTILE,
     hybridTargetToCallbackInputId,
     HybridTarget.CHALLENGE_INITIALIZED,
     { initialized: true }
@@ -633,6 +606,7 @@ const renderDeviceIntegrityChallengeFromQueryParameters = (
   // Handle hybrid callbacks for parse.
   if (queryParameters === null) {
     dispatchNavigateToFeatureHybridEvent(
+      ChallengeType.DEVICE_INTEGRITY,
       hybridTargetToCallbackInputId,
       HybridTarget.CHALLENGE_PARSED,
       { parsed: false }
@@ -640,6 +614,7 @@ const renderDeviceIntegrityChallengeFromQueryParameters = (
     return false;
   }
   dispatchNavigateToFeatureHybridEvent(
+    ChallengeType.DEVICE_INTEGRITY,
     hybridTargetToCallbackInputId,
     HybridTarget.CHALLENGE_PARSED,
     { parsed: true }
@@ -654,18 +629,21 @@ const renderDeviceIntegrityChallengeFromQueryParameters = (
     renderInline: true,
     onChallengeDisplayed: data =>
       dispatchNavigateToFeatureHybridEvent(
+        ChallengeType.DEVICE_INTEGRITY,
         hybridTargetToCallbackInputId,
         HybridTarget.CHALLENGE_DISPLAYED,
         data
       ),
     onChallengeCompleted: data =>
       dispatchNavigateToFeatureHybridEvent(
+        ChallengeType.DEVICE_INTEGRITY,
         hybridTargetToCallbackInputId,
         HybridTarget.CHALLENGE_COMPLETED,
         data
       ),
     onChallengeInvalidated: data =>
       dispatchNavigateToFeatureHybridEvent(
+        ChallengeType.DEVICE_INTEGRITY,
         hybridTargetToCallbackInputId,
         HybridTarget.CHALLENGE_INVALIDATED,
         data
@@ -675,6 +653,7 @@ const renderDeviceIntegrityChallengeFromQueryParameters = (
   // Handle hybrid callbacks for initialize.
   if (result === false) {
     dispatchNavigateToFeatureHybridEvent(
+      ChallengeType.DEVICE_INTEGRITY,
       hybridTargetToCallbackInputId,
       HybridTarget.CHALLENGE_INITIALIZED,
       { initialized: false }
@@ -682,6 +661,7 @@ const renderDeviceIntegrityChallengeFromQueryParameters = (
     return false;
   }
   dispatchNavigateToFeatureHybridEvent(
+    ChallengeType.DEVICE_INTEGRITY,
     hybridTargetToCallbackInputId,
     HybridTarget.CHALLENGE_INITIALIZED,
     { initialized: true }
@@ -690,6 +670,82 @@ const renderDeviceIntegrityChallengeFromQueryParameters = (
   return true;
 };
 
+/**
+ * Helper function for biometric hybrid challenges.
+ */
+const renderBiometricFromQueryParameters = (
+  containerId: string,
+  hybridTargetToCallbackInputId: Record<HybridTarget, string>,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _appType: string
+): boolean => {
+  const queryParameters = readQueryParametersForBiometric();
+
+  // Handle hybrid callbacks for parse.
+  if (queryParameters === null) {
+    dispatchNavigateToFeatureHybridEvent(
+      ChallengeType.BIOMETRIC,
+      hybridTargetToCallbackInputId,
+      HybridTarget.CHALLENGE_PARSED,
+      { parsed: false }
+    );
+    return false;
+  }
+  dispatchNavigateToFeatureHybridEvent(
+    ChallengeType.BIOMETRIC,
+    hybridTargetToCallbackInputId,
+    HybridTarget.CHALLENGE_PARSED,
+    { parsed: true }
+  );
+  const { challengeId, biometricType } = queryParameters;
+
+  const result = Biometric.renderChallenge({
+    containerId,
+    challengeId,
+    biometricType,
+    renderInline: true,
+    onChallengeDisplayed: data =>
+      dispatchNavigateToFeatureHybridEvent(
+        ChallengeType.BIOMETRIC,
+        hybridTargetToCallbackInputId,
+        HybridTarget.CHALLENGE_DISPLAYED,
+        data
+      ),
+    onChallengeCompleted: data =>
+      dispatchNavigateToFeatureHybridEvent(
+        ChallengeType.BIOMETRIC,
+        hybridTargetToCallbackInputId,
+        HybridTarget.CHALLENGE_COMPLETED,
+        data
+      ),
+    onChallengeInvalidated: data =>
+      dispatchNavigateToFeatureHybridEvent(
+        ChallengeType.BIOMETRIC,
+        hybridTargetToCallbackInputId,
+        HybridTarget.CHALLENGE_INVALIDATED,
+        data
+      ),
+    onModalChallengeAbandoned: null
+  });
+  // Handle hybrid callbacks for initialize.
+  if (result === false) {
+    dispatchNavigateToFeatureHybridEvent(
+      ChallengeType.BIOMETRIC,
+      hybridTargetToCallbackInputId,
+      HybridTarget.CHALLENGE_INITIALIZED,
+      { initialized: false }
+    );
+    return false;
+  }
+  dispatchNavigateToFeatureHybridEvent(
+    ChallengeType.BIOMETRIC,
+    hybridTargetToCallbackInputId,
+    HybridTarget.CHALLENGE_INITIALIZED,
+    { initialized: true }
+  );
+
+  return true;
+};
 /**
  * Helper function for proof-of-space hybrid challenges.
  */
@@ -703,6 +759,7 @@ const renderProofOfSpaceChallengeFromQueryParameters = (
   // Handle hybrid callbacks for parse.
   if (queryParameters === null) {
     dispatchNavigateToFeatureHybridEvent(
+      ChallengeType.PROOF_OF_SPACE,
       hybridTargetToCallbackInputId,
       HybridTarget.CHALLENGE_PARSED,
       { parsed: false }
@@ -710,6 +767,7 @@ const renderProofOfSpaceChallengeFromQueryParameters = (
     return false;
   }
   dispatchNavigateToFeatureHybridEvent(
+    ChallengeType.PROOF_OF_SPACE,
     hybridTargetToCallbackInputId,
     HybridTarget.CHALLENGE_PARSED,
     { parsed: true }
@@ -723,18 +781,21 @@ const renderProofOfSpaceChallengeFromQueryParameters = (
     renderInline: true,
     onChallengeDisplayed: data =>
       dispatchNavigateToFeatureHybridEvent(
+        ChallengeType.PROOF_OF_SPACE,
         hybridTargetToCallbackInputId,
         HybridTarget.CHALLENGE_DISPLAYED,
         data
       ),
     onChallengeCompleted: data =>
       dispatchNavigateToFeatureHybridEvent(
+        ChallengeType.PROOF_OF_SPACE,
         hybridTargetToCallbackInputId,
         HybridTarget.CHALLENGE_COMPLETED,
         data
       ),
     onChallengeInvalidated: data =>
       dispatchNavigateToFeatureHybridEvent(
+        ChallengeType.PROOF_OF_SPACE,
         hybridTargetToCallbackInputId,
         HybridTarget.CHALLENGE_INVALIDATED,
         data
@@ -744,6 +805,7 @@ const renderProofOfSpaceChallengeFromQueryParameters = (
   // Handle hybrid callbacks for initialize.
   if (result === false) {
     dispatchNavigateToFeatureHybridEvent(
+      ChallengeType.PROOF_OF_SPACE,
       hybridTargetToCallbackInputId,
       HybridTarget.CHALLENGE_INITIALIZED,
       { initialized: false }
@@ -751,6 +813,7 @@ const renderProofOfSpaceChallengeFromQueryParameters = (
     return false;
   }
   dispatchNavigateToFeatureHybridEvent(
+    ChallengeType.PROOF_OF_SPACE,
     hybridTargetToCallbackInputId,
     HybridTarget.CHALLENGE_INITIALIZED,
     { initialized: true }
@@ -759,6 +822,36 @@ const renderProofOfSpaceChallengeFromQueryParameters = (
   return true;
 };
 
+const renderNewGenericChallengeFromQueryParameters = (
+  challengeBaseProperties: ChallengeBaseProperties,
+  challengeSpecificProperties: ChallengeSpecificProperties
+): Option.Option<Promise<boolean>> => {
+  if (
+    !NewChallengeMiddleware.Migrate.isSupportedByGrasshopper(
+      (challengeSpecificProperties.challengeType as unknown) as NewChallengeTypes.ChallengeType
+    )
+  ) {
+    return Option.none;
+  }
+
+  const challengeBasePropertiesCasted = ({
+    ...challengeBaseProperties,
+    legacyGenericRender: Generic.renderChallenge
+  } as unknown) as NewChallengeTypes.ChallengeBaseProperties;
+  const challengeSpecificPropertiesCasted = (challengeSpecificProperties as unknown) as NewChallengeTypes.ChallengeSpecificProperties;
+  return Option.some(
+    NewChallengeMiddleware.renderChallenge({
+      challengeBaseProperties: {
+        ...challengeBasePropertiesCasted,
+        onChallengeCompleted: withContinueMode({
+          challengeBaseProperties: challengeBasePropertiesCasted,
+          challengeSpecificProperties: challengeSpecificPropertiesCasted
+        })
+      },
+      challengeSpecificProperties: challengeSpecificPropertiesCasted
+    })
+  );
+};
 /**
  * Helper function for generic hybrid challenges.
  */
@@ -773,6 +866,7 @@ const renderGenericChallengeFromQueryParameters = async (
   // Handle hybrid callbacks for parse.
   if (challengeSpecificProperties === null) {
     dispatchNavigateToFeatureHybridEvent(
+      unknownChallengeType,
       hybridTargetToCallbackInputId,
       HybridTarget.CHALLENGE_PARSED,
       { parsed: false }
@@ -780,99 +874,111 @@ const renderGenericChallengeFromQueryParameters = async (
     return false;
   }
   dispatchNavigateToFeatureHybridEvent(
+    challengeSpecificProperties.challengeType,
     hybridTargetToCallbackInputId,
     HybridTarget.CHALLENGE_PARSED,
     { parsed: true }
   );
 
-  let result: boolean;
-  if (origin.length > 0) {
-    result = await Generic.renderChallenge({
-      challengeBaseProperties: {
-        containerId,
-        renderInline: false,
-        appType,
-        shouldModifyBrowserHistory: true,
-        onChallengeCompleted: data => {
-          // Attempt to clear hybrid webview url to prevent re-rendering on a potential
-          // webview cache.
-          window.history.replaceState(null, '', basePath);
-          dispatchNavigateToFeatureHybridEvent(
-            hybridTargetToCallbackInputId,
-            HybridTarget.CHALLENGE_COMPLETED,
-            data,
-            origin
-          );
-        },
-        onChallengeInvalidated: data => {
-          window.history.replaceState(null, '', basePath);
-          dispatchNavigateToFeatureHybridEvent(
-            hybridTargetToCallbackInputId,
-            HybridTarget.CHALLENGE_INVALIDATED,
-            data,
-            origin
-          );
-        },
-        onChallengeDisplayed: data => {
-          dispatchNavigateToFeatureHybridEvent(
-            hybridTargetToCallbackInputId,
-            HybridTarget.CHALLENGE_DISPLAYED,
-            data,
-            origin
-          );
-        },
-        onModalChallengeAbandoned: () => {
-          dispatchNavigateToFeatureHybridEvent(
-            hybridTargetToCallbackInputId,
-            HybridTarget.CHALLENGE_INVALIDATED,
-            { abandoned: true },
-            origin
-          );
-        }
-      },
-      challengeSpecificProperties
-    });
-  } else {
-    result = await Generic.renderChallenge({
-      challengeBaseProperties: {
-        containerId,
-        renderInline: true,
-        appType,
-        shouldModifyBrowserHistory: true,
-        onChallengeCompleted: data => {
-          // Attempt to clear hybrid webview url to prevent re-rendering on a potential
-          // webview cache.
-          window.history.replaceState(null, '', basePath);
-          dispatchNavigateToFeatureHybridEvent(
-            hybridTargetToCallbackInputId,
-            HybridTarget.CHALLENGE_COMPLETED,
-            data
-          );
-        },
-        onChallengeInvalidated: data => {
-          window.history.replaceState(null, '', basePath);
-          dispatchNavigateToFeatureHybridEvent(
-            hybridTargetToCallbackInputId,
-            HybridTarget.CHALLENGE_INVALIDATED,
-            data
-          );
-        },
-        onChallengeDisplayed: data => {
-          dispatchNavigateToFeatureHybridEvent(
-            hybridTargetToCallbackInputId,
-            HybridTarget.CHALLENGE_DISPLAYED,
-            data
-          );
-        },
-        onModalChallengeAbandoned: null
-      },
-      challengeSpecificProperties
-    });
-  }
+  const renderInline = origin.length === 0;
+  // Unfortunately we rely on defined to handle dispatches to the hybrid event.
+  const originPassed = renderInline ? undefined : origin;
+
+  // We force the compiler to recognize the type with `const` here so that the later
+  // match below has its type discriminants properly resolved (since we branch on a
+  // runtime check the compiler flags that `renderInline` bool != true|false).
+  const renderInlinedParameters = {
+    renderInline: true as const,
+    onModalChallengeAbandoned: null,
+    onChallengeAbandoned: () =>
+      dispatchNavigateToFeatureHybridEvent(
+        challengeSpecificProperties.challengeType,
+        hybridTargetToCallbackInputId,
+        HybridTarget.CHALLENGE_INVALIDATED,
+        { abandoned: true },
+        originPassed
+      )
+  };
+  const renderModalParameters = {
+    renderInline: false as const,
+    onModalChallengeAbandoned: () =>
+      dispatchNavigateToFeatureHybridEvent(
+        challengeSpecificProperties.challengeType,
+        hybridTargetToCallbackInputId,
+        HybridTarget.CHALLENGE_INVALIDATED,
+        { abandoned: true },
+        originPassed
+      ),
+    onChallengeAbandoned: null
+  };
+  const challengeParametersModalHandling = boolean.matchW(
+    () => renderModalParameters,
+    // If we render inline, modal abandoned is a meaningless callback.
+    () => renderInlinedParameters
+  )(renderInline);
+
+  const newChallengeMiddleware = ({
+    newRenderChallenge: NewChallengeMiddleware.renderChallenge,
+    newParseChallenge: NewChallengeMiddleware.parseChallengeSpecificProperties
+  } as unknown) as Pick<ChallengeBaseProperties, 'newRenderChallenge' | 'newParseChallenge'>;
+  const challengeBaseProperties: ChallengeBaseProperties = {
+    containerId,
+    appType,
+    shouldModifyBrowserHistory: true,
+    onChallengeCompleted: data => {
+      // Attempt to clear hybrid webview url to prevent re-rendering on a potential
+      // webview cache.
+      window.history.replaceState(null, '', basePath);
+      dispatchNavigateToFeatureHybridEvent(
+        challengeSpecificProperties.challengeType,
+        hybridTargetToCallbackInputId,
+        HybridTarget.CHALLENGE_COMPLETED,
+        data,
+        originPassed
+      );
+    },
+    onChallengeInvalidated: data => {
+      window.history.replaceState(null, '', basePath);
+      dispatchNavigateToFeatureHybridEvent(
+        challengeSpecificProperties.challengeType,
+        hybridTargetToCallbackInputId,
+        HybridTarget.CHALLENGE_INVALIDATED,
+        data,
+        originPassed
+      );
+    },
+    onChallengeDisplayed: data => {
+      dispatchNavigateToFeatureHybridEvent(
+        challengeSpecificProperties.challengeType,
+        hybridTargetToCallbackInputId,
+        HybridTarget.CHALLENGE_DISPLAYED,
+        data,
+        originPassed
+      );
+    },
+    ...newChallengeMiddleware,
+    ...challengeParametersModalHandling
+  };
+
+  const maybeNewChallengeRendered = renderNewGenericChallengeFromQueryParameters(
+    challengeBaseProperties,
+    challengeSpecificProperties
+  );
+
+  const result = await pipe(
+    maybeNewChallengeRendered,
+    Option.getOrElse(() =>
+      Generic.renderChallenge({
+        challengeBaseProperties,
+        challengeSpecificProperties
+      })
+    )
+  );
 
   // Handle hybrid callbacks for initialize.
   if (result === false) {
     dispatchNavigateToFeatureHybridEvent(
+      challengeSpecificProperties.challengeType,
       hybridTargetToCallbackInputId,
       HybridTarget.CHALLENGE_INITIALIZED,
       { initialized: false },
@@ -881,6 +987,7 @@ const renderGenericChallengeFromQueryParameters = async (
     return false;
   }
   dispatchNavigateToFeatureHybridEvent(
+    challengeSpecificProperties.challengeType,
     hybridTargetToCallbackInputId,
     HybridTarget.CHALLENGE_INITIALIZED,
     { initialized: true },
@@ -900,6 +1007,7 @@ const renderForceAuthenticatorChallengeFromQueryParameters = (
 ): boolean => {
   // Force Authenticator has no custom query parameters.
   dispatchNavigateToFeatureHybridEvent(
+    ChallengeType.FORCE_AUTHENTICATOR,
     hybridTargetToCallbackInputId,
     HybridTarget.CHALLENGE_PARSED,
     { parsed: true }
@@ -907,14 +1015,23 @@ const renderForceAuthenticatorChallengeFromQueryParameters = (
 
   const result = ForceActionRedirect.renderChallenge({
     containerId,
-    forceActionRedirectChallengeType: ForceActionRedirectChallengeType.ForceAuthenticator,
+    forceActionRedirectChallengeType:
+      NewChallengeTypes.ForceActionRedirect.ForceActionRedirectChallengeType.ForceAuthenticator,
     renderInline: true,
-    onModalChallengeAbandoned: null
+    onModalChallengeAbandoned: null,
+    onChallengeAbandoned: () =>
+      dispatchNavigateToFeatureHybridEvent(
+        ChallengeType.FORCE_AUTHENTICATOR,
+        hybridTargetToCallbackInputId,
+        HybridTarget.CHALLENGE_INVALIDATED,
+        { abandoned: true }
+      )
   });
 
   // Handle hybrid callbacks for initialize.
   if (result === false) {
     dispatchNavigateToFeatureHybridEvent(
+      ChallengeType.FORCE_AUTHENTICATOR,
       hybridTargetToCallbackInputId,
       HybridTarget.CHALLENGE_INITIALIZED,
       { initialized: false }
@@ -922,6 +1039,7 @@ const renderForceAuthenticatorChallengeFromQueryParameters = (
     return false;
   }
   dispatchNavigateToFeatureHybridEvent(
+    ChallengeType.FORCE_AUTHENTICATOR,
     hybridTargetToCallbackInputId,
     HybridTarget.CHALLENGE_INITIALIZED,
     { initialized: true }
@@ -930,6 +1048,7 @@ const renderForceAuthenticatorChallengeFromQueryParameters = (
   // Note that for other challenge types, this hybrid callback might be
   // triggered internally to the component.
   dispatchNavigateToFeatureHybridEvent(
+    ChallengeType.FORCE_AUTHENTICATOR,
     hybridTargetToCallbackInputId,
     HybridTarget.CHALLENGE_DISPLAYED,
     { displayed: true }
@@ -948,6 +1067,7 @@ const renderForceTwoStepVerificationChallengeFromQueryParameters = (
 ): boolean => {
   // Force Two-Step Verification has no custom query parameters.
   dispatchNavigateToFeatureHybridEvent(
+    ChallengeType.FORCE_TWO_STEP_VERIFICATION,
     hybridTargetToCallbackInputId,
     HybridTarget.CHALLENGE_PARSED,
     { parsed: true }
@@ -955,14 +1075,24 @@ const renderForceTwoStepVerificationChallengeFromQueryParameters = (
 
   const result = ForceActionRedirect.renderChallenge({
     containerId,
-    forceActionRedirectChallengeType: ForceActionRedirectChallengeType.ForceTwoStepVerification,
+    forceActionRedirectChallengeType:
+      NewChallengeTypes.ForceActionRedirect.ForceActionRedirectChallengeType
+        .ForceTwoStepVerification,
     renderInline: true,
-    onModalChallengeAbandoned: null
+    onModalChallengeAbandoned: null,
+    onChallengeAbandoned: () =>
+      dispatchNavigateToFeatureHybridEvent(
+        ChallengeType.FORCE_TWO_STEP_VERIFICATION,
+        hybridTargetToCallbackInputId,
+        HybridTarget.CHALLENGE_INVALIDATED,
+        { abandoned: true }
+      )
   });
 
   // Handle hybrid callbacks for initialize.
   if (result === false) {
     dispatchNavigateToFeatureHybridEvent(
+      ChallengeType.FORCE_TWO_STEP_VERIFICATION,
       hybridTargetToCallbackInputId,
       HybridTarget.CHALLENGE_INITIALIZED,
       { initialized: false }
@@ -970,6 +1100,7 @@ const renderForceTwoStepVerificationChallengeFromQueryParameters = (
     return false;
   }
   dispatchNavigateToFeatureHybridEvent(
+    ChallengeType.FORCE_TWO_STEP_VERIFICATION,
     hybridTargetToCallbackInputId,
     HybridTarget.CHALLENGE_INITIALIZED,
     { initialized: true }
@@ -978,6 +1109,7 @@ const renderForceTwoStepVerificationChallengeFromQueryParameters = (
   // Note that for other challenge types, this hybrid callback might be
   // triggered internally to the component.
   dispatchNavigateToFeatureHybridEvent(
+    ChallengeType.FORCE_TWO_STEP_VERIFICATION,
     hybridTargetToCallbackInputId,
     HybridTarget.CHALLENGE_DISPLAYED,
     { displayed: true }
@@ -995,6 +1127,7 @@ const renderBlockSessionChallengeFromQueryParameters = (
   _appType: string
 ): boolean => {
   dispatchNavigateToFeatureHybridEvent(
+    ChallengeType.BLOCK_SESSION,
     hybridTargetToCallbackInputId,
     HybridTarget.CHALLENGE_PARSED,
     { parsed: true }
@@ -1002,14 +1135,23 @@ const renderBlockSessionChallengeFromQueryParameters = (
 
   const result = ForceActionRedirect.renderChallenge({
     containerId,
-    forceActionRedirectChallengeType: ForceActionRedirectChallengeType.BlockSession,
+    forceActionRedirectChallengeType:
+      NewChallengeTypes.ForceActionRedirect.ForceActionRedirectChallengeType.BlockSession,
     renderInline: true,
-    onModalChallengeAbandoned: null
+    onModalChallengeAbandoned: null,
+    onChallengeAbandoned: () =>
+      dispatchNavigateToFeatureHybridEvent(
+        ChallengeType.BLOCK_SESSION,
+        hybridTargetToCallbackInputId,
+        HybridTarget.CHALLENGE_INVALIDATED,
+        { abandoned: true }
+      )
   });
 
   // Handle hybrid callbacks for initialize.
   if (result === false) {
     dispatchNavigateToFeatureHybridEvent(
+      ChallengeType.BLOCK_SESSION,
       hybridTargetToCallbackInputId,
       HybridTarget.CHALLENGE_INITIALIZED,
       { initialized: false }
@@ -1017,6 +1159,7 @@ const renderBlockSessionChallengeFromQueryParameters = (
     return false;
   }
   dispatchNavigateToFeatureHybridEvent(
+    ChallengeType.BLOCK_SESSION,
     hybridTargetToCallbackInputId,
     HybridTarget.CHALLENGE_INITIALIZED,
     { initialized: true }
@@ -1025,6 +1168,7 @@ const renderBlockSessionChallengeFromQueryParameters = (
   // Note that for other challenge types, this hybrid callback might be
   // triggered internally to the component.
   dispatchNavigateToFeatureHybridEvent(
+    ChallengeType.BLOCK_SESSION,
     hybridTargetToCallbackInputId,
     HybridTarget.CHALLENGE_DISPLAYED,
     { displayed: true }
@@ -1046,6 +1190,7 @@ export const renderChallengeFromQueryParameters: RenderChallengeFromQueryParamet
   // Immediately send a hybrid event to confirm that the DOM has loaded without
   // any DOM or JavaScript errors.
   dispatchNavigateToFeatureHybridEvent(
+    unknownChallengeType,
     hybridTargetToCallbackInputId,
     HybridTarget.CHALLENGE_PAGE_LOADED,
     { pageLoaded: true }
@@ -1056,6 +1201,7 @@ export const renderChallengeFromQueryParameters: RenderChallengeFromQueryParamet
   // has some additional parameters it might parse.
   if (queryParametersBase === null) {
     dispatchNavigateToFeatureHybridEvent(
+      unknownChallengeType,
       hybridTargetToCallbackInputId,
       HybridTarget.CHALLENGE_PARSED,
       { parsed: false }
@@ -1112,12 +1258,6 @@ export const renderChallengeFromQueryParameters: RenderChallengeFromQueryParamet
         hybridTargetToCallbackInputId,
         queryParametersBase.appType
       );
-    case ChallengeType.REAUTHENTICATION:
-      return renderReauthenticationChallengeFromQueryParameters(
-        containerId,
-        hybridTargetToCallbackInputId,
-        queryParametersBase.appType
-      );
     case ChallengeType.PROOF_OF_WORK:
       return renderProofOfWorkChallengeFromQueryParameters(
         containerId,
@@ -1160,6 +1300,12 @@ export const renderChallengeFromQueryParameters: RenderChallengeFromQueryParamet
         hybridTargetToCallbackInputId,
         queryParametersBase.appType
       );
+    case ChallengeType.BIOMETRIC:
+      return renderBiometricFromQueryParameters(
+        containerId,
+        hybridTargetToCallbackInputId,
+        queryParametersBase.appType
+      );
     case 'generic':
       return renderGenericChallengeFromQueryParameters(
         containerId,
@@ -1175,4 +1321,10 @@ export const renderChallengeFromQueryParameters: RenderChallengeFromQueryParamet
       const assertCodeIsUnreachable: never = queryParametersBase.challengeType;
       return false;
   }
+};
+
+export {
+  renderNewGenericChallengeFromQueryParameters,
+  renderGenericChallengeFromQueryParameters,
+  dispatchNavigateToFeatureHybridEvent
 };

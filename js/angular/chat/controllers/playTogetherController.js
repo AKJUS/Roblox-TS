@@ -19,7 +19,7 @@ function playTogetherController(
 ) {
   'ngInject';
 
-  $scope.sendEventStream = function(eventType, rootPlaceId, gameInstanceId, joinAttemptId) {
+  $scope.sendEventStream = function (eventType, rootPlaceId, gameInstanceId, joinAttemptId) {
     const properties = {
       placeId: rootPlaceId,
       conversationId: $scope.playTogether.id
@@ -37,12 +37,17 @@ function playTogetherController(
     );
   };
 
-  $scope.sendGamePlayEvent = function(rootPlaceId, joinAttemptId) {
+  $scope.sendGamePlayEvent = function (rootPlaceId, joinAttemptId) {
     const { context } = $scope.chatLibrary.eventStreamParams;
-    eventStreamService.sendGamePlayEvent(context.gamePlayFromPlayTogether, rootPlaceId, undefined, joinAttemptId);
+    eventStreamService.sendGamePlayEvent(
+      context.gamePlayFromPlayTogether,
+      rootPlaceId,
+      undefined,
+      joinAttemptId
+    );
   };
 
-  $scope.buyAccess = function(rootPlaceId, layout) {
+  $scope.buyAccess = function (rootPlaceId, layout) {
     const eventType = $scope.chatLibrary.eventStreamParams.clickBuyButtonInPlayTogether;
     $scope.sendEventStream(eventType, rootPlaceId);
 
@@ -67,26 +72,28 @@ function playTogetherController(
     };
     const modal = modalService.open(options);
     modal.result.then(
-      function() {
+      function () {
         // make purchase
         $log.debug('--- purchase ---');
         $scope.dialogLayout.playTogetherButton.isPlayButtonDisabled = false;
       },
-      function() {
+      function () {
         $log.debug('--- cancel ---');
         $scope.dialogLayout.playTogetherButton.isPlayButtonDisabled = false;
       }
     );
   };
 
-  $scope.goToPlaceDetails = function(rootPlaceId) {
+  $scope.goToPlaceDetails = function (rootPlaceId) {
     const eventType = $scope.chatLibrary.eventStreamParams.clickViewDetailsButtonInPlayTogether;
     $scope.sendEventStream(eventType, rootPlaceId);
 
-    $window.location.href = urlService.getAbsoluteUrl($scope.chatLibrary.placesLibrary[rootPlaceId].placeUrl);
+    $window.location.href = urlService.getAbsoluteUrl(
+      $scope.chatLibrary.placesLibrary[rootPlaceId].placeUrl
+    );
   };
 
-  $scope.joinGame = function(rootPlaceId) {
+  $scope.joinGame = function (rootPlaceId) {
     const eventType = $scope.chatLibrary.eventStreamParams.clickJoinButtonInPlayTogether;
     const { placeId } = $scope.playTogether.playTogetherDict[rootPlaceId];
     const { gameInstanceId } = $scope.playTogether.playTogetherDict[rootPlaceId];
@@ -115,16 +122,23 @@ function playTogetherController(
     playGameService.launchGame(playGameProperties, eventStreamProperties);
   };
 
-  $scope.playGame = function(rootPlaceId, conversationId) {
-    const joinAttemptId = GameLauncher.isJoinAttemptIdEnabled() ? uuidService.generateRandomUuid() : undefined;
+  $scope.playGame = function (rootPlaceId, conversationId) {
+    const joinAttemptId = GameLauncher.isJoinAttemptIdEnabled()
+      ? uuidService.generateRandomUuid()
+      : undefined;
     const { gamePlayFromPlayTogether } = $scope.chatLibrary.eventStreamParams.context;
     const eventType = $scope.chatLibrary.eventStreamParams.clickPlayButtonInPlayTogether;
     $scope.sendEventStream(eventType, rootPlaceId, undefined, joinAttemptId);
     $scope.sendGamePlayEvent(rootPlaceId, joinAttemptId);
-    gameService.playTogetherGame(rootPlaceId, conversationId, joinAttemptId, gamePlayFromPlayTogether);
+    gameService.playTogetherGame(
+      rootPlaceId,
+      conversationId,
+      joinAttemptId,
+      gamePlayFromPlayTogether
+    );
   };
 
-  $scope.joinGameFromPlayTogether = function(rootPlaceId) {
+  $scope.joinGameFromPlayTogether = function (rootPlaceId) {
     rootPlaceId = parseInt(rootPlaceId);
     const buttonType = $scope.playTogether.placeButtonLayout[rootPlaceId].type;
     const conversationId = $scope.playTogether.id;
@@ -145,7 +159,7 @@ function playTogetherController(
     }
   };
 
-  $scope.toggleActiveGameList = function() {
+  $scope.toggleActiveGameList = function () {
     $scope.playTogetherLayout.activeGamesList.isCollapsed = !$scope.playTogetherLayout
       .activeGamesList.isCollapsed;
     if ($scope.playTogetherLayout.activeGamesList.isCollapsed) {
@@ -161,7 +175,7 @@ function playTogetherController(
     }
   };
 
-  $scope.hasPinGameAndActiveGames = function() {
+  $scope.hasPinGameAndActiveGames = function () {
     if ($scope.hasActiveGames() && $scope.playTogether.pinGame) {
       if ($scope.playTogether.playTogetherIds.length === 1) {
         return $scope.playTogether.playTogetherIds[0] !== $scope.playTogether.pinGame.rootPlaceId;
@@ -171,7 +185,7 @@ function playTogetherController(
     return false;
   };
 
-  $scope.hasActiveGames = function() {
+  $scope.hasActiveGames = function () {
     let pinGameIsInActiveGames = false;
     if (!$scope.playTogether.playTogetherIds) {
       return 0;
@@ -186,7 +200,7 @@ function playTogetherController(
       : $scope.playTogether.playTogetherIds.length;
   };
 
-  $scope.unPinGame = function() {
+  $scope.unPinGame = function () {
     if ($scope.playTogether && $scope.playTogether.pinGame) {
       const eventType = $scope.chatLibrary.eventStreamParams.unpinGameInPlayTogether;
       const { rootPlaceId } = $scope.playTogether.pinGame;
@@ -198,7 +212,7 @@ function playTogetherController(
     }
   };
 
-  $scope.pinGame = function(universeId, rootPlaceId) {
+  $scope.pinGame = function (universeId, rootPlaceId) {
     universeId = parseInt(universeId);
     rootPlaceId = parseInt(rootPlaceId);
     const eventType = $scope.chatLibrary.eventStreamParams.pinGameInPlayTogether;
@@ -222,11 +236,11 @@ function playTogetherController(
     gameService.updateButtonLayoutPerConversation($scope.playTogether, rootPlaceId);
   };
 
-  $scope.initData = function() {
-    $scope.playTogetherLayout = Object.assign({}, playTogetherLayout);
-    $scope.gameParameters = Object.assign({}, gameParameters);
-    $scope.gameLayout = Object.assign({}, gameLayout);
-    $scope.pinGameLayout = Object.assign({}, pinGameLayout);
+  $scope.initData = function () {
+    $scope.playTogetherLayout = { ...playTogetherLayout };
+    $scope.gameParameters = { ...gameParameters };
+    $scope.gameLayout = { ...gameLayout };
+    $scope.pinGameLayout = { ...pinGameLayout };
     if ($scope.dialogData) {
       $scope.playTogether = $scope.dialogData;
       $scope.playTogether.inDialog = true;

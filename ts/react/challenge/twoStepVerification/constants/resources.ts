@@ -59,6 +59,16 @@ export const getResources = (translate: TranslateFunction) =>
       EmailMediaType: translate('Label.EmailMediaType'),
       EnterAuthenticatorCode: translate('Label.EnterAuthenticatorCode'),
       EnterEmailCode: translate('Label.EnterEmailCode'),
+      EnterEmailCodeSanitizedEmail: (emailSanitized: string) =>
+        translate('Label.EnterEmailCodeSanitizedEmail', {
+          lineBreak: '\n\n',
+          emailSanitized
+        }),
+      EnterEmailCodeSanitizedEmailU13: (emailSanitized: string) =>
+        translate('Label.EnterEmailCodeSanitizedEmailU13', {
+          lineBreak: '\n\n',
+          emailSanitized
+        }),
       EnterPassword: translate('Label.EnterPassword'),
       EnterRecoveryCode: translate('Label.EnterRecoveryCode'),
       EnterTextCode: translate('Label.EnterTextCode'),

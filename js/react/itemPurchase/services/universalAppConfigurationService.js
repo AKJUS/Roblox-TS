@@ -1,15 +1,7 @@
-import { httpService } from 'core-utilities';
-import urlConstants from '../constants/urlConstants';
-
-const { getVngBuyRobuxBehaviorUrl } = urlConstants;
+import { Guac } from 'Roblox';
 
 export default {
   getVngBuyRobuxBehavior: () => {
-    const urlConfig = {
-      url: getVngBuyRobuxBehaviorUrl(),
-      retryable: true,
-      withCredentials: true
-    };
-    return httpService.get(urlConfig);
+    return Guac.callBehaviour('vng-buy-robux');
   }
 };

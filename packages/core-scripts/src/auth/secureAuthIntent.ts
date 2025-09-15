@@ -64,8 +64,7 @@ export const generateSecureAuthIntent = async (): Promise<SecureAuthIntent> => {
           hbaIndexedDBKeyName,
         );
       } catch {
-        // return empty keyPair upon exception
-        clientKeyPair = null;
+        console.error("getting cryptoKeyPair error");
       }
     }
     if (clientKeyPair == null || Object.keys(clientKeyPair).length === 0) {

@@ -98,60 +98,30 @@ function getDialogContainer() {
 }
 
 function showStartingDialog(onClose, launchMode, showNewDialog = false) {
-  const refactorEnabled = PlaceLauncher.Resources.RefactorEnabled === 'True';
   const studioMode = isStudioMode(launchMode);
 
   // use Roblox dialog modal
-  if (refactorEnabled) {
-    if (showNewDialog) {
-      const container = getDialogContainer();
-      ReactDOM.render(<ShowNewStartingDialog />, container);
-      return;
-    }
-    const bodyContent = studioMode
-      ? PlaceLauncher.Resources.ProtocolHandlerStartingDialog.studio.content
-      : PlaceLauncher.Resources.ProtocolHandlerStartingDialog.play.content;
-    const { loader } = PlaceLauncher.Resources.ProtocolHandlerStartingDialog;
-    Dialog.open({
-      bodyContent: bodyContent + loader,
-      allowHtmlContentInBody: true,
-      showAccept: false,
-      showDecline: false,
-      dismissable: false,
-      cssClass: 'protocolhandler-starting-modal',
-      onCloseCallback: onClose,
-      onCancel() {
-        onClose();
-        $.modal.close();
-      }
-    });
-
+  if (showNewDialog) {
+    const container = getDialogContainer();
+    ReactDOM.render(<ShowNewStartingDialog />, container);
     return;
   }
-
-  if (studioMode) {
-    $('.protocol-handler-container').each(function () {
-      $(this).find('.play-modal').addClass('hidden');
-      $(this).find('.studio-modal').removeClass('hidden');
-    });
-  } else {
-    $('.protocol-handler-container').each(function () {
-      $(this).find('.play-modal').removeClass('hidden');
-      $(this).find('.studio-modal').addClass('hidden');
-    });
-  }
-
-  $('#ProtocolHandlerStartingDialog').modal({
-    escClose: true,
-    opacity: 80,
-    overlayCss: {
-      backgroundColor: '#000'
-    },
-    onClose() {
+  const bodyContent = studioMode
+    ? PlaceLauncher.Resources.ProtocolHandlerStartingDialog.studio.content
+    : PlaceLauncher.Resources.ProtocolHandlerStartingDialog.play.content;
+  const { loader } = PlaceLauncher.Resources.ProtocolHandlerStartingDialog;
+  Dialog.open({
+    bodyContent: bodyContent + loader,
+    allowHtmlContentInBody: true,
+    showAccept: false,
+    showDecline: false,
+    dismissable: false,
+    cssClass: 'protocolhandler-starting-modal',
+    onCloseCallback: onClose,
+    onCancel() {
       onClose();
       $.modal.close();
-    },
-    zIndex: 1031
+    }
   });
 }
 
@@ -281,20 +251,7 @@ function resetClientStatus() {
 }
 
 function getClientAssertionEnabled() {
-  let guacUrl = `${EnvironmentUrls.apiGatewayUrl}/universal-app-configuration/v1/behaviors/auth-ticket-client-assertion/content`;
-  return $.ajax({
-    method: 'GET',
-    url: guacUrl,
-    contentType: 'application/json',
-    timeout: 10000
-  }).then(
-    function (guacResponse) {
-      return Boolean(guacResponse && guacResponse.isClientAssertionEnabled === 'true');
-    },
-    function () {
-      return false;
-    }
-  );
+  return $.Deferred().resolve(true);
 }
 
 function doClientAssertionRequest() {
@@ -323,8 +280,7 @@ function doAuthTicketRequest(clientAssertion) {
 
 function getAuthTicket(gameLaunchDefaultParams) {
   let deferred = new $.Deferred();
-  const { launchMode } = gameLaunchDefaultParams;
-  const studioMode = isStudioMode(launchMode);
+  const studioMode = isStudioMode(gameLaunchDefaultParams?.launchMode);
   let gameLaunchParams = { ...gameLaunchDefaultParams };
 
   if (!CurrentUser.isAuthenticated || studioMode) {
@@ -648,11 +604,11 @@ function openPluginInStudio(pluginId) {
   });
 }
 
-function editGameInStudio(placeId, universeId, allowUpload) {
+function editGameInStudio(placeId, universeId, allowUpload, startTeamTest = false) {
   let otherParams;
   if (ProtocolHandlerClientInterface.separateScriptParamsEnabled) {
     otherParams = {
-      task: 'EditPlace',
+      task: startTeamTest ? 'StartTeamTest' : 'EditPlace',
       placeId,
       universeId
     };
@@ -917,56 +873,35 @@ const ShowNewAreYouInstalledDialog = ({ gameLaunchParams }) => {
 };
 
 function showAreYouInstalledDialog(onClose, gameLaunchParams, showNewDialog = false) {
-  const refactorEnabled = PlaceLauncher.Resources.RefactorEnabled === 'True';
   const { launchMode } = gameLaunchParams;
   const studioMode = isStudioMode(launchMode);
 
-  if (refactorEnabled) {
-    if (showNewDialog) {
-      const container = getDialogContainer();
-      ReactDOM.render(
-        <ShowNewAreYouInstalledDialog gameLaunchParams={gameLaunchParams} />,
-        container
-      );
-      return;
-    }
-    const modalResource = studioMode
-      ? PlaceLauncher.Resources.ProtocolHandlerAreYouInstalled.studio
-      : PlaceLauncher.Resources.ProtocolHandlerAreYouInstalled.play;
-    Dialog.open({
-      bodyContent: modalResource.content,
-      allowHtmlContentInBody: true,
-      showAccept: true,
-      acceptColor: Dialog.green,
-      acceptText: modalResource.buttonText,
-      showDecline: false,
-      dismissable: false,
-      xToCancel: true,
-      footerText: modalResource.footerContent,
-      allowHtmlContentInFooter: true,
-      onAccept() {
-        protocolHandlerInstall(gameLaunchParams);
-      },
-      cssClass: 'protocolhandler-are-you-installed-modal'
-    });
+  if (showNewDialog) {
+    const container = getDialogContainer();
+    ReactDOM.render(
+      <ShowNewAreYouInstalledDialog gameLaunchParams={gameLaunchParams} />,
+      container
+    );
     return;
   }
-
-  $('#ProtocolHandlerAreYouInstalled').modal({
-    escClose: true,
-    opacity: 80,
-    overlayCss: {
-      backgroundColor: '#000'
+  const modalResource = studioMode
+    ? PlaceLauncher.Resources.ProtocolHandlerAreYouInstalled.studio
+    : PlaceLauncher.Resources.ProtocolHandlerAreYouInstalled.play;
+  Dialog.open({
+    bodyContent: modalResource.content,
+    allowHtmlContentInBody: true,
+    showAccept: true,
+    acceptColor: Dialog.green,
+    acceptText: modalResource.buttonText,
+    showDecline: false,
+    dismissable: false,
+    xToCancel: true,
+    footerText: modalResource.footerContent,
+    allowHtmlContentInFooter: true,
+    onAccept() {
+      protocolHandlerInstall(gameLaunchParams);
     },
-    onClose() {
-      onClose();
-      $('#ProtocolHandlerInstallButton').off('click');
-      $.modal.close();
-    },
-    zIndex: 1031
-  });
-  $('#ProtocolHandlerInstallButton, #ProtocolHandlerStudioInstallButton').click(function () {
-    protocolHandlerInstall(gameLaunchParams);
+    cssClass: 'protocolhandler-are-you-installed-modal'
   });
 }
 
@@ -1002,6 +937,7 @@ Object.assign(ProtocolHandlerClientInterface, {
   startDownload,
   setLocationHref, // this is used by automated tests to intercept the protocol handler URL for verification.  Do not remove.
   doAuthTicketRequest, // expose this so usable from other places.
+  getAuthTicket,
   doClientAssertionRequest,
   getClientAssertionEnabled,
   openDesktopUniversalApp,

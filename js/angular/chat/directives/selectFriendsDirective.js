@@ -9,7 +9,7 @@ function selectFriends(chatUtility, resources) {
     replace: true,
     templateUrl: resources.templates.selectFriendsTemplate,
     link(scope, element, attrs) {
-      let setInviteBtnState = function() {
+      const setInviteBtnState = function () {
         if (
           angular.isUndefined(scope.dialogData) ||
           angular.isUndefined(scope.dialogData.selectedUserIds)
@@ -26,10 +26,10 @@ function selectFriends(chatUtility, resources) {
       setInviteBtnState();
 
       scope.$watch(
-        function() {
+        function () {
           return scope.dialogData && scope.dialogData.selectedUserIds;
         },
-        function() {
+        function () {
           setInviteBtnState();
         },
         true

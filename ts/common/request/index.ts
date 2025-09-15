@@ -10,7 +10,6 @@ import * as PlaystationApi from './apis/playstation';
 import * as PromptAssignmentsApi from './apis/promptAssignments';
 import * as ProofOfSpaceApi from './apis/proofOfSpace';
 import * as ProofOfWorkApi from './apis/proofOfWork';
-import * as ReauthenticationApi from './apis/reauthentication';
 import * as RostileApi from './apis/rostile';
 import * as SecurityQuestionsApi from './apis/securityQuestions';
 import * as SessionManagementApi from './apis/sessionManagement';
@@ -23,6 +22,7 @@ import * as PrivateAccessTokenApi from './apis/privateAccessToken';
 import * as GenericChallengeApi from './apis/genericChallenge';
 import * as AuthApi from './apis/auth';
 import * as Fido2Api from './apis/fido2';
+import * as AccountRecoveryApi from './apis/accountRecovery';
 
 /**
  * A class encapsulating the various HTTP requests in this web app.
@@ -48,7 +48,6 @@ export class RequestServiceDefault {
   promptAssignments = PromptAssignmentsApi;
   securityQuestions = SecurityQuestionsApi;
   sessionManagement = SessionManagementApi;
-  reauthentication = ReauthenticationApi;
   rostile = RostileApi;
   thumbnails = ThumbnailsApi;
   twoStepVerification = TwoStepVerificationApi;
@@ -59,6 +58,7 @@ export class RequestServiceDefault {
   privateAccessToken = PrivateAccessTokenApi;
   genericChallenge = GenericChallengeApi;
   authApi = AuthApi;
+  accountRecoveryApi = AccountRecoveryApi;
 }
 
 /**

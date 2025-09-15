@@ -2,6 +2,9 @@ import "../global";
 import "./eventStream";
 import { DEFAULT_TARGET_TYPES, EVENT_TYPES } from "../realtime/constants/events";
 
+// TODO: these functions should all be async / awaitable. E.g., when clicking on <a>,
+// we want to wait for the metrics to be sent before navigating to the other page.
+
 export const eventTypes = EVENT_TYPES;
 
 type TargetTypes = {

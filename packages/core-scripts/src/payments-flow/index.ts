@@ -8,7 +8,6 @@ import {
   COUNTER_EVENTS,
   CUSTOM_EVENT,
   EVENT_NAME,
-  PAGE_LOAD_TYPE,
   PURCHASE_EVENT_TYPE,
   PURCHASE_STATUS,
   TRIGGERING_CONTEXT,
@@ -24,7 +23,7 @@ import { sendEventWithTarget, targetTypes } from "../event-stream";
 const fireEvent = window.EventTracker?.fireEvent ?? console.log;
 
 export class PaymentFlowAnalyticsService {
-  public purchaseFlowUuid: string | undefined = undefined;
+  public purchaseFlowUuid = "";
 
   public triggerContext: TRIGGERING_CONTEXT | undefined = undefined;
 
@@ -46,44 +45,36 @@ export class PaymentFlowAnalyticsService {
    * Only run when there is redirection, go back/forward might not trigger the constructor if page loaded from cache
    */
   constructor() {
-    this.loadPreExistingCtx();
-    this.setupEventListeners();
+    this.loadOrStartPaymentFlow();
   }
 
   /**
-   * Call startPaymentFlow when (if call directly)
-   *   1. item purchase upsell happens
-   *   2. special button clicked like Buy Robux
-   *   3. landed on a special page directly without ctx
-   *   4. button, who send events, clicked without ctx
-   *
-   * Recommended calling the following methods instead of calling directly
-   *   - sendUserPurchaseFlowEvent
-   *   - sendUserPurchaseStatusEvent
-   * By doing so, we could initiate the flow even it lands randomly on pages at any steps.
-   *
-   * @param triggerContext
+   * Load the pre-existing ctx if it exists and we detect an existing session
+   * If no existing session or no pre-existing ctx, then we should start a new flow
    */
-  public startPaymentFlow(triggerContext: TRIGGERING_CONTEXT): void {
+  private loadOrStartPaymentFlow(): void {
     try {
-      this.startPaymentFlowOrThrow(triggerContext);
+      // Try to load the pre-existing ctx if it exists and we detect an existing session
+      if (!this.purchaseFlowUuid) {
+        this.tryLoadPreExistingCtx();
+      }
+      // If no existing session or no pre-existing ctx, then we should start a new flow
+      if (!this.purchaseFlowUuid) {
+        // No existing flow Uuid, starting a new flow
+        const urlAnalyticId = PaymentFlowAnalyticsService.getUrlAnalyticId();
+        this.purchaseFlowUuid = urlAnalyticId ?? uuidService.generateRandomUuid();
+        this.writePaymentFlowContextIntoCookie();
+      }
     } catch {
       fireEvent(COUNTER_EVENTS.START_FLOW_ERROR);
     }
   }
 
-  private startPaymentFlowOrThrow(triggerContext: TRIGGERING_CONTEXT) {
-    if (!this.purchaseFlowUuid) {
-      // No existing flow Uuid, starting a new flow
-      const urlAnalyticId = PaymentFlowAnalyticsService.getUrlAnalyticId();
-      this.purchaseFlowUuid = urlAnalyticId ?? uuidService.generateRandomUuid();
-      this.triggerContext = triggerContext;
-      this.writePaymentFlowContextIntoCookie();
-      if (!urlAnalyticId) {
-        this.sendUserPurchaseStatusEvent(triggerContext, PURCHASE_STATUS.PAYMENT_FLOW_STARTED);
-      }
-      fireEvent(COUNTER_EVENTS.NEW_FLOW_INITIATED_PREFIX + this.triggerContext);
-    }
+  /**
+   * Returns the payment flow uuid
+   */
+  public getPaymentFlowUuid(): string {
+    return this.purchaseFlowUuid;
   }
 
   /**
@@ -112,23 +103,24 @@ export class PaymentFlowAnalyticsService {
     this.eventMetadata.item_id = itemId;
 
     if (assetType === ASSET_TYPE.GAME_PASS.valueOf()) {
-      this.startPaymentFlow(TRIGGERING_CONTEXT.WEB_GAME_PASS_ROBUX_UPSELL);
+      this.triggerContext = TRIGGERING_CONTEXT.WEB_GAME_PASS_ROBUX_UPSELL;
     } else if (assetType === ASSET_TYPE.DEVELOPER_PRODUCT.valueOf()) {
-      this.startPaymentFlow(TRIGGERING_CONTEXT.WEB_DEVELOPER_PRODUCT_ROBUX_UPSELL);
+      this.triggerContext = TRIGGERING_CONTEXT.WEB_DEVELOPER_PRODUCT_ROBUX_UPSELL;
     } else if (assetType === ASSET_TYPE.PLACE.valueOf()) {
-      this.startPaymentFlow(TRIGGERING_CONTEXT.WEB_PAID_GAME_ROBUX_UPSELL);
+      this.triggerContext = TRIGGERING_CONTEXT.WEB_PAID_GAME_ROBUX_UPSELL;
     } else if (assetType === ASSET_TYPE.PRIVATE_SERVER.valueOf()) {
-      this.startPaymentFlow(TRIGGERING_CONTEXT.WEB_PRIVATE_SERVER_ROBUX_UPSELL);
+      this.triggerContext = TRIGGERING_CONTEXT.WEB_PRIVATE_SERVER_ROBUX_UPSELL;
     } else if (
       assetType === ASSET_TYPE.BUNDLE.valueOf() ||
       assetType === ASSET_TYPE.PACKAGE.valueOf()
     ) {
-      this.startPaymentFlow(TRIGGERING_CONTEXT.WEB_CATALOG_BUNDLE_ITEM_ROBUX_UPSELL);
+      this.triggerContext = TRIGGERING_CONTEXT.WEB_CATALOG_BUNDLE_ITEM_ROBUX_UPSELL;
     } else if (isReseller) {
-      this.startPaymentFlow(TRIGGERING_CONTEXT.WEB_CATALOG_COLLECTIVE_ITEM_ROBUX_UPSELL);
+      this.triggerContext = TRIGGERING_CONTEXT.WEB_CATALOG_COLLECTIVE_ITEM_ROBUX_UPSELL;
     } else {
-      this.startPaymentFlow(TRIGGERING_CONTEXT.WEB_CATALOG_ROBUX_UPSELL);
+      this.triggerContext = TRIGGERING_CONTEXT.WEB_CATALOG_ROBUX_UPSELL;
     }
+    this.writePaymentFlowContextIntoCookie();
   }
 
   /**
@@ -168,40 +160,24 @@ export class PaymentFlowAnalyticsService {
       const sanitziedTriggerContext =
         PaymentFlowAnalyticsService.ReclassifyPlatformTriggeringContext({ triggerContext });
       this.eventMetadata = { ...this.eventMetadata, ...eventMetadata };
-      this.sendUserPurchaseFlowEventOrThrow(
-        sanitziedTriggerContext,
-        isMidPurchaseStep,
-        viewName,
-        purchaseEventType,
-        viewMessage,
-        isTerminalView,
-      );
+      if (!viewName && !purchaseEventType && !viewMessage) {
+        fireEvent(COUNTER_EVENTS.WRONG_USAGE_OF_METHOD);
+        return;
+      }
+      if (!this.triggerContext) {
+        this.triggerContext = sanitziedTriggerContext;
+        this.writePaymentFlowContextIntoCookie();
+        if (isMidPurchaseStep) {
+          fireEvent(COUNTER_EVENTS.MID_PURCHASE_STEP_TRIGGERED_WITHOUT_VALID_CTX);
+        }
+      }
+      this.sendEvent(EVENT_NAME.USER_PURCHASE_FLOW, viewName, purchaseEventType, viewMessage);
+
+      if (isTerminalView) {
+        this.handleTerminalPage();
+      }
     } catch {
       fireEvent(COUNTER_EVENTS.SEND_USER_EVENT_ERROR);
-    }
-  }
-
-  private sendUserPurchaseFlowEventOrThrow(
-    triggerContext: TRIGGERING_CONTEXT,
-    isMidPurchaseStep?: boolean,
-    viewName?: VIEW_NAME,
-    purchaseEventType?: PURCHASE_EVENT_TYPE,
-    viewMessage?: VIEW_MESSAGE | string,
-    isTerminalView = false,
-  ) {
-    if (!viewName && !purchaseEventType && !viewMessage) {
-      fireEvent(COUNTER_EVENTS.WRONG_USAGE_OF_METHOD);
-      return;
-    }
-    if ((!this.purchaseFlowUuid || !this.triggerContext) && isMidPurchaseStep) {
-      fireEvent(COUNTER_EVENTS.MID_PURCHASE_STEP_TRIGGERED_WITHOUT_VALID_CTX);
-    }
-
-    this.startPaymentFlow(triggerContext);
-    this.sendEvent(EVENT_NAME.USER_PURCHASE_FLOW, viewName, purchaseEventType, viewMessage);
-
-    if (isTerminalView) {
-      this.handleTerminalPage();
     }
   }
 
@@ -223,44 +199,26 @@ export class PaymentFlowAnalyticsService {
     try {
       const sanitziedTriggerContext =
         PaymentFlowAnalyticsService.ReclassifyPlatformTriggeringContext({ triggerContext });
-      this.sendUserPurchaseStatusEventOrThrow(
-        sanitziedTriggerContext,
-        status,
-        viewMessage,
-        viewName,
-      );
+      if (!status && !viewMessage && !viewName) {
+        fireEvent(COUNTER_EVENTS.WRONG_USAGE_OF_METHOD);
+        return;
+      }
+      if (!this.triggerContext) {
+        this.triggerContext = sanitziedTriggerContext;
+        this.writePaymentFlowContextIntoCookie();
+      }
+
+      this.sendEvent(EVENT_NAME.USER_PURCHASE_STATUS, viewName, undefined, viewMessage, status);
+
+      if (PaymentFlowAnalyticsService.isTerminalView(viewName)) {
+        this.handleTerminalPage();
+      }
     } catch {
       fireEvent(COUNTER_EVENTS.SEND_STATUS_EVENT_ERROR);
     }
   }
 
-  private sendUserPurchaseStatusEventOrThrow(
-    triggerContext: TRIGGERING_CONTEXT,
-    status?: PURCHASE_STATUS,
-    viewMessage?: string,
-    viewName?: VIEW_NAME,
-  ) {
-    if (!status && !viewMessage && !viewName) {
-      fireEvent(COUNTER_EVENTS.WRONG_USAGE_OF_METHOD);
-      return;
-    }
-    if (!this.purchaseFlowUuid || !this.triggerContext) {
-      fireEvent(COUNTER_EVENTS.STATUS_EVENT_TRIGGERED_WITHOUT_CTX);
-      this.startPaymentFlow(triggerContext);
-    }
-
-    this.sendEvent(EVENT_NAME.USER_PURCHASE_STATUS, viewName, undefined, viewMessage, status);
-
-    if (PaymentFlowAnalyticsService.isTerminalView(viewName)) {
-      this.handleTerminalPage();
-    }
-  }
-
   private writePaymentFlowContextIntoCookie() {
-    if (!this.triggerContext || !this.purchaseFlowUuid) {
-      fireEvent(COUNTER_EVENTS.WRONG_DATA_IN_COOKIE);
-      return;
-    }
     const flowCtx = new PaymentFlowContext(this.purchaseFlowUuid, this.triggerContext);
     flowCtx.save();
   }
@@ -302,14 +260,32 @@ export class PaymentFlowAnalyticsService {
     );
   }
 
-  private loadPreExistingCtx() {
+  private tryLoadPreExistingCtx() {
     try {
+      const { referrer } = document;
+      const isInternalNavigation =
+        referrer && new URL(referrer).hostname.endsWith(environmentUrls.domain);
+      const navigation = performance.getEntriesByType("navigation")[0];
+      const isBrowserNavigation =
+        navigation instanceof PerformanceNavigationTiming &&
+        (navigation.type === "back_forward" || navigation.type === "reload");
+
+      // If the navigation is not internal and not a browser navigation, then we should not load the pre-existing ctx
+      // We will consider browser movements and internal navigations as continuing the same session
+      if (!isInternalNavigation && !isBrowserNavigation) {
+        return;
+      }
+
       // load pre-existing one from cookie
       const flowCtx = PaymentFlowContext.loadFromCookie();
 
       if (flowCtx) {
-        this.purchaseFlowUuid = flowCtx.purchaseFlowUuid;
-        this.triggerContext = flowCtx.triggeringContext;
+        if (flowCtx.purchaseFlowUuid) {
+          this.purchaseFlowUuid = flowCtx.purchaseFlowUuid;
+        }
+        if (flowCtx.triggeringContext) {
+          this.triggerContext = flowCtx.triggeringContext;
+        }
       }
     } catch {
       fireEvent(COUNTER_EVENTS.LOAD_PRE_EXISTING_CTX_ERROR);
@@ -332,118 +308,6 @@ export class PaymentFlowAnalyticsService {
     }
 
     return "External";
-  }
-
-  /**
-   * @param type
-   * @private
-   */
-  private static wasPageLoadOfType(type: PAGE_LOAD_TYPE) {
-    try {
-      // TODO: old, migrated code
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-      if (window.performance.getEntriesByType) {
-        const performanceEntries = window.performance.getEntriesByType("navigation");
-
-        return performanceEntries
-          .map(nav => (nav instanceof PerformanceNavigationTiming ? nav.type : undefined))
-          .includes(type);
-      }
-      return PaymentFlowAnalyticsService.tryDeprecatedPageLoadOfType(type);
-    } catch {
-      fireEvent(COUNTER_EVENTS.PERFORMANCE_NAVIGATION_TYPE_ERROR);
-      return false;
-    }
-  }
-
-  /**
-   * Safari WebView doesn't support window.performance.getEntriesByType
-   * but only supports the deprecated window.performance.navigation.type
-   *
-   * @param type
-   * @private
-   */
-  private static tryDeprecatedPageLoadOfType(type: PAGE_LOAD_TYPE) {
-    // TODO: old, migrated code
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/no-deprecated
-    if (!window.performance.navigation) {
-      return false;
-    }
-    switch (type) {
-      case PAGE_LOAD_TYPE.BACK_FORWARD:
-        return (
-          // TODO: old, migrated code
-          // eslint-disable-next-line @typescript-eslint/no-deprecated
-          window.performance.navigation.type === window.performance.navigation.TYPE_BACK_FORWARD
-        );
-      case PAGE_LOAD_TYPE.NAVIGATE:
-        // TODO: old, migrated code
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return window.performance.navigation.type === window.performance.navigation.TYPE_NAVIGATE;
-      case PAGE_LOAD_TYPE.RELOAD:
-        // TODO: old, migrated code
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return window.performance.navigation.type === window.performance.navigation.TYPE_RELOAD;
-      default:
-        return false;
-    }
-  }
-
-  /**
-   * Mark if the page is from a refresh
-   * If so, we shall not start a new flow or abandon an old flow
-   *
-   * @private
-   */
-  private handleRefresh() {
-    if (!this.purchaseFlowUuid) {
-      return;
-    }
-    if (PaymentFlowAnalyticsService.wasPageLoadOfType(PAGE_LOAD_TYPE.RELOAD)) {
-      this.sendUserPurchaseStatusEvent(
-        // @ts-expect-error TODO: old, migrated code
-        this.triggerContext,
-        PURCHASE_STATUS.BROWSER_PAGE_CHANGED,
-        VIEW_MESSAGE.PAGE_REFRESHED,
-      );
-      fireEvent(COUNTER_EVENTS.PAGE_REFRESHED);
-    }
-  }
-
-  /**
-   * Handle browser go back or go forward or load the page from bf cache
-   * Modern browser will load page from bf cache when go back/forward by button/swipe
-   *
-   * When go back and forward, the flow is not abandoned, the isFlowAbandoned is set to false.
-   * Thus, when user leave the page, the flow won't be clear
-   * Then after, user go back / forward, if the user is still going through the middle steps,
-   * then it will continue the original flow, because the referrer won't be cleared when go back / forward
-   *
-   * @param event
-   * @private
-   */
-  private handleGoBackForward(event: PageTransitionEvent) {
-    if (!this.purchaseFlowUuid) {
-      return;
-    }
-    if (
-      event.persisted ||
-      PaymentFlowAnalyticsService.wasPageLoadOfType(PAGE_LOAD_TYPE.BACK_FORWARD)
-    ) {
-      this.sendUserPurchaseStatusEvent(
-        // @ts-expect-error TODO: old, migrated code
-        this.triggerContext,
-        PURCHASE_STATUS.BROWSER_PAGE_CHANGED,
-        event.persisted
-          ? VIEW_MESSAGE.PAGE_LOADED_FROM_BACK_FORWARD_CACHE
-          : VIEW_MESSAGE.BACK_FORWARD_DETECTED,
-      );
-      fireEvent(
-        event.persisted
-          ? COUNTER_EVENTS.PAGE_LOADED_FROM_BACK_FORWARD_CACHE
-          : COUNTER_EVENTS.BACK_FORWARD_DETECTED,
-      );
-    }
   }
 
   private handleTerminalPage() {
@@ -470,15 +334,6 @@ export class PaymentFlowAnalyticsService {
     return new URLSearchParams(window.location.search).get("analyticId");
   }
 
-  private setupEventListeners() {
-    try {
-      window.addEventListener("load", this.handleRefresh.bind(this));
-      window.addEventListener("pageshow", this.handleGoBackForward.bind(this));
-    } catch {
-      fireEvent(COUNTER_EVENTS.EVENTS_REGISTER_ERROR);
-    }
-  }
-
   /**
    * Due to the fact that different Apps could choose to send WEB or WEBVIEW context on their own which is hard to controlled and very inconsistent, force reclassifying the triggering context for the two Robux purchase events based on if the user is in App or not.
    *
@@ -500,6 +355,10 @@ export class PaymentFlowAnalyticsService {
         return isInApp
           ? TRIGGERING_CONTEXT.WEBVIEW_ROBUX_PURCHASE
           : TRIGGERING_CONTEXT.WEB_ROBUX_PURCHASE;
+      case TRIGGERING_CONTEXT.MOBILE_WEB_ROBUX_PURCHASE:
+        return isInApp
+          ? TRIGGERING_CONTEXT.WEBVIEW_ROBUX_PURCHASE
+          : TRIGGERING_CONTEXT.MOBILE_WEB_ROBUX_PURCHASE;
       case TRIGGERING_CONTEXT.WEB_PREMIUM_PURCHASE:
       case TRIGGERING_CONTEXT.WEBVIEW_PREMIUM_PURCHASE:
         return isInApp

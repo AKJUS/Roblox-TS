@@ -216,6 +216,7 @@ export const GameTileSponsoredFooter = ({
             translate(CommonGameSorts.LabelSponsoredAdsDisclosureStatic) ||
             'Sponsored experiences are paid for by Creators. They may be shown to you based on general information about your device type, location, and demographics.'
           }
+          placement='right'
           sizeInPx={12}
         />
       </div>
@@ -244,16 +245,17 @@ export const WideGameTileSponsoredFooter = ({
 }): JSX.Element => {
   return (
     <div className='game-card-info' data-testid='wide-game-tile-sponsored-footer'>
+      <span className='info-label interleaved-sponsored'>
+        {translate(FeatureGamePage.LabelSponsoredAd)}
+      </span>
       <GamesInfoTooltip
         tooltipText={
           translate(CommonGameSorts.LabelSponsoredAdsDisclosureStatic) ||
           'Sponsored experiences are paid for by Creators. They may be shown to you based on general information about your device type, location, and demographics.'
         }
-        sizeInPx={12}
+        placement='right'
+        sizeInPx={16}
       />
-      <span className='info-label text-label-with-icon'>
-        {translate(FeatureGamePage.LabelSponsoredAd)}
-      </span>
     </div>
   );
 };
@@ -407,10 +409,22 @@ GameTileFriendsInGame.defaultProps = {
   translate: undefined
 };
 
+// Information needed to display the player interaction modal
+// Subset of TGetFriendsResponse
+type TModalFriendData = {
+  id: number;
+  displayName: string;
+  presence?: {
+    placeId?: number;
+    rootPlaceId?: number;
+    gameId?: string;
+  };
+};
+
 type TShimmedPlayerInteractionModalComponentProps = {
   show: boolean;
   onHide: (e: Event) => void;
-  friendsDataInGame: TGetFriendsResponse[];
+  friendsDataInGame: TModalFriendData[];
   game: TGetPlaceDetails;
 };
 

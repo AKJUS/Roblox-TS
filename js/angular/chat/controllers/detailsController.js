@@ -22,7 +22,7 @@ function detailsController($scope, $log, chatService, chatUtility) {
     return $scope.dialogData.participantsMetadata?.[userId]?.is_pending;
   };
 
-  $scope.maybeFetchParticipantMetadata = function() {
+  $scope.maybeFetchParticipantMetadata = function () {
     const conversationId = $scope.dialogData.id;
     if (
       conversationId &&

@@ -1,3 +1,4 @@
+import { Guac } from 'Roblox';
 import { httpService } from 'core-utilities';
 import { AxiosPromise } from 'axios';
 import { eventStreamService } from 'core-roblox-utilities';
@@ -38,8 +39,8 @@ const reportNotification = (notificationId?: string): Promise<unknown> => {
   });
 };
 
-const getReportAbuseConfig = (): AxiosPromise<ReportAbuseConfigResponse> => {
-  return httpService.get(urlConstants.reportAbuseUiConfigUrl);
+const getReportAbuseConfig = (): Promise<ReportAbuseConfigResponse> => {
+  return Guac.callBehaviour<ReportAbuseConfigResponse>('report-abuse-ui');
 };
 
 const sendEventStreamEvent = (

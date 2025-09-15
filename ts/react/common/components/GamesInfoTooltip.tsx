@@ -1,18 +1,27 @@
+import classNames from 'classnames';
 import React from 'react';
 import { Tooltip } from 'react-style-guide';
 
 type TGamesInfoTooltipProps = {
   tooltipText: string;
+  // Placement of the tooltip relative to the target element, e.g. 'right' or 'left'
+  placement: string;
   sizeInPx?: number;
+  centerIcon?: boolean;
 };
 
-const GamesInfoTooltip = ({ tooltipText, sizeInPx = 16 }: TGamesInfoTooltipProps): JSX.Element => {
+const GamesInfoTooltip = ({
+  tooltipText,
+  placement,
+  sizeInPx = 16,
+  centerIcon
+}: TGamesInfoTooltipProps): JSX.Element => {
   return (
-    <span className='info-tooltip-container'>
+    <span className={classNames('info-tooltip-container', { 'icon-centered': centerIcon })}>
       <Tooltip
         id='games-info-tooltip'
-        placement='right'
-        containerClassName='games-info-tooltip'
+        placement={placement}
+        containerClassName={classNames('games-info-tooltip', { 'icon-centered': centerIcon })}
         content={tooltipText}>
         <svg
           width={sizeInPx}

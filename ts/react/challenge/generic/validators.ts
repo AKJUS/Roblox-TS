@@ -2,7 +2,6 @@
 import * as z from 'zod';
 import * as Captcha from '../captcha/interface';
 import * as Rostile from '../rostile/interface';
-import { ReauthenticationType } from '../reauthentication/interface';
 import { ActionType } from '../twoStepVerification/interface';
 import { ChallengeType } from './interface';
 import * as Metadata from './interface/metadata/interface';
@@ -40,19 +39,6 @@ const SecurityQuestionsChallengeMetadataValidator = z
   .object({
     userId: z.string(),
     sessionId: z.string()
-  })
-  .and(SharedChallengeMetadataValidator);
-
-const ReauthenticationValidator = z
-  .object({
-    defaultType: z.nativeEnum(ReauthenticationType),
-    availableTypes: z.array(z.nativeEnum(ReauthenticationType)),
-    defaultTypeMetadata: z
-      .object({
-        passkeyAuthOptions: z.string().optional(),
-        passkeySessionId: z.string().optional()
-      })
-      .nullable()
   })
   .and(SharedChallengeMetadataValidator);
 
@@ -113,6 +99,14 @@ const EmailVerificationValidator = z
 
 const BlockSessionValidator = z.any();
 
+const BiometricValidator = z
+  .object({
+    challengeId: z.string(),
+    userId: z.string(),
+    biometricType: z.string()
+  })
+  .and(SharedChallengeMetadataValidator);
+
 /**
  * A dictionary of validators corresponding to the challenge metadata types
  * defined in the `interface` directory. The type constraints expressed here
@@ -126,7 +120,6 @@ export const ChallengeMetadataValidator: {
   [ChallengeType.FORCE_AUTHENTICATOR]: ForceAuthenticatorValidator,
   [ChallengeType.FORCE_TWO_STEP_VERIFICATION]: ForceTwoStepVerificationValidator,
   [ChallengeType.SECURITY_QUESTIONS]: SecurityQuestionsChallengeMetadataValidator,
-  [ChallengeType.REAUTHENTICATION]: ReauthenticationValidator,
   [ChallengeType.PROOF_OF_WORK]: ProofOfWorkValidator,
   [ChallengeType.ROSTILE]: RostileValidator,
   [ChallengeType.PRIVATE_ACCESS_TOKEN]: PrivateAccessTokenValidator,
@@ -134,5 +127,6 @@ export const ChallengeMetadataValidator: {
   [ChallengeType.PROOF_OF_SPACE]: ProofOfSpaceValidator,
   [ChallengeType.PHONE_VERIFICATION]: PhoneVerificationValidator,
   [ChallengeType.EMAIL_VERIFICATION]: EmailVerificationValidator,
-  [ChallengeType.BLOCK_SESSION]: BlockSessionValidator
+  [ChallengeType.BLOCK_SESSION]: BlockSessionValidator,
+  [ChallengeType.BIOMETRIC]: BiometricValidator
 };

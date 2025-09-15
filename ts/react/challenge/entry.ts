@@ -1,4 +1,3 @@
-import { instrumentTimestamp } from '@rbx/buffered-telemetry';
 import Roblox from 'Roblox';
 import * as Captcha from './captcha';
 import * as DeviceIntegrity from './deviceIntegrity';
@@ -9,7 +8,6 @@ import * as Interface from './interface';
 import * as PrivateAccessToken from './privateAccessToken';
 import * as ProofOfSpace from './proofOfSpace';
 import * as ProofOfWork from './proofOfWork';
-import * as Reauthentication from './reauthentication';
 import * as Rostile from './rostile';
 import * as SecurityQuestions from './securityQuestions';
 import * as TwoStepVerification from './twoStepVerification';
@@ -26,7 +24,6 @@ const AccountIntegrityChallengeService: typeof Interface = {
   PrivateAccessToken,
   ProofOfSpace,
   ProofOfWork,
-  Reauthentication,
   Rostile,
   SecurityQuestions,
   TwoStepVerification
@@ -35,11 +32,3 @@ const AccountIntegrityChallengeService: typeof Interface = {
 Object.assign(Roblox, {
   AccountIntegrityChallengeService
 });
-
-// Side-effect of loading the prelude asynchronously.
-Generic.loadPreludeIfMissing();
-
-// TODO: Remove this once we have enough telemetry to debug indexed DB client issues.
-// This is flagged from within the [library]().
-// eslint-disable-next-line no-void
-void instrumentTimestamp();

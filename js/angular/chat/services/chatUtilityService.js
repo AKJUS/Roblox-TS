@@ -43,7 +43,7 @@ function chatUtility(
 
   function invalidateLinkCardInPieceOfMessage(placeId, messageDictByPlaceIds) {
     const { linkCardMessages } = messageDictByPlaceIds[placeId];
-    linkCardMessages.forEach(function(pieceOfMessage) {
+    linkCardMessages.forEach(function (pieceOfMessage) {
       if (placeId === pieceOfMessage.id) {
         pieceOfMessage.isCard = false;
       }
@@ -136,6 +136,8 @@ function chatUtility(
 
     urlParamNames: angular.copy(resources.urlParamNames),
 
+    friendshipOriginType: angular.copy(dialogAttributes.friendshipOriginType),
+
     getChatDisabledReasonsByPriority(chatLibrary) {
       if (!chatLibrary || !chatLibrary.chatLayout) {
         return ['CHAT_DISABLED_REASON_UNKNOWN'];
@@ -180,7 +182,7 @@ function chatUtility(
     },
 
     buildScrollbar(className) {
-      let scrollbarElm = angular.element(document.querySelector(className));
+      const scrollbarElm = angular.element(document.querySelector(className));
       scrollbarElm.mCustomScrollbar({
         autoExpandScrollbar: false,
         scrollInertia: 1,
@@ -192,7 +194,7 @@ function chatUtility(
     },
 
     updateScrollbar(selector) {
-      let scrollbarElm = angular.element(document.querySelector(selector));
+      const scrollbarElm = angular.element(document.querySelector(selector));
       scrollbarElm.mCustomScrollbar('update');
     },
 
@@ -201,16 +203,16 @@ function chatUtility(
     getAssetDetails,
 
     buildLinkCard(value) {
-      let linkContent = linkify(value);
+      const linkContent = linkify(value);
       let pieceOfMsg = {
         content: linkContent,
         isCard: false
       };
-      let { messageRegexs } = messageHelper;
-      for (let cardType in messageRegexs) {
+      const { messageRegexs } = messageHelper;
+      for (const cardType in messageRegexs) {
         if (messageRegexs.hasOwnProperty(cardType)) {
-          let reg = messageRegexs[cardType];
-          let params = value.match(reg);
+          const reg = messageRegexs[cardType];
+          const params = value.match(reg);
           if (params && params.length === 2) {
             pieceOfMsg = {
               id: params[1],
@@ -228,17 +230,17 @@ function chatUtility(
 
     buildEmojiPieces(message) {
       message.pieces = [];
-      let { content } = message;
-      let regex = messageHelper.emojiRegex;
-      let { zwjRegex } = messageHelper;
-      let { emojiRepRegex } = messageHelper;
+      const { content } = message;
+      const regex = messageHelper.emojiRegex;
+      const { zwjRegex } = messageHelper;
+      const { emojiRepRegex } = messageHelper;
       let frag;
-      var emojiSequence = '';
+      let emojiSequence = '';
       let isZwj = false;
       let prevIndex = 0;
       while ((frag = regex.exec(content)) !== null) {
-        let newIndex = frag.index;
-        let currentEmoji = frag[0];
+        const newIndex = frag.index;
+        const currentEmoji = frag[0];
         if (prevIndex !== newIndex) {
           if (emojiSequence) {
             message.pieces.push(emojiPiece(emojiSequence, true));
@@ -274,9 +276,9 @@ function chatUtility(
     buildLinkCardMessages(message) {
       // sets message.linkCardMessages
       // calls buildEmojiPieces on each pieceOfMsg that is not a link card
-      let content = message.parsedContent;
+      const content = message.parsedContent;
       if (content && content.length > 0) {
-        let arrayOfMsgs = content.split(messageHelper.urlRegex);
+        const arrayOfMsgs = content.split(messageHelper.urlRegex);
         if (!arrayOfMsgs) {
           message.hasLinkCard = false;
           return false;
@@ -305,14 +307,14 @@ function chatUtility(
     },
 
     sortFriendList(chatLibrary, friends) {
-      let orderBy = $filter('orderBy');
+      const orderBy = $filter('orderBy');
       let onlineFriends = [];
       let offlineFriends = [];
-      let friendIds = [];
+      const friendIds = [];
 
       chatLibrary.friendIds.forEach(function (friendId) {
-        let friend = chatLibrary.friendsDict[friendId];
-        var userPresenceType =
+        const friend = chatLibrary.friendsDict[friendId];
+        const userPresenceType =
           friend && friend.presence ? friend.presence.userPresenceType : friend.userPresenceType;
         if (userPresenceType > 0) {
           onlineFriends.push(friend);
@@ -323,7 +325,7 @@ function chatUtility(
       });
       angular.forEach(friends, function (friend) {
         if (friendIds.indexOf(friend.id) < 0) {
-          var userPresenceType =
+          const userPresenceType =
             friend && friend.presence ? friend.presence.userPresenceType : friend.userPresenceType;
           if (userPresenceType > 0) {
             onlineFriends.push(friend);
@@ -344,17 +346,17 @@ function chatUtility(
     },
 
     getScrollBarSelector(conversation, scrollType) {
-      let { layoutId } = conversation;
+      const { layoutId } = conversation;
 
       if (angular.isUndefined(scrollType)) {
         scrollType = conversation.scrollBarType;
       }
       switch (scrollType) {
         case dialogAttributes.scrollBarTypes.FRIENDSELECTION:
-          return '#scrollbar_friend_' + conversation.dialogType + '_' + layoutId;
+          return `#scrollbar_friend_${conversation.dialogType}_${layoutId}`;
         case dialogAttributes.scrollBarTypes.MESSAGE:
         default:
-          return '#scrollbar_' + conversation.dialogType + '_' + layoutId;
+          return `#scrollbar_${conversation.dialogType}_${layoutId}`;
       }
     },
 
@@ -368,9 +370,9 @@ function chatUtility(
     },
 
     sanitizeMessage(message) {
-      if (message && message.content) {
-        let rawContent = message.content;
-        var beforeLinkifyMessage = message.content;
+      if (message && message.content && !message.isSanitized) {
+        const rawContent = message.content;
+        const beforeLinkifyMessage = message.content;
         message.content = linkify(message.content);
 
         if (beforeLinkifyMessage !== message.content) {
@@ -381,13 +383,14 @@ function chatUtility(
         } else {
           this.buildEmojiPieces(message);
         }
+        message.isSanitized = true;
       }
     },
 
     sanitizeMessages(messages) {
       if (messages && messages.length > 0) {
         for (let i = 0; i < messages.length; i++) {
-          let message = messages[i];
+          const message = messages[i];
           this.sanitizeMessage(message);
         }
       }
@@ -400,7 +403,7 @@ function chatUtility(
     },
 
     updateDialogStyle(dialogData, dialogLayout, chatLibrary) {
-      let layout = dialogLayout.defaultStyle;
+      const layout = dialogLayout.defaultStyle;
       if (layout && layout.inputStyle) {
         this.setResizeInputLayout(chatLibrary, layout.inputStyle.height, dialogData, dialogLayout);
       }
@@ -409,11 +412,11 @@ function chatUtility(
     // dynamically adjust input field height and dialog height
     setResizeInputLayout(chatLibrary, inputHeight, dialogData, dialogLayout) {
       let top;
-      var height;
-      let { layout } = chatLibrary;
-      let { topBarHeight } = layout;
-      let inputMaxHeight = getDialogInputMaxHeight(inputHeight, dialogLayout, chatLibrary);
-      let { bannerHeight } = layout;
+      let height;
+      const { layout } = chatLibrary;
+      const { topBarHeight } = layout;
+      const inputMaxHeight = getDialogInputMaxHeight(inputHeight, dialogLayout, chatLibrary);
+      const { bannerHeight } = layout;
       if (dialogLayout.renameEditor.isEnabled) {
         top = topBarHeight + layout.renameEditorHeight;
         height = topBarHeight + inputMaxHeight + layout.renameEditorHeight;
@@ -421,8 +424,8 @@ function chatUtility(
         top = topBarHeight;
         height = topBarHeight + inputMaxHeight;
       }
-      var dialogHeight = layout.dialogHeight - height + 'px';
-      let marginTop = dialogAttributes.dialogLayoutResetConstant.paddingOfInput / 2;
+      const dialogHeight = `${layout.dialogHeight - height}px`;
+      const marginTop = dialogAttributes.dialogLayoutResetConstant.paddingOfInput / 2;
       dialogLayout.defaultStyle.dialogStyle = {
         height: dialogHeight
       };
@@ -435,13 +438,13 @@ function chatUtility(
     },
 
     calculateRightPosition(library, currentIndex) {
-      let widthOfDialog = this.chatLayout.widthOfDialog + this.chatLayout.spaceOfDialog;
-      var widthOfCollapsedDialog =
+      const widthOfDialog = this.chatLayout.widthOfDialog + this.chatLayout.spaceOfDialog;
+      const widthOfCollapsedDialog =
         this.chatLayout.widthOfCollapsedDialog + this.chatLayout.spaceOfDialog;
       let widthOfDialogs = 0;
       for (let i = 0; i < currentIndex; i++) {
-        let dialogId = library.dialogIdList[i];
-        let dialogLayout =
+        const dialogId = library.dialogIdList[i];
+        const dialogLayout =
           library.dialogsLayout?.[dialogId] || angular.copy(dialogAttributes.dialogLayout);
 
         widthOfDialogs += dialogLayout.collapsed ? widthOfCollapsedDialog : widthOfDialog;
@@ -450,16 +453,16 @@ function chatUtility(
     },
 
     updateDialogsPosition(library) {
-      let { chatLayout } = library;
-      let widthOfChatContainer = chatLayout.widthOfChat;
+      const { chatLayout } = library;
+      const widthOfChatContainer = chatLayout.widthOfChat;
       for (let i = 0; i < library.dialogIdList.length; i++) {
-        let dialogId = library.dialogIdList[i];
-        var idOfDialog = '#' + dialogId;
-        var dialogElm = angular
+        const dialogId = library.dialogIdList[i];
+        const idOfDialog = `#${dialogId}`;
+        const dialogElm = angular
           .element(document.querySelector(idOfDialog))
           .find(this.dialogLayout.dialogContainerClass);
-        let widthOfDialogs = this.calculateRightPosition(library, i);
-        let right = +widthOfChatContainer + widthOfDialogs + chatLayout.spaceOfDialog;
+        const widthOfDialogs = this.calculateRightPosition(library, i);
+        const right = +widthOfChatContainer + widthOfDialogs + chatLayout.spaceOfDialog;
         dialogElm.css('right', right);
       }
       if (library.minimizedDialogIdList.length > 0) {
@@ -468,7 +471,7 @@ function chatUtility(
     },
 
     updateFocusedDialog(library, layoutId) {
-      $log.debug(' ------ focused layoutId ------ ' + layoutId);
+      $log.debug(` ------ focused layoutId ------ ${layoutId}`);
       library.chatLayout.focusedLayoutId = layoutId;
     },
 
@@ -498,6 +501,19 @@ function chatUtility(
         chatLibrary.useOneToOneOsaContextCards &&
         conversation.osaAcknowledgementStatus === this.osaAcknowledgementStatus.UNACKNOWLEDGED
       );
+    },
+
+    getDynamicConversationId(conversation) {
+      return {
+        conversationId:
+          conversation?.source === dialogAttributes.conversationSource.CHANNELS
+            ? conversation.id
+            : undefined,
+        friendId:
+          conversation?.source === dialogAttributes.conversationSource.FRIENDS
+            ? conversation.id
+            : undefined
+      };
     }
   };
 }

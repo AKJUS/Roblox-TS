@@ -10,6 +10,11 @@ export type HbaMeta = {
   batEventSampleRate: number;
 };
 
+// Note: ideally we return an error type instead but given the way dependencies
+// are consumed in web-frontend by default (globals), this is not a safe type to change.
+//
+// One update to this public interface that's backwards-incompatible and all webapps break
+// at the same time (either at compile OR runtime, depending on the change).
 export type SecureAuthIntent = {
   clientPublicKey: string;
   clientEpochTimestamp: number;

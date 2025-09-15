@@ -5,6 +5,7 @@ import { fireEvent } from 'roblox-event-tracker';
 import Roblox from 'Roblox';
 import { rootElementId } from './app.config';
 import '../../../css/searchLandingPage/searchLandingPage.scss';
+import '../../../css/tailwind.css';
 import SearchLandingPageOmniFeed from './SearchLandingPageOmniFeed';
 import SearchLandingService from './service/searchLandingService';
 import { ModalEvent } from './service/modalConstants';

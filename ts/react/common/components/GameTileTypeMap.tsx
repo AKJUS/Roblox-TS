@@ -13,7 +13,7 @@ export const GameTileTypeMap = forwardRef<HTMLDivElement, TGameTileTypeMapProps>
   ({ componentType, ...tileProps }: TGameTileTypeMapProps, forwardedRef) => {
     switch (componentType) {
       case TComponentType.AppGameTileNoMetadata:
-        return <GameTile ref={forwardedRef} shouldShowMetadata={false} {...tileProps} />;
+        return <GameTile ref={forwardedRef} hideTileMetadata {...tileProps} />;
       case TComponentType.GridTile:
       case TComponentType.EventTile:
       case TComponentType.InterestTile:

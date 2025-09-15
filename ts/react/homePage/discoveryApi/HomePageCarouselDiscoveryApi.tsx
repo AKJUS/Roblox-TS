@@ -53,9 +53,11 @@ type THomePageGameCarouselDiscoveryApiProps = {
   itemsPerRow?: number;
   endTimestamp?: string;
   countdownString?: string;
+  hideTileMetadata?: boolean;
   isExpandHomeContentEnabled?: boolean;
   isCarouselHorizontalScrollEnabled?: boolean;
   isNewScrollArrowsEnabled?: boolean;
+  isNewSortHeaderEnabled?: boolean;
 };
 
 export const HomePageCarousel = ({
@@ -78,9 +80,11 @@ export const HomePageCarousel = ({
   startingRow,
   endTimestamp,
   countdownString,
+  hideTileMetadata,
   isExpandHomeContentEnabled,
   isCarouselHorizontalScrollEnabled,
-  isNewScrollArrowsEnabled
+  isNewScrollArrowsEnabled,
+  isNewSortHeaderEnabled
 }: THomePageGameCarouselDiscoveryApiProps): JSX.Element => {
   // Type union will be cleaned up with isCarouselHorizontalScrollEnabled
   const carouselRef = useRef<HTMLDivElement | HTMLUListElement>(null);
@@ -226,6 +230,7 @@ export const HomePageCarousel = ({
             ? parseInt(sort.topicLayoutData?.backgroundImageAssetId, 10)
             : undefined
         }
+        isNewSortHeaderEnabled={isNewSortHeaderEnabled}
         translate={translate}
       />
 
@@ -247,6 +252,7 @@ export const HomePageCarousel = ({
           friendData={friendsPresence}
           navigationRootPlaceId={navigationRootPlaceId}
           isSponsoredFooterAllowed={isSponsoredFooterAllowed}
+          hideTileMetadata={hideTileMetadata}
           hoverStyle={hoverStyle}
           topicId={sort.topicId?.toString()}
           isExpandHomeContentEnabled={isExpandHomeContentEnabled}
@@ -268,6 +274,7 @@ export const HomePageCarousel = ({
           playButtonStyle={playButtonStyle}
           navigationRootPlaceId={navigationRootPlaceId}
           isSponsoredFooterAllowed={isSponsoredFooterAllowed}
+          hideTileMetadata={hideTileMetadata}
           hoverStyle={hoverStyle}
           topicId={sort.topicId?.toString()}
           isExpandHomeContentEnabled={isExpandHomeContentEnabled}
@@ -291,9 +298,11 @@ HomePageCarousel.defaultProps = {
   itemsPerRow: undefined,
   endTimestamp: undefined,
   countdownString: undefined,
+  hideTileMetadata: undefined,
   isExpandHomeContentEnabled: undefined,
   isCarouselHorizontalScrollEnabled: undefined,
-  isNewScrollArrowsEnabled: undefined
+  isNewScrollArrowsEnabled: undefined,
+  isNewSortHeaderEnabled: undefined
 };
 
 export default HomePageCarousel;

@@ -37,6 +37,7 @@ const ForceActionRedirect: React.FC = () => {
       redirectURLSignifier,
       resources,
       onModalChallengeAbandoned,
+      onChallengeAbandoned,
       isModalVisible
     },
     dispatch
@@ -56,6 +57,11 @@ const ForceActionRedirect: React.FC = () => {
           type: ForceActionRedirectActionType.SHOW_MODAL_CHALLENGE
         })
       );
+    }
+
+    // In-line webview abandon support.
+    if (onChallengeAbandoned !== null) {
+      onChallengeAbandoned();
     }
   };
 
@@ -77,13 +83,20 @@ const ForceActionRedirect: React.FC = () => {
   const getPageContent = () => {
     const BodyElement = renderInline ? InlineChallengeBody : Modal.Body;
     const FooterElement = renderInline ? InlineChallengeFooter : FragmentModalFooter;
-    const lockIconClassName = renderInline ? 'inline-challenge-lock-icon' : 'modal-lock-icon';
+    const lockIconClassName = renderInline
+      ? 'inline-challenge-protection-shield-icon'
+      : 'modal-protection-shield-icon';
 
     return (
       <React.Fragment>
         <BodyElement>
           <div className={lockIconClassName} />
-          <p>{resources.Body}</p>
+          <p
+            // eslint-disable-next-line react/no-danger
+            dangerouslySetInnerHTML={{
+              __html: resources.Body
+            }}
+          />
         </BodyElement>
         <FooterElement positiveButton={positiveButton} negativeButton={null} />
       </React.Fragment>

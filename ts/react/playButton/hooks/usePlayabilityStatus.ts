@@ -5,18 +5,22 @@ import { TPlayabilityStatus } from '../types/playButtonTypes';
 
 export const usePlayabilityStatus = (
   universeId: string
-): [TPlayabilityStatus | undefined, () => Promise<void>] => {
+): [TPlayabilityStatus | undefined, () => Promise<void>, string | undefined] => {
   const [playabilityStatus, setPlayabilityStatus] = useState<TPlayabilityStatus | undefined>(
     undefined
   );
+  const [unplayableDisplayText, setUnplayableDisplayText] = useState<string | undefined>(undefined);
 
   const fetchPlayabilityStatus = async () => {
     setPlayabilityStatus(undefined);
+    setUnplayableDisplayText(undefined);
     try {
       const response = await playButtonService.getPlayabilityStatus([universeId]);
       setPlayabilityStatus(response?.playabilityStatus);
+      setUnplayableDisplayText(response?.unplayableDisplayText);
     } catch (e) {
       setPlayabilityStatus(PlayabilityStatus.TemporarilyUnavailable);
+      setUnplayableDisplayText(undefined);
     }
   };
 
@@ -40,7 +44,7 @@ export const usePlayabilityStatus = (
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  return [playabilityStatus, fetchPlayabilityStatus];
+  return [playabilityStatus, fetchPlayabilityStatus, unplayableDisplayText];
 };
 
 export default usePlayabilityStatus;

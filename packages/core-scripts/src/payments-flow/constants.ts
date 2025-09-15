@@ -1,6 +1,5 @@
 export const COOKIE_NAME = "RBXPaymentsFlowContext";
 export const COOKIE_TIMESPAN = 600;
-export const COOKIE_REGEX = new RegExp(`^(?:.*; |)${COOKIE_NAME}=([^,]+),([^;]+)(?:;.*|)$`);
 
 export const enum EVENT_NAME {
   USER_PURCHASE_FLOW = "UserPurchaseFlow",
@@ -9,6 +8,7 @@ export const enum EVENT_NAME {
 
 export enum TRIGGERING_CONTEXT {
   WEB_ROBUX_PURCHASE = "WebRobuxPurchase",
+  MOBILE_WEB_ROBUX_PURCHASE = "MobileWebRobuxPurchase",
   WEB_PREMIUM_PURCHASE = "WebPremiumPurchase",
   WEB_CATALOG_ROBUX_UPSELL = "WebCatalogRobuxUpsell",
   WEB_CATALOG_PREMIUM_UPSELL = "WebCatalogPremiumUpsell",
@@ -39,6 +39,9 @@ export enum VIEW_NAME {
   MEMBERSHIP_ANGULAR = "MembershipAngular",
   PREMIUM_UPSELL = "PremiumUpsell",
   PAYMENT_METHOD = "PaymentMethod",
+  MOBILE_PAYMENT_METHOD = "MobilePaymentMethod",
+  MOBILE_PAYMENT_METHOD_SAMSUNG_PAY = "MobilePaymentMethodSamsungPay",
+  MOBILE_PAYMENT_METHOD_REDEEM_CREDIT = "MobilePaymentMethodRedeemCredit",
   NAVIGATION_MENU = "NavigationMenu",
   PREPARE_PAYMENT_ERROR_OCCURRED = "PreparePaymentErrorOccured",
   XSOLLA = "Xsolla",
@@ -47,9 +50,11 @@ export enum VIEW_NAME {
   PAYPAL_POST_PROCESS = "Paypal Post Process",
   BRAINTREE_POST_PROCESS = "Braintree Post Process",
   ROBLOX_CREDIT = "Roblox Credit",
+  ROBLOX_CREDIT_CHECKOUT = "Roblox Credit Checkout",
   ROBLOX_CREDIT_CAPTCHA = "Roblox Credit Captcha",
   LOADING = "Loading",
   CHECKOUT_SUCCESS = "Checkout Success",
+  MOBILE_WEB_CHECKOUT_SUCCESS = "MobileWebCheckoutSuccess",
   SUCCESS = "Success",
   ERROR = "Error",
   NAVIGATION_ROBUX_TEXT = "NavigationRobuxText",
@@ -72,6 +77,9 @@ export enum VIEW_NAME {
   ROBUX_GIFT_REQUEST_BANNER = "WebRobuxGiftRequestBanner",
   GIFT_CARD = "GiftCard",
   SHOP_GIFT_CARDS = "ShopGiftCards",
+  ECONOMIC_RESTRICTION_ERROR = "EconomicRestrictionError",
+  CREDIT_PACKAGE_PURCHASE_MODAL = "CreditPackagePurchaseModal",
+  CREDIT_CONVERSION_MODAL = "CreditConversionModal",
 }
 
 export enum PURCHASE_EVENT_TYPE {
@@ -124,12 +132,20 @@ export enum VIEW_MESSAGE {
   PREPARE_PAYMENT_REQUEST_REDIRECTED = "PreparePaymentRequestRedirected",
   PAYMENT_METHOD_DROPDOWN = "Payment Method Dropdown",
   USE_DIFFERENT_PAYMENT_METHOD = "Use Different Payment Method",
+  SAMSUNG_PAY_SELECTED = "Samsung Pay Selected",
+  REDEEM_CREDIT_SELECTED = "Redeem Credit Selected",
   GIFT_NOW = "Gift now",
   CHECKOUT = "Checkout",
   VERIFY = "Verify",
   REQUEST_ROBUX = "Request Robux",
   BUY_NOW = "Buy Now",
   ADD_TO_CART = "Add to Cart",
+  GIFT_CARD_AMOUNT_BUTTON = "GiftCardAmountButton",
+  GIFT_CARD_TYPE_BUTTON = "GiftCardTypeButton",
+  GIFT_CARD_RECIPIENT_TYPE_BUTTON = "GiftCardRecipientTypeButton",
+  JOIN = "Join",
+  BUY_REDIRECT = "Buy (redirect)",
+  RETURN_TO_APP = "Return to app",
 }
 
 export enum PURCHASE_STATUS {

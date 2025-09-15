@@ -1,9 +1,11 @@
+import { ReactNode } from "react";
+// eslint-disable-next-line no-restricted-imports
+import { render, Container } from "react-dom";
 import { ErrorBoundary } from "@sentry/react";
-import { render } from "react-dom";
 
 const renderWithErrorBoundary = (
-  element: React.ReactNode,
-  container: Element | Document | DocumentFragment | null,
+  element: ReactNode,
+  container: Container | null,
   callback?: () => void,
 ): void => {
   render(<ErrorBoundary>{element}</ErrorBoundary>, container, callback);

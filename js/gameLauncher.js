@@ -30,7 +30,7 @@ function isJoinAttemptIdEnabled() {
 function generateGameLaunchParams(originalParams, joinAttemptId, joinAttemptOrigin) {
   const params = {
     ...originalParams,
-    joinAttemptId: joinAttemptId ?? uuidService.generateRandomUuid(),
+    joinAttemptId: joinAttemptId ?? uuidService.generateRandomUuid()
   };
 
   if (joinAttemptOrigin) {
@@ -54,12 +54,19 @@ function editGameInStudio(
   universeId,
   allowUpload,
   isTeamCreateEnabled = false,
-  enableTeamCreatePreemptiveStart = false
+  enableTeamCreatePreemptiveStart = false,
+  startTeamTest = false
 ) {
   if (isTeamCreateEnabled && enableTeamCreatePreemptiveStart) {
     preemptiveStartTeamCreate(placeId);
   }
-  gameLauncher.gameLaunchInterface.editGameInStudio(placeId, universeId, allowUpload);
+  gameLauncher.gameLaunchInterface.editGameInStudio(
+    placeId,
+    universeId,
+    allowUpload,
+    // Studio has an error if you attempt to start Team Test when Team Create is off
+    isTeamCreateEnabled && startTeamTest
+  );
 }
 
 function openStudio() {
@@ -140,13 +147,7 @@ function joinGameInstance(
   return deferred;
 }
 
-async function joinPrivateGame(
-  placeId,
-  accessCode,
-  linkCode,
-  joinAttemptId,
-  joinAttemptOrigin
-) {
+async function joinPrivateGame(placeId, accessCode, linkCode, joinAttemptId, joinAttemptOrigin) {
   await gameLauncher.initialized;
   let params = {
     placeId,
@@ -180,14 +181,14 @@ function playTogetherGame(placeId, conversationId, joinAttemptId, joinAttemptOri
 // jQuery plugin for binding game launch buttons.  Finds any protocol handler game launch buttons in the current jQuery object and binds them.
 // eg: $("#ajaxUpdatedContainer").bindGameLaunch();
 $.fn.bindGameLaunch = function bindGameLaunch() {
-  this.find('.VisitButtonPlayGLI').click(function() {
+  this.find('.VisitButtonPlayGLI').click(function () {
     const el = $(this);
     const placeId = el.attr('placeid');
     const isMembershipLevelOk = el.data('is-membership-level-ok');
     joinMultiplayerGame(placeId, isMembershipLevelOk);
   });
 
-  this.find('.VisitButtonEditGLI').click(function() {
+  this.find('.VisitButtonEditGLI').click(function () {
     const el = $(this);
     const placeId = el.attr('placeid');
     const universeId = el.data('universeid');

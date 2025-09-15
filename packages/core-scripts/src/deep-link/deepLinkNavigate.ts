@@ -14,11 +14,13 @@ import { launchGame, buildPlayGameProperties } from "../game";
 import { startDesktopAndMobileWebChat } from "../util/chat";
 import { sendEventWithTarget } from "../event-stream";
 import getPlaceIdFromUniverseId from "./getPlaceIdFromUniverseId";
-import resolveShareLinks from "./resolveShareLinks";
+import getUniverseIdFromPlaceId from "./getUniverseIdFromPlaceId";
+import { resolveShareLinks, resolveShareLinksV2 } from "./resolveShareLinks";
 import { getQueryParam, getHelpDeskUrl, ZendeskDeepLinkParams } from "../util/url";
 import {
   ProfileShareFriendshipSourceType,
   ShareLinksType,
+  ShareLinksTypeV2,
   ExperienceJoinData,
 } from "./shareLinksTypes";
 import ExperienceInviteStatus from "./enums/ExperienceInviteStatus";
@@ -65,6 +67,22 @@ const buildRedirectUrlWithJoinData = (url: string, joinData: ExperienceJoinData)
     }
   }
   return `${baseUrl}?${searchParams.toString()}`;
+};
+
+const launchStudio = (placeId: string, universeId: string, startTeamTest: boolean): void => {
+  const { GameLauncher } = window.Roblox;
+  if (GameLauncher && placeId && universeId) {
+    // checking of whether or not Team Create is actually enabled should be done in Studio if needed
+    // this is done to be consistent with how Studio share link errors should show up in Studio if possible
+    GameLauncher.editGameInStudio(
+      placeId,
+      universeId,
+      true, // allowUpload
+      true, // isTeamCreateEnabled
+      false, // enableTeamCreatePreemptiveStart
+      startTeamTest,
+    );
+  }
 };
 
 const deepLinkNavigate = (target: DeepLink): Promise<boolean> => {
@@ -114,6 +132,76 @@ const deepLinkNavigate = (target: DeepLink): Promise<boolean> => {
     // Navigate to gift cards page
     urlTarget = UrlPart.GiftCards;
   } else if (navigateSubPath === PathPart.ShareLinks) {
+    // roblox://navigation/share_links?code=<linkId>&v=v2
+    if (params.v === "v2" && params.code !== undefined) {
+      const code = params.code || "";
+      return resolveShareLinksV2(params.code)
+        .then(response => {
+          if (response.data.linkStatus === "Invalid") {
+            return false;
+          }
+          const resolveLinkEvent = buildResolveLinkEvent(
+            response.data.linkStatus,
+            code,
+            ShareLinksTypeV2.EXPERIENCE_V2,
+          );
+          sendEventWithTarget(
+            resolveLinkEvent.type,
+            resolveLinkEvent.context,
+            resolveLinkEvent.params,
+          );
+          if (response.data.linkType === "Experience" && response.data.targetId) {
+            window.location.href = `${UrlPart.Games}/${response.data.targetId}`;
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            const launchData = response.data.customData || "{}";
+            launchGame(
+              buildPlayGameProperties(
+                response.data.targetId,
+                response.data.targetId,
+                undefined, // instanceId
+                undefined, // playerId
+                undefined, // privateServerLinkCode
+                undefined, // inviterId
+                { launchData },
+              ),
+              buildDeepLinkLaunchGameEvent(response.data.targetId, code, response.data.linkStatus),
+            );
+          } else if (
+            (response.data.linkType === "StudioEdit" ||
+              response.data.linkType === "StudioTeamTest") &&
+            response.data.targetId
+          ) {
+            return getUniverseIdFromPlaceId(response.data.targetId)
+              .then((id: number) => {
+                const universeId = id.toString();
+                if (!universeId) {
+                  return false;
+                }
+
+                const startTeamTest = response.data.linkType === "StudioTeamTest";
+
+                // Check if ShareLinks WebApp has registered a custom handler for Studio links
+                const { studioLinkHandler } = window.Roblox;
+                if (studioLinkHandler && typeof studioLinkHandler === "function") {
+                  const studioData = {
+                    placeId: response.data.targetId,
+                    universeId,
+                    startTeamTest,
+                  };
+                  studioLinkHandler(studioData);
+                  return true;
+                }
+
+                // Default behavior is to launch Studio
+                launchStudio(response.data.targetId, universeId, startTeamTest);
+                return true;
+              })
+              .catch(() => false);
+          }
+          return true;
+        })
+        .catch(() => false);
+    }
     // roblox://navigation/share_links?code=<linkId>&type=<linkType>
     switch (params.type) {
       case ShareLinksType.EXPERIENCE_INVITE: {
@@ -654,7 +742,7 @@ const deepLinkNavigate = (target: DeepLink): Promise<boolean> => {
       }
     }
   } else if (navigateSubPath === PathPart.Chat && params.userId) {
-    startDesktopAndMobileWebChat(params);
+    startDesktopAndMobileWebChat({ userId: params.userId });
     return Promise.resolve(true);
   } else if (navigateSubPath === PathPart.ExternalWebUrl) {
     // roblox://navigation/external_web_link?domain=zendesk&locale=ko&articleId=1234&type=policy_update

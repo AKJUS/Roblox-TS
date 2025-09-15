@@ -54,8 +54,8 @@ export function BatchBuyItems({
   useEffect(() => {
     universalAppConfigurationService
       .getVngBuyRobuxBehavior()
-      .then(({ data }) => {
-        const { shouldShowVng } = data;
+      .then(response => {
+        const { shouldShowVng } = response;
         setShouldRedirectToVng(shouldShowVng);
       })
       .catch(errorRes => {

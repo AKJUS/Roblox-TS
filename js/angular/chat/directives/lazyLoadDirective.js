@@ -7,7 +7,7 @@ function lazyLoad(
   $document,
   conversationsUtility,
   usersService,
-  contactsService,
+  contactsService
 ) {
   'ngInject';
 

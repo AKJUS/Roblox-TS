@@ -17,7 +17,8 @@ import {
   TSort,
   TGetUserLocaleResponse,
   TSupportedLocale,
-  TAssetDataResponse
+  TAssetDataResponse,
+  TGetPlayabilityStatus
 } from '../types/bedev1Types';
 
 const { url, defaultCacheCriteria } = bedev1Constants;
@@ -130,6 +131,16 @@ const getAssetDataFromAssetId = (assetId: string): Promise<TAssetDataResponse> =
     });
 };
 
+const getPlayabilityStatus = async (
+  universeId: string
+): Promise<TGetPlayabilityStatus | undefined> => {
+  const { data = [] } = (await gamesDataStore.getPlayabilityStatus([universeId])) as AxiosResponse<
+    TGetPlayabilityStatus[]
+  >;
+
+  return data[0];
+};
+
 export default {
   getFriendsPresence,
   getGameDetails,
@@ -141,5 +152,6 @@ export default {
   getVoiceStatus,
   getPlaceDetails,
   getUserLocale,
-  getAssetDataFromAssetId
+  getAssetDataFromAssetId,
+  getPlayabilityStatus
 };

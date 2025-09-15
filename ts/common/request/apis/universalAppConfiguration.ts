@@ -1,6 +1,5 @@
-import { httpService } from 'core-utilities';
+import { Guac } from 'Roblox';
 import { Result } from '../../result';
-import { toResult } from '../common';
 import * as UniversalAppConfiguration from '../types/universalAppConfiguration';
 
 // eslint-disable-next-line import/prefer-default-export
@@ -9,8 +8,18 @@ export const getSettingsUiPolicy = async (): Promise<
     UniversalAppConfiguration.GetSettingsUIPolicyReturnType,
     UniversalAppConfiguration.GetSettingsUIPolicyError | null
   >
-> =>
-  toResult(
-    httpService.get(UniversalAppConfiguration.GET_SETTINGS_UI_POLICY_CONFIG, {}),
-    UniversalAppConfiguration.GetSettingsUIPolicyError
-  );
+> => {
+  try {
+    const data = await Guac.callBehaviour<UniversalAppConfiguration.GetSettingsUIPolicyReturnType>(
+      'account-settings-ui'
+    );
+    return { isError: false, value: data };
+  } catch (error) {
+    return {
+      isError: true,
+      error: UniversalAppConfiguration.GetSettingsUIPolicyError.INTERNAL_ERROR,
+      errorRaw: error,
+      errorStatusCode: null
+    };
+  }
+};

@@ -26,6 +26,7 @@ export enum ActionType {
  * A 2SV media type.
  */
 export enum MediaType {
+  None = 'None',
   Email = 'Email',
   Authenticator = 'Authenticator',
   RecoveryCode = 'RecoveryCode',

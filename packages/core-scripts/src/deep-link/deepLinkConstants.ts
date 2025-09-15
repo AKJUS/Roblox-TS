@@ -18,6 +18,17 @@ export enum PathPart {
   NotificationSettings = "notification_settings",
   AccountInfo = "account_info",
   PrivacySettings = "privacy_settings",
+  AppPermissionsSettings = "app_permissions_settings",
+  ScreentimeSubsettings = "screentime_subsettings",
+  BlockedExperiencesSubsettings = "blocked_experiences_subsettings",
+  BlockedUsersSubsettings = "blocked_users_subsettings",
+  ExperienceChatSubsettings = "experience_chat_subsettings",
+  PartySubsettings = "party_subsettings",
+  VoiceSubsettings = "voice_subsettings",
+  TradingInventorySubsettings = "trading_inventory_subsettings",
+  PrivateServerSubsettings = "private_server_subsettings",
+  FriendsContactsSubsettings = "friends_contacts_subsettings",
+  VisibilitySubsettings = "visibility_subsettings",
   ParentalControls = "parental_controls",
   SpendingSettings = "spending_settings",
   Group = "group",
@@ -54,6 +65,19 @@ export const DeepLinkNavigationMap: Record<string, string> = {
   [PathPart.PrivacySettings]: "/my/account#!/privacy",
   [PathPart.ParentalControls]: "/my/account#!/parental-controls",
   [PathPart.SpendingSettings]: "/my/account#!/billing",
+  [PathPart.AppPermissionsSettings]: "/my/account#!/app-permissions",
+  [PathPart.ScreentimeSubsettings]: "/my/account#!/privacy/Screentime",
+  [PathPart.BlockedExperiencesSubsettings]:
+    "/my/account#!/privacy/ContentRestrictions/BlockedExperiences",
+  [PathPart.BlockedUsersSubsettings]: "/my/account#!/privacy/BlockedUsers",
+  [PathPart.ExperienceChatSubsettings]: "/my/account#!/privacy/Communication/ExperienceChat",
+  [PathPart.PartySubsettings]: "/my/account#!/privacy/Communication/Party",
+  [PathPart.VoiceSubsettings]: "/my/account#!/privacy/Communication/Voice",
+  [PathPart.TradingInventorySubsettings]: "/my/account#!/privacy/TradingAndInventory",
+  [PathPart.FriendsContactsSubsettings]: "/my/account#!/privacy/FriendsAndContacts",
+  [PathPart.PrivateServerSubsettings]:
+    "/my/account#!/privacy/VisibilityAndPrivateServers/PrivateServerPrivacy",
+  [PathPart.VisibilitySubsettings]: "/my/account#!/privacy/VisibilityAndPrivateServers/Visibility",
 };
 
 export const UrlPart = {

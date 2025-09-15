@@ -49,15 +49,17 @@ export const fetchFeatureAccess = createAsyncThunk(
       featureName: string;
       ampFeatureCheckData?: ExtraParameter[];
       successfulAction?: string;
+      namespace?: string;
     },
     thunkAPI
   ) => {
     try {
-      const { featureName, ampFeatureCheckData, successfulAction } = arg;
+      const { featureName, ampFeatureCheckData, successfulAction, namespace } = arg;
       const response = await fetchFeatureCheckResponse(
         featureName,
         ampFeatureCheckData,
-        successfulAction
+        successfulAction,
+        namespace
       );
       return response;
     } catch (error) {

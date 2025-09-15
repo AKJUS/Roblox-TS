@@ -1,6 +1,6 @@
 import { AxiosResponse } from 'axios';
 import { dataStores } from 'core-roblox-utilities';
-import { EnvironmentUrls } from 'Roblox';
+import { EnvironmentUrls, Guac } from 'Roblox';
 import { httpService } from 'core-utilities';
 import {
   TGetProductInfo,
@@ -43,12 +43,7 @@ const getPlayabilityStatus = async (
 };
 
 const getGuacPlayButtonUI = async (): Promise<TGuacPlayButtonUIResponse> => {
-  const urlConfig = {
-    withCredentials: true,
-    url: `${EnvironmentUrls.apiGatewayUrl}/universal-app-configuration/v1/behaviors/play-button-ui/content`
-  };
-  const { data } = await httpService.get(urlConfig);
-  return data as TGuacPlayButtonUIResponse;
+  return Guac.callBehaviour<TGuacPlayButtonUIResponse>('play-button-ui');
 };
 
 const getShowAgeVerificationOverlay = async (

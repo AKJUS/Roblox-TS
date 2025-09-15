@@ -2,7 +2,7 @@ import EventTimer from '../../../../common/eventTimer';
 import RobloxEventTracker from '../../../../common/eventTracker';
 import { RequestServiceDefault } from '../../../../common/request';
 import { MetricName } from '../../../../common/request/types/metrics';
-import { FUNCAPTCHA_VERSION_V2, METRICS_CONSTANTS } from '../app.config';
+import { METRICS_CONSTANTS, USE_LIGHTBOX_MODAL } from '../app.config';
 import { ActionType } from '../interface';
 
 /**
@@ -76,6 +76,7 @@ export class MetricsServiceDefault {
     if (eventTime === null) {
       return;
     }
+    const version = USE_LIGHTBOX_MODAL;
     this.requestServiceDefault.metrics
       .recordMetric({
         name: MetricName.SolveTimeCaptcha,
@@ -84,7 +85,7 @@ export class MetricsServiceDefault {
           action_type: this.actionType,
           event_type: `${this.provider}_${METRICS_CONSTANTS.event.success}`,
           application_type: this.applicationType || 'unknown',
-          version: FUNCAPTCHA_VERSION_V2
+          version
         }
       })
       // Swallow errors if metrics failed to send; this should not be fatal.
@@ -93,6 +94,7 @@ export class MetricsServiceDefault {
   }
 
   fireEvent(metricName: string): void {
+    const version = USE_LIGHTBOX_MODAL;
     if (RobloxEventTracker) {
       const eventName = `${this.actionType}${this.provider}_${metricName}`;
       RobloxEventTracker.fireEvent(this.appendApplicationType(eventName));
@@ -105,7 +107,7 @@ export class MetricsServiceDefault {
           action_type: this.actionType,
           event_type: `${this.provider}_${metricName}`,
           application_type: this.applicationType || 'unknown',
-          version: FUNCAPTCHA_VERSION_V2
+          version
         },
         identifier: this.challengeId
       })

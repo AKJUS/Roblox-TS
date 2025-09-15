@@ -10,13 +10,15 @@ import { ExtraParameter } from '../types/AmpTypes';
 export const fetchFeatureCheckResponse = (
   featureName: string,
   extraParameters: ExtraParameter[] = null,
-  successfulAction: string = null
+  successfulAction: string = null,
+  namespace: string = null
 ) => {
   const encodedExtraParameters = extraParameters ? btoa(JSON.stringify(extraParameters)) : null;
   const urlConfig = getAmpUpsellWithParametersUrlConfig(
     featureName,
     encodedExtraParameters,
-    successfulAction
+    successfulAction,
+    namespace
   );
 
   return new Promise(resolve => {

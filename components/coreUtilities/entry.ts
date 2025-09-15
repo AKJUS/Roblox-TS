@@ -23,6 +23,7 @@ import * as deepLink from "@rbx/core-scripts/deep-link";
 import * as entityUrl from "@rbx/core-scripts/entity-url";
 import * as eventStream from "@rbx/core-scripts/event-stream";
 import * as game from "@rbx/core-scripts/game";
+import * as guac from "@rbx/core-scripts/guac";
 import * as hybrid from "@rbx/core-scripts/hybrid";
 import * as localStorageService from "@rbx/core-scripts/local-storage";
 import * as localStorageKeys from "@rbx/core-scripts/local-storage/keys";
@@ -35,6 +36,7 @@ import * as upsell from "@rbx/core-scripts/util/upsell";
 import * as user from "@rbx/core-scripts/util/user";
 import * as CoreUtilities from "@rbx/core-scripts/legacy/core-utilities";
 import * as CoreRobloxUtilities from "@rbx/core-scripts/legacy/core-roblox-utilities";
+import * as directionalNavigation from "./src/directional-navigation";
 
 import heartbeatInit from "./src/pageHeartbeat";
 
@@ -112,6 +114,10 @@ addExternal(["Roblox", "core-scripts", "deepLink"], deepLink);
 addExternal(["Roblox", "core-scripts", "entityUrl"], entityUrl);
 addExternal(["Roblox", "core-scripts", "eventStream"], eventStream);
 addExternal(["Roblox", "core-scripts", "game"], game);
+
+addExternal(["Roblox", "core-scripts", "guac"], guac);
+addLegacyExternal(["Roblox", "Guac"], guac);
+
 addExternal(["Roblox", "core-scripts", "hybrid"], hybrid);
 addExternal(["Roblox", "core-scripts", "localStorage", "localStorage"], localStorageService);
 addExternal(["Roblox", "core-scripts", "localStorage", "keys"], localStorageKeys);
@@ -138,6 +144,7 @@ heartbeatInit().catch(() => {
 
 try {
   CoreRobloxUtilities.initializeGenericChallengeInterceptor();
+  directionalNavigation.initializeGamepadNavigation();
 } catch {
   // do nothing for now
 }

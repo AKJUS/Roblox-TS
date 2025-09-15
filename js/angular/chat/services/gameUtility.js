@@ -7,7 +7,7 @@ function gameUtility($log) {
   return {
     isGameExistedInPlacesLibrary(placesLibrary, universeId) {
       let placeId = null;
-      angular.forEach(placesLibrary, function(place) {
+      angular.forEach(placesLibrary, function (place) {
         if (place.universeId === universeId) {
           placeId = place.placeId;
           return false;

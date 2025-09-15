@@ -18,7 +18,7 @@ function NativeDropdown({
         {...otherProps}
       >
         {placeholder && (
-          <option key={placeholder} value={placeholder} hidden>
+          <option key={placeholder} value={placeholder} disabled>
             {placeholder}
           </option>
         )}

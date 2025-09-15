@@ -27,8 +27,8 @@ export enum UserSetting {
   allowEnableGroupNotifications = 'allowEnableGroupNotifications',
   allowEnableExperienceNotifications = 'allowEnableExperienceNotifications',
   whoCanOneOnOnePartyWithMe = 'whoCanOneOnOnePartyWithMe',
-  whoCanGroupPartyWithMe = 'whoCanGroupPartyWithMe'
-  // TODO: add other settings as needed
+  whoCanGroupPartyWithMe = 'whoCanGroupPartyWithMe',
+  phoneNumberDiscoverabilityV2 = 'phoneNumberDiscoverabilityV2'
 }
 
 export default UserSetting;

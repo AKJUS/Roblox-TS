@@ -5,7 +5,7 @@ import {
   CacheStorePrefix,
 } from "./batchRequestConstants";
 
-class CacheStore {
+export default class CacheStore {
   private store = new Map<string, unknown>();
 
   private useCache: boolean;
@@ -93,5 +93,3 @@ class CacheStore {
     }
   }
 }
-
-export default CacheStore;

@@ -1,5 +1,5 @@
-import { TOmniRecommendationSduiTree } from '../../sdui/system/SduiTypes';
-import { TGameData } from './bedev1Types';
+import { TGameData, TPaginationMethod } from './bedev1Types';
+import { TOmniRecommendationSduiTree, TSduiPageResponseData } from '../../sdui/system/SduiTypes';
 
 export enum TContentType {
   Game = 'Game',
@@ -14,7 +14,13 @@ export enum TTreatmentType {
   FriendCarousel = 'FriendCarousel',
   InterestGrid = 'InterestGrid',
   Pills = 'Pills',
-  Sdui = 'sdui'
+  Sdui = 'sdui',
+  SongCarousel = 'SongCarousel'
+}
+
+export enum TSduiTreatmentType {
+  Carousel = 'Carousel',
+  HeroUnit = 'HeroUnit'
 }
 
 export enum TSortTopic {
@@ -86,6 +92,7 @@ export type TTopicLayoutData = {
   endTimestamp?: string;
   countdownString?: string;
   backgroundImageAssetId?: string;
+  hideTileMetadata?: 'true' | 'false';
 };
 
 type TSharedGameSort = {
@@ -162,7 +169,24 @@ export type TExploreApiFiltersSortResponse = TSharedExploreApiSortResponse & {
   filters: TFiltersData[];
 };
 
-export type TExploreApiSortResponse = TExploreApiGameSortResponse | TExploreApiFiltersSortResponse;
+export type TSongData = {
+  assetId: number;
+  title: string;
+  artist: string;
+  albumArtAssetId: number;
+  isPrivate: boolean;
+  duration: number;
+};
+
+export type TExploreApiSongsSortResponse = TSharedExploreApiSortResponse & {
+  treatmentType: TTreatmentType.SongCarousel;
+  songs: TSongData[];
+};
+
+export type TExploreApiSortResponse =
+  | TExploreApiGameSortResponse
+  | TExploreApiFiltersSortResponse
+  | TExploreApiSongsSortResponse;
 
 export type TExploreApiSortsResponse = {
   sorts: TExploreApiSortResponse[];
@@ -191,7 +215,21 @@ export type TExploreApiFiltersSort = {
   gameSetTargetId?: number;
 };
 
-export type TExploreApiSort = TExploreApiGameSort | TExploreApiFiltersSort;
+export type TExploreApiSongsSort = {
+  topic: string;
+  topicId: number;
+  songs: TSongData[];
+  treatmentType: TTreatmentType.SongCarousel;
+  nextPageToken: string;
+  sortId: string;
+  contentType: string;
+  subtitle?: string;
+  topicLayoutData?: TTopicLayoutData;
+};
+
+export type TSongSort = TExploreApiSongsSort;
+
+export type TExploreApiSort = TExploreApiGameSort | TExploreApiFiltersSort | TExploreApiSongsSort;
 
 export type TExploreApiSorts = {
   sorts: TExploreApiSort[];
@@ -211,7 +249,8 @@ export type TSort =
   | TOmniRecommendationCatalogSort
   | TOmniRecommendationFriendSort
   | TExploreApiFiltersSort
-  | TOmniRecommendationSduiSort;
+  | TOmniRecommendationSduiSort
+  | TSongSort;
 
 export type TGetOmniRecommendationsMetadataResponse = {
   contentMetadata: TOmniRecommendationsContentMetadata;
@@ -227,6 +266,10 @@ export type TGetOmniRecommendationsResponse = {
   sorts: TOmniRecommendationSort[];
   sdui?: TOmniRecommendationSduiTree;
 } & TGetOmniRecommendationsMetadataResponse;
+
+export type TLandingPageResponse = {
+  sdui: TSduiPageResponseData;
+};
 
 export enum TOmniSearchPageType {
   All = 'all'
@@ -268,6 +311,7 @@ export type TOmniSearchContentGroup = {
 export type TGetOmniSearchResponse = {
   searchResults: TOmniSearchContentGroup[];
   filteredSearchQuery: string;
+  paginationMethod?: TPaginationMethod;
   nextPageToken: string;
 };
 
@@ -275,6 +319,7 @@ export type TGetOmniSearchParsedResponse = {
   filteredSearchQuery: string;
   nextPageToken: string;
   gamesList: TOmniSearchGameDataModel[];
+  paginationMethod?: TPaginationMethod;
 };
 
 export type TSurvey = {
@@ -324,8 +369,9 @@ export enum TSurveyIcon {
 }
 
 export type TGuacAppPolicyBehaviorResponse = {
-  shouldShowVpcPlayButtonUpsells: boolean;
   EnableAggregateLikesFavoritesCount: boolean;
+  experienceDetailsNoticeType: string;
+  shouldShowVpcPlayButtonUpsells: boolean;
 };
 
 export type TProfile = {
@@ -335,4 +381,35 @@ export type TProfile = {
 
 export type TGetProfilesResponse = {
   profileDetails: TProfile[];
+};
+
+export type TCanUserManagePlaceRequestBody = {
+  requests: {
+    subject: {
+      subjectType: string;
+      subjectId: string;
+    };
+    action: string;
+    assetId: number;
+  }[];
+};
+
+export type TCanUserManagePlaceResponse = {
+  results: {
+    value: {
+      status: string;
+    };
+  }[];
+};
+
+export type TPrivateServerResponseData = {
+  isAvailable: boolean;
+  price: number;
+  privateServerProductId: number;
+  privateServerLimit: number;
+};
+
+export type TPrivateServerSettingsResponse = {
+  rootPlaceId: number;
+  privateServerData: TPrivateServerResponseData;
 };

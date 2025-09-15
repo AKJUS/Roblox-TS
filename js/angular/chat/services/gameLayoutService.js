@@ -5,11 +5,11 @@ function gameLayout(languageResource) {
 
   const lang = languageResource;
   function getPlaceName(placeName) {
-    return `<span class='font-bold'>${  placeName  }</span>`;
+    return `<span class='font-bold'>${placeName}</span>`;
   }
 
   function getRobuxPrice(robux) {
-    return `<span class='icon-robux-16x16'></span><span class='text-robux'>${  robux  }</span>`;
+    return `<span class='icon-robux-16x16'></span><span class='text-robux'>${robux}</span>`;
   }
   return {
     playButtonTypes: {
@@ -56,11 +56,11 @@ function gameLayout(languageResource) {
       yesButtonClass: 'btn-primary-xs btn-growth-xs',
       noButtonText: lang.get('Action.Cancel'), // "Cancel",
       bodyText(placeName, creatorName, robux) {
-        let placeNameString = getPlaceName(placeName);
-        let robuxString = getRobuxPrice(robux);
+        const placeNameString = getPlaceName(placeName);
+        const robuxString = getRobuxPrice(robux);
         return lang.get('Label.BuyAccessToGameForModal', {
           placeName: placeNameString,
-          creatorName: creatorName,
+          creatorName,
           robux: robuxString
         }); // "Would you like to buy access to the Place: {placeName} from {creatorName} for {robux}?"
       }

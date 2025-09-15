@@ -33,6 +33,11 @@ const getGameDetails = (
 ): AxiosPromise<GamesProvider.RobloxWebWebAPIModelsApiArrayResponseRobloxGamesApiModelsResponseGameDetailResponse> =>
   gamesApiInstance.v1GamesGet(universeIds, { withCredentials: true });
 
+const getGameIcon = (
+  universeId: number,
+): AxiosPromise<GamesProvider.RobloxGamesApiModelsResponseGameIconResponse> =>
+  gamesApiInstance.v1GamesUniverseIdIconGet(universeId, { withCredentials: true });
+
 const getGamePasses = (
   universeId: number,
   sortOrder?: "Asc" | "Desc",
@@ -97,6 +102,7 @@ export default {
   getPlaceDetails,
   getProductInfo,
   getGameDetails,
+  getGameIcon,
   getGamePasses,
   getGamesSorts,
   getGamesList,

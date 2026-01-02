@@ -1,6 +1,3 @@
-// TODO: old, migrated code
-/* eslint-disable no-underscore-dangle */
-
 import showBanner from "../actions/showBanner";
 import hideBanner from "../actions/hideBanner";
 import systemFeedbackUtil from "./systemFeedbackUtil";

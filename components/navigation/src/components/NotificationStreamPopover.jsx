@@ -1,9 +1,9 @@
-import { useRef } from 'react';
-import { Popover } from '@rbx/core-ui/legacy/react-style-guide';
-import { eventStreamService } from '@rbx/core-scripts/legacy/core-roblox-utilities';
-import NotificationStreamIcon from '../containers/NotificationStreamIcon';
-import NotificationStreamBase from '../containers/NotificationStreamBase';
-import events from '../constants/notificationsEventStreamConstants';
+import { useRef } from "react";
+import { Popover } from "@rbx/core-ui/legacy/react-style-guide";
+import { eventStreamService } from "@rbx/core-scripts/legacy/core-roblox-utilities";
+import NotificationStreamIcon from "../containers/NotificationStreamIcon";
+import NotificationStreamBase from "../containers/NotificationStreamBase";
+import events from "../constants/notificationsEventStreamConstants";
 
 function NotificationStreamPopover() {
   const ref = useRef();
@@ -26,11 +26,11 @@ function NotificationStreamPopover() {
         }
         container={ref.current}
         onExit={() => {
-          window.dispatchEvent(new Event('Roblox.NotificationStream.StreamClosed'));
+          window.dispatchEvent(new Event("Roblox.NotificationStream.StreamClosed"));
           eventStreamService.sendEventWithTarget(
             events.onExit.name,
             events.onExit.context,
-            events.onExit.additionalProperties
+            events.onExit.additionalProperties,
           );
         }}
         role="menu"

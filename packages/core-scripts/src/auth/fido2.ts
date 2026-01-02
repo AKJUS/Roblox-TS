@@ -25,7 +25,7 @@ export const convertPublicKeyParametersToStandardBase64 = (options: string) => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     makeOptions.publicKey.user.id = base64UrlStringToBase64String(
       // TODO: old, migrated code
-      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions, @typescript-eslint/no-unsafe-member-access
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion, @typescript-eslint/no-unsafe-member-access
       makeOptions.publicKey.user.id as unknown as string,
     );
   }
@@ -52,7 +52,7 @@ export const convertPublicKeyParametersToStandardBase64 = (options: string) => {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       excludeCredentials.id = base64UrlStringToBase64String(
         // TODO: old, migrated code
-        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions, @typescript-eslint/no-unsafe-member-access
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion, @typescript-eslint/no-unsafe-member-access
         excludeCredentials.id as unknown as string,
       );
     }
@@ -85,14 +85,14 @@ export const formatCredentialAuthenticationResponseApp = (credentialString: stri
   };
   if ("rawId" in credential) {
     // TODO: old, migrated code
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/consistent-type-assertions, @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any
     (publicKeyCredential as any).rawId = base64StringToBase64UrlString(credential.rawId);
   }
   // TODO: old, migrated code
   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
   if ("signature" in credential.response) {
     // TODO: old, migrated code
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/consistent-type-assertions, @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
     (publicKeyCredential as any).response.signature = base64StringToBase64UrlString(
       // TODO: old, migrated code
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
@@ -103,7 +103,7 @@ export const formatCredentialAuthenticationResponseApp = (credentialString: stri
   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
   if ("userHandle" in credential.response) {
     // TODO: old, migrated code
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/consistent-type-assertions, @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
     (publicKeyCredential as any).response.userHandle = base64StringToBase64UrlString(
       // TODO: old, migrated code
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
@@ -174,7 +174,7 @@ export const formatCredentialRequestWeb = (options: string) => {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
   makeAssertionOptions.publicKey.challenge = base64StringToArrayBuffer(
     // TODO: old, migrated code
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions, @typescript-eslint/no-unsafe-member-access
+    // eslint-disable-next-line  @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-type-assertion
     makeAssertionOptions.publicKey.challenge as unknown as string,
   );
 
@@ -197,7 +197,7 @@ export const formatCredentialRequestWeb = (options: string) => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     makeAssertionOptions.publicKey.user.id = base64StringToArrayBuffer(
       // TODO: old, migrated code
-      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions, @typescript-eslint/no-unsafe-member-access
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-type-assertion
       makeAssertionOptions.publicKey.user.id as unknown as string,
     );
   }
@@ -208,7 +208,7 @@ export const formatCredentialRequestWeb = (options: string) => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     for (const excludeCredentials of makeAssertionOptions.publicKey.excludeCredentials) {
       // TODO: old, migrated code
-      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions, @typescript-eslint/no-unsafe-member-access
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-type-assertion
       excludeCredentials.id = base64StringToArrayBuffer(excludeCredentials.id as unknown as string);
     }
   }
@@ -221,7 +221,7 @@ export const formatCredentialAuthenticationResponseWeb = (
   credential: PublicKeyCredential,
 ): string => {
   // TODO: old, migrated code
-  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
   const response = credential.response as AuthenticatorAssertionResponse;
   const { authenticatorData, clientDataJSON, signature, userHandle } = response;
   const { rawId } = credential;
@@ -247,7 +247,7 @@ export const formatCredentialRegistrationResponseWeb = (
   credential: PublicKeyCredential,
 ): string => {
   // TODO: old, migrated code
-  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
   const response = credential.response as AuthenticatorAttestationResponse;
   const { attestationObject, clientDataJSON } = response;
   const { rawId } = credential;

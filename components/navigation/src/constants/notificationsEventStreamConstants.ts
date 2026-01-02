@@ -1,7 +1,7 @@
 export default {
   onExit: {
-    name: 'nsCloseContent',
-    context: 'click',
-    additionalProperties: {}
-  }
+    name: "nsCloseContent",
+    context: "click",
+    additionalProperties: {},
+  },
 };

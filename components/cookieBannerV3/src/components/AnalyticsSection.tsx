@@ -1,13 +1,13 @@
-import * as React from 'react';
-import { TranslateFunction } from '@rbx/core-scripts/legacy/react-utilities';
-import classNames from 'classnames';
-import CookieItem from './CookieItem';
-import consentToolConstants from '../constants/consentToolConstants';
-import urlConstants from '../constants/urlConstants';
+import * as React from "react";
+import classNames from "classnames";
+import { TranslateFunction } from "@rbx/core-scripts/legacy/react-utilities";
+import CookieItem from "./CookieItem";
+import consentToolConstants from "../constants/consentToolConstants";
+import urlConstants from "../constants/urlConstants";
 
 const AnalyticsSection = ({
   translate,
-  isNonEssentialCookieListVisible
+  isNonEssentialCookieListVisible,
 }: {
   translate: TranslateFunction;
   isNonEssentialCookieListVisible: boolean;

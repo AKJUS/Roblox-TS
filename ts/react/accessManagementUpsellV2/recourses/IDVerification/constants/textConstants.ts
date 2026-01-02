@@ -49,7 +49,7 @@ export const getPageStateConstants = (page: VerificationViewState, bodyTextList:
         ...pageState,
         heading: 'Heading.Error',
         icon: 'failure-icon',
-        bodyText: ['Label.GenericError']
+        bodyText: ['Modal.Failed.Text']
       };
       break;
     case VerificationViewState.TEMP_BAN:
@@ -74,9 +74,15 @@ export const getPageStateConstants = (page: VerificationViewState, bodyTextList:
   return pageState;
 };
 
+export const HeadingConstants = {
+  VerifyYourAge: 'Heading.VerifyYourAge',
+  CheckYourAge: 'Heading.CheckYourAge'
+};
+
 export const ActionConstants = {
   RestartSession: 'Action.RestartSession',
-  StartSession: 'Action.StartSession'
+  StartSession: 'Action.StartSession',
+  ContinueInBrowser: 'Action.ContinueInBrowser'
 };
 
 export const LabelConstants = {
@@ -90,5 +96,9 @@ export const LabelConstants = {
   UseSmartphone: 'Label.UseSmartphone',
   SmartphoneRequired: 'Label.SmartphoneRequired',
   ScanQRCode: 'Label.ScanQRCode',
-  PrivacyNoticeAndLink: 'Label.PrivacyNoticeAndLink'
+  PrivacyNoticeAndLink: 'Label.PrivacyNoticeAndLink',
+  FAEModal: 'Label.FAEModal',
+  IDVModal: 'Label.IDVModal',
+  IDVModalDisclaimer: 'Label.IDVModalDisclaimer',
+  FAEModalDisclaimer: 'Label.FAEModalDisclaimer'
 };

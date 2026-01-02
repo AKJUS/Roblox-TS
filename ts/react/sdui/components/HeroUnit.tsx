@@ -45,11 +45,12 @@ type THeroUnitProps = {
 
   foregroundAspectRatio?: number;
 
+  enableBackgroundAnimation?: boolean;
+  enableForegroundAnimation?: boolean;
+
   /**
   TODO https://roblox.atlassian.net/browse/CLIGROW-2197:
   Add additional supported props to match App
-
-  enableBackgroundAnimation?: boolean;
 
   aspectRatio?: number;
   backgroundImageFrameHeight?: number;
@@ -85,6 +86,8 @@ const HeroUnit = ({
   titleImageHeightPercentage,
   minCardHeight,
   foregroundAspectRatio,
+  enableBackgroundAnimation,
+  enableForegroundAnimation,
   children
 }: THeroUnitProps): JSX.Element => {
   const attributionRow = useMemo(() => {
@@ -160,7 +163,9 @@ const HeroUnit = ({
         titleImageAspectRatio={titleImageAspectRatio}
         titleImageHeightPercentage={titleImageHeightPercentage}
         minCardHeight={minCardHeight}
-        foregroundAspectRatio={foregroundAspectRatio}>
+        foregroundAspectRatio={foregroundAspectRatio}
+        enableBackgroundAnimation={enableBackgroundAnimation}
+        enableForegroundAnimation={enableForegroundAnimation}>
         {children}
       </HeroUnitContainer>
     );
@@ -183,7 +188,9 @@ const HeroUnit = ({
     titleImageAspectRatio,
     titleImageHeightPercentage,
     minCardHeight,
-    foregroundAspectRatio
+    foregroundAspectRatio,
+    enableBackgroundAnimation,
+    enableForegroundAnimation
   ]);
 
   return heroUnit;

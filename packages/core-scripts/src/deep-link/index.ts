@@ -39,7 +39,7 @@ const parseDeepLink = (deepLinkString: string): DeepLink => {
   let pathPart = pathRegex.exec(deepLinkString);
   while (pathPart != null) {
     // TODO: old, migrated code
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
     path.push(pathPart[1] as PathPart);
     pathPart = pathRegex.exec(deepLinkString);
   }
@@ -47,8 +47,8 @@ const parseDeepLink = (deepLinkString: string): DeepLink => {
   let paramPart = paramRegex.exec(deepLinkString);
   while (paramPart != null) {
     const [, key, value] = paramPart;
-    // @ts-expect-error Regex has two capture groups
-    params[key] = value;
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    params[key!] = value!;
     paramPart = paramRegex.exec(deepLinkString);
   }
 
@@ -76,7 +76,7 @@ const navigateToDeepLink = (deepLinkUrl: string): Promise<boolean> => {
     window.location.href = deepLinkUrl;
     return Promise.resolve(true);
   }
-  const target: DeepLink = parseDeepLink(deepLinkUrl);
+  const target = parseDeepLink(deepLinkUrl);
   // TODO: old, migrated code
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const path = target.path[0]!;

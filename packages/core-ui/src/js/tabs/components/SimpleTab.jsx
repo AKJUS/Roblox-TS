@@ -2,7 +2,7 @@ import PropTypes from "prop-types";
 import { Route } from "react-router-dom";
 import TabContent from "./TabContent";
 
-function SimpleTab({ path, isActive, className, children, ...routeProps }) {
+function SimpleTab({ path, className, children, ...routeProps }) {
   return (
     <Route
       {...routeProps}
@@ -26,7 +26,7 @@ SimpleTab.defaultProps = {
 
 SimpleTab.propTypes = {
   path: PropTypes.string,
-  isActive: PropTypes.bool,
+  isActive: PropTypes.bool, // TODO: unused / does nothing?
   className: PropTypes.string,
   children: PropTypes.node,
 };

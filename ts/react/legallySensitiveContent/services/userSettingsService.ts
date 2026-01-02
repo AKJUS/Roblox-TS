@@ -1,8 +1,6 @@
 import { httpService } from 'core-utilities';
 import { SettingValue } from '../types/settingTypes';
 import urlConstants from '../constants/urlConstants';
-import { TAuditData } from '../types/legallySensitiveContentTypes';
-import { getEncodedAuditHeader } from '../utils/auditUtils';
 import UserSetting from '../enums/UserSetting';
 
 /**
@@ -11,17 +9,14 @@ import UserSetting from '../enums/UserSetting';
  *
  * @param {UserSetting} settingName - The name of the setting to update
  * @param {SettingValue} settingValue - The new value for the setting
- * @param {string} surface - The surface this setting update is triggered from, i.e which modal, page, etc.
- * @param {string} auditData - audit data to be included in the audit trail
+ * @param {string} auditHeaderValue - The audit header value to be included in the request headers
  * @returns {Promise<any>} A promise that resolves with the response data
  */
 export const updateUserSetting = async (
   settingName: UserSetting,
   settingValue: SettingValue,
-  surface: string,
-  auditData: TAuditData[]
+  auditHeaderValue: string
 ): Promise<any> => {
-  const auditHeaderValue = getEncodedAuditHeader(auditData, surface);
   const urlConfig = {
     ...urlConstants.getUserSettingsUrlConfig(),
     headers: {

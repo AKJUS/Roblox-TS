@@ -99,10 +99,13 @@ export const getPlaceDetails = async (placeId: string): Promise<TGetPlaceDetails
   return data[0];
 };
 
-export const getGameDetails = async (universeId: string): Promise<TGetGameDetails> => {
+export const getGameDetails = async (
+  universeId: string,
+  languageCode?: string
+): Promise<TGetGameDetails> => {
   const {
     data: { data }
-  } = (await gamesDataStore.getGameDetails([universeId])) as AxiosResponse<{
+  } = (await gamesDataStore.getGameDetails([universeId], languageCode)) as AxiosResponse<{
     data: TGetGameDetails[];
   }>;
   return data[0];

@@ -13,23 +13,28 @@ type TWideGameThumbnailProps = {
   gameData: TGameData;
   topicId: string | undefined;
   wideTileType: TComponentType;
+  sizeOverride?: ThumbnailGameThumbnailSize;
 };
 
 const WideGameThumbnail = ({
   gameData,
   topicId,
-  wideTileType
+  wideTileType,
+  sizeOverride
 }: TWideGameThumbnailProps): JSX.Element => {
   const thumbnailAssetId: number | null = useMemo(() => {
     return getThumbnailOverrideAssetId(gameData, topicId);
   }, [gameData, topicId]);
 
   const thumbnailSize: string = useMemo(() => {
+    if (sizeOverride) {
+      return sizeOverride;
+    }
     if (wideTileType === TComponentType.EventTile) {
       return ThumbnailGameThumbnailSize.width576;
     }
     return ThumbnailGameThumbnailSize.width384;
-  }, [wideTileType]);
+  }, [sizeOverride, wideTileType]);
 
   if (thumbnailAssetId !== null) {
     return (

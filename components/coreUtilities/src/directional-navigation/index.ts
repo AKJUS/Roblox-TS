@@ -1,5 +1,7 @@
+import { addLegacyExternal } from "@rbx/externals";
 import { setupOverlay } from "./overlay";
 import { setupGamepadNavigation } from "./setupGamepadNavigation";
+import { setupKeyboardNavigation } from "./setupKeyboardNavigation";
 
 function isEligible(): boolean {
   const userAgent = window.navigator.userAgent.toUpperCase();
@@ -22,3 +24,12 @@ export function initializeGamepadNavigation(): void {
   setupOverlay();
   setupGamepadNavigation();
 }
+
+function initializeKeyboardNavigation(): void {
+  setupOverlay();
+  setupKeyboardNavigation();
+}
+
+addLegacyExternal(["Roblox", "DirectionalNavigation"], {
+  initializeKeyboardNavigation,
+});

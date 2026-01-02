@@ -31,6 +31,7 @@ const GameTilePillsContainer: React.FC<GameTilePillsContainerProps> = ({ pills, 
                   animationClass={pill.animationClass}
                   icons={pill.icons}
                   text={pill.text}
+                  componentType={pill.componentType}
                   isFocused={isFocused}
                 />
               ))}

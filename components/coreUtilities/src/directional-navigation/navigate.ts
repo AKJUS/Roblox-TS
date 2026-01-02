@@ -141,7 +141,6 @@ export function findNextFocusableElement(
     );
 
     if (geometricScore === Infinity) {
-      // eslint-disable-next-line no-continue
       continue;
     }
 
@@ -149,7 +148,6 @@ export function findNextFocusableElement(
 
     // If hierarchicalDistance is Infinity, this candidate is problematic (e.g., not in main DOM)
     if (hierarchicalDistance === Infinity) {
-      // eslint-disable-next-line no-continue
       continue;
     }
 
@@ -170,7 +168,8 @@ export function findNextFocusableElement(
 export function navigate(direction: Direction): boolean {
   try {
     const elementBeforeNavigation =
-      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+      // TODO: FIXME
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
       getCurrentOverlayedElement() ?? (document.activeElement as HTMLElement | null);
 
     // Check for focus trap boundary violations

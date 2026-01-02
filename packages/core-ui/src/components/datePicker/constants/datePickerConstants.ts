@@ -22,7 +22,7 @@ export const pluginMap: Record<PluginType, Plugin> = {
     shorthand: true,
   }),
   // TODO: old, migrated code
-  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
   [PluginType.WeekSelect]: weekSelectPlugin() as Plugin,
 };
 

@@ -12,7 +12,8 @@ export const CommonGameSorts = {
   LabelApiError: 'Label.ApiError',
   LabelGames: 'Label.Games',
   LabelSponsoredAdsDisclosureStatic: 'Label.SponsoredAdsDisclosureStatic',
-  LabelContentLoadFailed: 'Label.ContentLoadFailed'
+  LabelContentLoadFailed: 'Label.ContentLoadFailed',
+  LabelPeopleAlsoJoin: 'Label.BlendedSerpPeopleAlsoJoin'
 };
 
 export const CommonUIFeatures = {
@@ -21,6 +22,10 @@ export const CommonUIFeatures = {
   ActionClose: 'Action.Close',
   ActionDropdownSelected: 'Action.DropdownSelected',
   ActionDropdownNotSelected: 'Action.DropdownNotSelected'
+};
+
+export const CommonUIControls = {
+  ActionSubmit: 'Action.Submit'
 };
 
 export const SearchGlobalSearch = {
@@ -37,7 +42,10 @@ export const FeaturePlacesList = {
   ActionInterestCatcherContinue: 'Action.InterestCatcherContinue',
   ActionInterestCatcherContinueSelected: 'Action.InterestCatcherContinueSelected',
   ActionInterestCatcherSkip: 'Action.InterestCatcherSkip',
-  ActionInterestCatcherInterested: 'Action.InterestCatcherInterested'
+  ActionInterestCatcherInterested: 'Action.InterestCatcherInterested',
+  ActionOpenTileMenu: 'Action.OpenTileMenu',
+  LabelTileMenu: 'Label.TileMenu',
+  NetworkError: 'NetworkError'
 };
 
 export const FeatureGameDetails = {
@@ -77,7 +85,29 @@ export const FeatureGameDetails = {
   HeadingRefund: 'Heading.Refund',
   ActionRequestRefund: 'Action.RequestRefund',
   HeadingNotice: 'Body.NotesTitle',
-  InExperiencePurchase: 'Notes.InExperiencePurchase'
+  InExperiencePurchase: 'Notes.InExperiencePurchase',
+  ActionNotInterested: 'Action.NotInterested',
+  ActionReportAd: 'Action.ReportAd',
+  ActionUndo: 'Action.Undo',
+  ActionGiveFeedback: 'Action.GiveFeedback',
+  MessageSuggestLessOften: 'Message.SuggestLessOften',
+  MessageHelpImproveExperience: 'Message.HelpImproveExperience',
+  MessageHidingExperienceQuestion: 'Message.HidingExperienceQuestion',
+  LabelProvideFeedbackTitle: 'Label.ProvideFeedbackTitle',
+  LabelTooRepetitive: 'Label.TooRepetitive',
+  LabelDontLikeGame: 'Label.DontLikeGame',
+  LabelDontLikeImage: 'Label.DontLikeImage',
+  LabelInappropriateContent: 'Label.InappropriateContent',
+  LabelSomethingElse: 'Label.SomethingElse',
+  LabelTellUsMorePlaceholder: 'Label.TellUsMorePlaceholder',
+  ActionWhyThisAd: 'Action.WhyThisAd',
+  LabelWhyThisAd: 'Label.WhyThisAd',
+  MessageAdPreferences: 'Message.AdPreferences',
+  MessageSponsoredDisclosureError: 'Message.SponsoredDisclosure.Error',
+  MessageSponsoredDisclosureO18NonPersonalized:
+    'Message.SponsoredDisclosure.O18NonPersonalizedNoLink',
+  MessageSponsoredDisclosureO18Personalized: 'Message.SponsoredDisclosure.O18PersonalizedNoLink',
+  MessageSponsoredDisclosureU18: 'Message.SponsoredDisclosure.U18'
 };
 
 export const FeatureCommunityLinks = {
@@ -135,6 +165,7 @@ export const PlayerFeedbacksVoteForm = {
 export default {
   CommonGameSorts,
   CommonUIFeatures,
+  CommonUIControls,
   FeatureGameDetails,
   FeatureGamePage,
   FeatureGamePass,

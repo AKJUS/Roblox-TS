@@ -1,6 +1,6 @@
 export default {
   purchasingResources: {
-    common: [],
+    common: ['IAPExperience.PurchaseError', 'Feature.NotApproved'],
     feature: 'Purchasing.PurchaseDialog'
   },
   itemResources: {

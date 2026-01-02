@@ -15,12 +15,14 @@ import {
   setStage,
   fetchFeatureAccess,
   setAmpFeatureCheckData,
-  setPrologueUsed
+  setPrologueUsed,
+  setNamespace
 } from './accessManagementSlice';
 import { useAppDispatch } from '../store';
 import { ModalEvent, AccessManagementUpsellEventParams } from './constants/viewConstants';
 import EmailVerificationContainer from '../recourses/emailVerification/EmailVerificationContainer';
 import IDVerificationContainer from '../recourses/IDVerification/IDVerificationContainer';
+import FAEContainer from '../recourses/IDVerification/FAEContainer';
 import { Access, UpsellStage, Recourse } from '../enums';
 import Epilogue from './components/Epilogue';
 import ParentalRequestContainer from '../recourses/parentalRequest/ParentalRequestContainer';
@@ -47,10 +49,11 @@ function AccessManagementContainer({
   const [onHidecallback, setOnHideCallback] = useState<(access: Access) => string>(
     (access: Access) => access
   );
-  const [recourseParameters, setRecourseParameters] = useState<Record<string, string> | null>({});
+  const [recourseParameters, setRecourseParameters] = useState<Record<string, string> | null>({}); // Parameters passed by the caller of the AMP Upsell
   const [featureSpecificParams, setFeatureSpecificParams] = useState<TFeatureSpecificData | null>();
 
   const [asyncExit, setAsyncExit] = useState<boolean>(false);
+  const [shouldSetStagePrologue, setshouldSetStagePrologue] = useState<boolean>(false);
 
   const expChildModalType =
     (useExperiments(vpcUpsellExperimentLayer).expNewChildModal as ExpNewChildModal) ??
@@ -84,6 +87,9 @@ function AccessManagementContainer({
     if (ampFeatureCheckData) {
       dispatch(setAmpFeatureCheckData(ampFeatureCheckData));
     }
+    if (namespace) {
+      dispatch(setNamespace(namespace));
+    }
     if (ampRecourseData) {
       setRecourseParameters(ampRecourseData);
     }
@@ -101,7 +107,7 @@ function AccessManagementContainer({
     const usePrologue = prologueAllowed && experimentVersionIncludesPrologue;
     if (usePrologue) {
       dispatch(setPrologueUsed(true));
-      dispatch(setStage(UpsellStage.Prologue));
+      setshouldSetStagePrologue(true);
     } else {
       dispatch(setStage(UpsellStage.Verification));
     }
@@ -117,10 +123,34 @@ function AccessManagementContainer({
 
   useEffect(() => {
     const noopAccessState = [Access.Granted, Access.Denied];
+    if (featureAccess?.loading) {
+      return;
+    }
     if (featureAccess?.data?.access && noopAccessState.includes(featureAccess.data.access)) {
+      if (featureAccess?.data?.featureName !== 'CanCorrectAge') {
+        onHidecallback(featureAccess.data.access);
+      }
+    }
+
+    if (featureAccess?.data?.recourses?.length > 0 && shouldSetStagePrologue) {
+      dispatch(setStage(UpsellStage.Prologue));
+    }
+
+    if (
+      featureAccess?.data?.featureName === 'CanCorrectAge' &&
+      featureAccess.data.access === Access.Denied &&
+      (featureAccess?.data?.recourses === null || featureAccess?.data?.recourses?.length === 0)
+    ) {
+      // if child is not eligible for birthdate update due to VPC confirmed birthdate cap, dispatch to set upstage to epilogue
+      dispatch(setStage(UpsellStage.Epilogue));
+    } else if (
+      featureAccess?.data?.featureName === 'CanCorrectAge' &&
+      featureAccess?.data?.access === Access.Granted
+    ) {
+      // if child can correct birthdate, close the modal right away
       onHidecallback(featureAccess.data.access);
     }
-  }, [featureAccess]);
+  }, [featureAccess, shouldSetStagePrologue]);
 
   // Loop call FeatureCheck to check new access status
   function onHide() {
@@ -143,9 +173,10 @@ function AccessManagementContainer({
           return <EmailVerificationContainer translate={translate} onHide={onHide} />;
         case Recourse.AgeEstimation:
           return (
-            <IDVerificationContainer
+            <FAEContainer
               translate={translate}
               onHidecallback={onHideFunction}
+              featureSpecificParams={featureSpecificParams}
               ageEstimation
             />
           );
@@ -167,6 +198,7 @@ function AccessManagementContainer({
               value={recourseParameters}
               expChildModalType={expChildModalType}
               isPrologueUsed={isPrologueUsed}
+              source={featureSpecificParams?.source}
             />
           );
         }
@@ -209,6 +241,7 @@ function AccessManagementContainer({
               onHide={onHideFunction}
               recourseParameters={recourseParameters}
               expChildModalType={expChildModalType}
+              featureSpecificParams={featureSpecificParams}
             />
           );
         }
@@ -219,7 +252,7 @@ function AccessManagementContainer({
         }
         break;
       case UpsellStage.Epilogue:
-        displayContainer = <Epilogue translate={translate} />;
+        displayContainer = <Epilogue translate={translate} onHide={onHideFunction} />;
         break;
       default:
         displayContainer = <LoadingPage />;

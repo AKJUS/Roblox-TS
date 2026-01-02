@@ -1,9 +1,9 @@
-import ClassNames from 'classnames';
-import PropTypes from 'prop-types';
+import ClassNames from "classnames";
+import PropTypes from "prop-types";
 
 function SettingsIcon({ accountNotificationCount }) {
-  const notificationClasses = ClassNames('notification-red notification nav-setting-highlight', {
-    hidden: accountNotificationCount === 0
+  const notificationClasses = ClassNames("notification-red notification nav-setting-highlight", {
+    hidden: accountNotificationCount === 0,
   });
   return (
     <span id="settings-icon" className="nav-settings-icon rbx-menu-item">
@@ -14,9 +14,9 @@ function SettingsIcon({ accountNotificationCount }) {
 }
 
 SettingsIcon.defaultProps = {
-  accountNotificationCount: 0
+  accountNotificationCount: 0,
 };
 SettingsIcon.propTypes = {
-  accountNotificationCount: PropTypes.number
+  accountNotificationCount: PropTypes.number,
 };
 export default SettingsIcon;

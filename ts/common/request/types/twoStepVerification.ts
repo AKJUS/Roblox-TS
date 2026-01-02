@@ -47,6 +47,8 @@ export type Fido2Credential = {
   nickname: string;
 };
 
+export const TwoStepCopyEnrollmentStateCensored = 1;
+
 export type GetMetadataReturnType = {
   authenticatorHelpSiteAddress: string;
   twoStepVerificationEnabled: boolean;
@@ -63,6 +65,10 @@ export type GetMetadataReturnType = {
   isSecurityKeyTwoStepVerificationAvailable: boolean;
   isAndroidSecurityKeyEnabled: boolean;
   isSettingsTabRedesignEnabled: boolean;
+  isEppUIEnabled: boolean;
+  twoStepCopyTextEnrollmentStatus: number;
+  isUserU13: boolean;
+  maskedUserEmail: string;
 };
 
 /**

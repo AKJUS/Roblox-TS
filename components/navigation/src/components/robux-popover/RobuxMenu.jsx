@@ -1,14 +1,13 @@
-/* eslint-disable jsx-a11y/anchor-is-valid */
-import { useEffect, useState, Fragment } from 'react';
-import PropTypes from 'prop-types';
-import { numberFormat } from '@rbx/core-scripts/legacy/core-utilities';
-import { paymentFlowAnalyticsService } from '@rbx/core-scripts/legacy/core-roblox-utilities';
-import { Link } from '@rbx/core-ui/legacy/react-style-guide';
-import links from '../../constants/linkConstants';
-import layoutConstant from '../../constants/layoutConstants';
-import navigationService from '../../services/navigationService';
-import RobuxBadgeType from '../../constants/robuxBadgeConstants';
-import { mapRobuxBadgeTypeToStr, setRobuxBadgeLocalStorage } from '../../util/robuxBadgeUtil';
+import { useEffect, useState, Fragment } from "react";
+import PropTypes from "prop-types";
+import { numberFormat } from "@rbx/core-scripts/legacy/core-utilities";
+import { paymentFlowAnalyticsService } from "@rbx/core-scripts/legacy/core-roblox-utilities";
+import { Link } from "@rbx/core-ui/legacy/react-style-guide";
+import links from "../../constants/linkConstants";
+import layoutConstant from "../../constants/layoutConstants";
+import navigationService from "../../services/navigationService";
+import RobuxBadgeType from "../../constants/robuxBadgeConstants";
+import { mapRobuxBadgeTypeToStr, setRobuxBadgeLocalStorage } from "../../util/robuxBadgeUtil";
 
 const { buyRobuxUrl, redeemUrl, buyGiftCardUrl } = links;
 
@@ -25,7 +24,7 @@ function RobuxMenu({
   onBuyGiftCardClick,
   onBuyRobuxExternalClick,
   robuxBadgeType,
-  translate
+  translate,
 }) {
   const [isWalletDisplayed, setIsWalletDisplayed] = useState(true);
   const [isBuyGiftCardDisplayed, setIsBuyGiftCardDisplayed] = useState(false);
@@ -40,7 +39,7 @@ function RobuxMenu({
       false,
       paymentFlowAnalyticsService.ENUM_VIEW_NAME.NAVIGATION_DROPDOWN_MENU,
       paymentFlowAnalyticsService.ENUM_PURCHASE_EVENT_TYPE.USER_INPUT,
-      viewMessage
+      viewMessage,
     );
   };
 
@@ -66,11 +65,11 @@ function RobuxMenu({
   useEffect(() => {
     // Render PriceTag component
     window.dispatchEvent(
-      new CustomEvent('price-tag:render', {
+      new CustomEvent("price-tag:render", {
         detail: {
-          targetSelector: '.dropdown-credit-balance'
-        }
-      })
+          targetSelector: ".dropdown-credit-balance",
+        },
+      }),
     );
   }, [creditDisplayConfig]);
 
@@ -87,7 +86,7 @@ function RobuxMenu({
 
   return (
     <Fragment>
-      <div className={isWalletDisplayed ? '' : 'wallet-hidden'}>
+      <div className={isWalletDisplayed ? "" : "wallet-hidden"}>
         <li className="dropdown-wallet">
           <Link className="dropdown-wallet-section">
             <span className="icon-robux-28x28" id="nav-robux" />
@@ -141,7 +140,7 @@ function RobuxMenu({
       {isBuyGiftCardDisplayed && (
         <li>
           <button type="button" className="rbx-menu-item" onClick={onBuyGiftCardClick}>
-            {translate(buyGiftCardUrl.label) || 'Buy Gift Card'}
+            {translate(buyGiftCardUrl.label) || "Buy Gift Card"}
           </button>
         </li>
       )}
@@ -164,11 +163,11 @@ function RobuxMenu({
 RobuxMenu.defaultProps = {
   isEligibleForVng: false,
   robuxAmount: 0,
-  robuxError: '',
+  robuxError: "",
   creditAmount: 0,
-  currencyCode: '',
-  creditError: '',
-  robuxBadgeType: null
+  currencyCode: "",
+  creditError: "",
+  robuxBadgeType: null,
 };
 
 RobuxMenu.propTypes = {
@@ -182,7 +181,7 @@ RobuxMenu.propTypes = {
   robuxBadgeType: PropTypes.oneOf(Object.values(RobuxBadgeType)),
   creditDisplayConfig: PropTypes.string.isRequired,
   onBuyGiftCardClick: PropTypes.func.isRequired,
-  onBuyRobuxExternalClick: PropTypes.func.isRequired
+  onBuyRobuxExternalClick: PropTypes.func.isRequired,
 };
 
 export default RobuxMenu;

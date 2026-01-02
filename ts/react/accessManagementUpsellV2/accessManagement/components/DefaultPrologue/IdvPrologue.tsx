@@ -3,7 +3,7 @@ import { TranslateFunction } from 'react-utilities';
 import { IModalService } from 'react-style-guide';
 import { useSelector } from 'react-redux';
 import useModal from '../../../hooks/useModal';
-import { UpsellStage } from '../../../enums';
+import { Recourse, UpsellStage } from '../../../enums';
 import {
   setVerificationStageRecourse,
   selectFeatureName,
@@ -17,7 +17,6 @@ import {
   getPrologueTranslatedTitle
 } from '../../constants/prologueSettings';
 import {
-  EventConstants,
   sendInitialUpsellPageLoadEvent,
   sendVerifyCancelClickEvent,
   sendVerifyIdClickEvent
@@ -37,13 +36,11 @@ const IdvPrologue = ({
   const recourseResponses = featureAccess.data.recourses;
 
   const defaultBodyText = PrologueConstants.Description.Idv;
-  const connectingBodyText = PrologueConstants.Description.IdvConnectingText;
-
   const translatedBodyText = getPrologueTranslatedBodyText(
     featureName,
     defaultBodyText,
-    connectingBodyText,
-    translate
+    translate,
+    [Recourse.GovernmentId]
   );
 
   const changeAgeBody = (
@@ -81,7 +78,6 @@ const IdvPrologue = ({
     }
   });
 
-  // Trigger the opening of the error modal in response to a user action or effect
   useEffect(() => {
     requireIdvModalService.open();
     sendInitialUpsellPageLoadEvent(featureName, 'Idv');

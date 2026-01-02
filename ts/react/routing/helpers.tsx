@@ -24,10 +24,13 @@ let referralUrl: string;
 let currentPath: string;
 let currentComponent: string;
 let transitionStartTimestamp: number;
+let initialLoadTimestamp: number;
 let numTransitions = 0;
 
 function shouldRefresh() {
-  return numTransitions > 50;
+  return (
+    numTransitions > 50 || Date.now() - initialLoadTimestamp > constants.RefreshTimeInMilliseconds
+  );
 }
 
 function getCleanPath(path: string) {
@@ -130,16 +133,6 @@ function sendPageEvent(status: string, error?: Error) {
 function catchTransitionError(error: any) {
   const errorObject = error instanceof Error ? error : new Error(String(error));
   sendPageEvent(PageTransitionStatus.Failure, errorObject);
-}
-
-async function getAllWebAppData() {
-  const rawData = await fetch(Endpoints.getAbsoluteUrl(`/webapps/list`), {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json'
-    }
-  });
-  componentToData = new Map(Object.entries(await rawData.json()));
 }
 
 function loadScript(oldScript: HTMLScriptElement) {
@@ -286,6 +279,10 @@ const pageNameMap = {
 const pageRegexMap = { '/catalog': 'CatalogItem', '/bundles': 'BundleDetail' };
 
 function getComponentForPath(path: string): string | null {
+  if (path.startsWith('/charts')) {
+    // eslint-disable-next-line no-param-reassign
+    path = '/charts';
+  }
   const component = pathToComponents.get(path);
   if (component) {
     if (path in pageNameMap) {
@@ -320,17 +317,21 @@ function interceptNavigationsOnClick(event: MouseEvent) {
     }
 
     const url = new URL(tag.href);
+    const path = getCleanPath(url.pathname);
     // only intercept when the href is exactly ending with the pathname, i.e. no query params or hashes
     if (
       url.origin !== window.location.origin ||
       (!url.href.endsWith(url.pathname) &&
-        !(tag.closest('#header') !== null && getCleanPath(url.pathname) === '/catalog')) // exception for catalog in navigation header
+        !(tag.closest('#header') !== null && path === '/catalog') && // exception for catalog in navigation header
+        !(
+          currentPath === '/home' && // exception for sortName v2 from home page
+          path.startsWith('/charts/v2')
+        ))
     ) {
       return;
     }
     referralUrl = window.location.href;
     window.dispatchEvent(new Event('setSearchMenuClose'));
-    const path = getCleanPath(url.pathname);
     component = getComponentForPath(path);
     if (!component) {
       return;
@@ -360,10 +361,6 @@ function popstateListener(event: PopStateEvent) {
     }
 
     if (currentPath === path) {
-      // specific case for charts, since it is using hash router which doesn't like to maintain the state
-      if (path === '/charts') {
-        window.history.replaceState({ referrer: referralUrl }, '');
-      }
       return;
     }
     if (shouldRefresh()) {
@@ -426,8 +423,7 @@ function setupInitialLoadReady() {
   window.addEventListener('popstate', popstateListener);
   window.addEventListener('externalNavigation', externalNavigationListener);
 
-  // set up a timer to refresh all webapp data every 5 minutes
-  setInterval(getAllWebAppData, constants.FiveMinutesInMilis);
+  initialLoadTimestamp = Date.now();
 }
 
 function reset() {
@@ -436,4 +432,4 @@ function reset() {
   window.removeEventListener('externalNavigation', externalNavigationListener);
 }
 
-export { setupInitialLoadReady, getAllWebAppData, reset };
+export { setupInitialLoadReady, reset };

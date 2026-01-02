@@ -1,15 +1,15 @@
-import { uuidService } from '@rbx/core-scripts/legacy/core-utilities';
-import { eventStreamService } from '@rbx/core-scripts/legacy/core-roblox-utilities';
+import { uuidService } from "@rbx/core-scripts/legacy/core-utilities";
+import { eventStreamService } from "@rbx/core-scripts/legacy/core-roblox-utilities";
 
 const { eventTypes } = eventStreamService;
-const searchAutocompleteContext = 'searchAutocomplete';
-const searchLandingPageContext = 'searchLandingPage';
-const actionTypes = { open: 'open', submit: 'submit', close: 'close', cancel: 'cancel' };
+const searchAutocompleteContext = "searchAutocomplete";
+const searchLandingPageContext = "searchLandingPage";
+const actionTypes = { open: "open", submit: "submit", close: "close", cancel: "cancel" };
 const { generateRandomUuid: generateSessionInfo } = uuidService;
 
 const contexts = {
   searchAutocomplete: searchAutocompleteContext,
-  searchLandingPage: searchLandingPageContext
+  searchLandingPage: searchLandingPageContext,
 };
 
 const eventStreamCriterias = {
@@ -18,29 +18,29 @@ const eventStreamCriterias = {
   generateSessionInfo,
   searchTextTrim: (kwd, resultingKwd, searchType, sessionInfo) => [
     {
-      name: 'searchTextTrim',
+      name: "searchTextTrim",
       type: eventTypes.formInteraction,
-      context: searchAutocompleteContext
+      context: searchAutocompleteContext,
     },
     {
       kwd,
       resultingKwd,
       searchType,
-      sessionInfo
-    }
+      sessionInfo,
+    },
   ],
   searchClear: (kwd, searchType, sessionInfo, page) => [
     {
-      name: 'searchClear',
+      name: "searchClear",
       type: eventTypes.formInteraction,
-      context: searchAutocompleteContext
+      context: searchAutocompleteContext,
     },
     {
       kwd,
       searchType,
       sessionInfo,
-      page
-    }
+      page,
+    },
   ],
   searchSuggestionClicked: (
     kwd,
@@ -49,12 +49,12 @@ const eventStreamCriterias = {
     suggestionClicked,
     suggestionType,
     suggestions,
-    sessionInfo
+    sessionInfo,
   ) => [
     {
-      name: 'searchSuggestionClicked',
+      name: "searchSuggestionClicked",
       type: eventTypes.formInteraction,
-      context: searchAutocompleteContext
+      context: searchAutocompleteContext,
     },
     {
       kwd,
@@ -63,8 +63,8 @@ const eventStreamCriterias = {
       suggestionClicked,
       suggestionType,
       suggestions,
-      sessionInfo
-    }
+      sessionInfo,
+    },
   ],
   searchAutocomplete: (
     kwd,
@@ -76,12 +76,12 @@ const eventStreamCriterias = {
     timeoutDelayMs,
     sessionInfo,
     page,
-    isPersonalizedBasedOnPreviousQuery
+    isPersonalizedBasedOnPreviousQuery,
   ) => [
     {
-      name: 'searchAutocomplete',
+      name: "searchAutocomplete",
       type: eventTypes.formInteraction,
-      context: searchAutocompleteContext
+      context: searchAutocompleteContext,
     },
     {
       kwd,
@@ -93,33 +93,33 @@ const eventStreamCriterias = {
       timeoutDelayMs,
       sessionInfo,
       page,
-      isPersonalizedBasedOnPreviousQuery
-    }
+      isPersonalizedBasedOnPreviousQuery,
+    },
   ],
   search: (kwd, context, actionType, autocompleteSessionInfo, searchLandingPageSessionInfo) => [
     {
-      name: 'search',
+      name: "search",
       type: eventTypes.formInteraction,
-      context
+      context,
     },
     {
       kwd,
       actionType,
       sessionInfo: autocompleteSessionInfo,
-      searchLandingPageSessionInfo
-    }
+      searchLandingPageSessionInfo,
+    },
   ],
   catalogSearch: (autocompleteFlag, previousPage) => [
     {
-      name: 'catalogSearch',
+      name: "catalogSearch",
       type: eventTypes.formInteraction,
-      context: searchAutocompleteContext
+      context: searchAutocompleteContext,
     },
     {
       autocompleteFlag,
-      previousPage
-    }
-  ]
+      previousPage,
+    },
+  ],
 };
 
 export { eventStreamCriterias as default };

@@ -13,7 +13,23 @@ const UpsellCardType = {
     'ContactMethodPhoneNumberEmailHorizontalLayoutAltContent1',
   ContactMethodPhoneNumberEmailVerticalLayout: 'ContactMethodPhoneNumberEmailVerticalLayout',
   FacebookSunset: 'FacebookSunset',
-  ContactMethodMandatoryEmailPhone: 'ContactMethodMandatoryEmailPhone'
+  ContactMethodMandatoryEmailPhone: 'ContactMethodMandatoryEmailPhone',
+  AgeVerificationModal: 'Fae'
+};
+
+const UpsellCardBadgeType = {
+  Countdown: 'Countdown'
+};
+
+const UpsellCardActionType = {
+  OpenFAEUpsell: 'OpenFaeUpsell',
+  OpenFAEViewDetails: 'OpenFaeViewDetails',
+  Dismiss: 'Dismiss'
+};
+
+const UpsellCardComponentType = {
+  HomePageUpsellCard: 'HomePageUpsellCard',
+  UpsellBanner: 'UpsellBanner'
 };
 
 const UpsellCardTitle = {
@@ -85,14 +101,13 @@ const getUpsellCardButtonGroup = (cardType, requireExplicitVoiceConsent) => {
           text: 'Action.AddPhone',
           onClick: props =>
             UpsellService?.renderPhoneUpsell({
-              addPhoneAlwaysShowLegalText: true,
               addPhoneRequireLegalTextCheckbox: requireExplicitVoiceConsent,
               addPhoneHeadingKey: 'Action.AddPhoneVoice',
-              addPhoneDescriptionKey: 'Description.AddPhoneBodyVoice',
-              addPhoneButtonKey: 'Action.EnableVoice',
+              addPhoneDescriptionKey: 'Description.AddPhoneNumber',
+              addPhoneButtonKey: 'Action.Verify',
               addPhoneLegalTextKey: requireExplicitVoiceConsent
                 ? 'Description.VoiceLegalConsent'
-                : 'Description.VoiceLegalDisclaimer',
+                : 'Description.VoiceLegalDisclaimer3',
               beforeSuccess: async () => {
                 try {
                   const success = (await optUserInToVoiceChat(true, false))?.isUserOptIn;
@@ -175,11 +190,14 @@ const UpsellCardImageClass = {
 
 export {
   UpsellCardType,
+  UpsellCardBadgeType,
   UpsellCardContent,
   UpsellCardTitle,
   UpsellCardEventContext,
   UpsellCardEventSection,
   UpsellCardButtonOrientations,
   getUpsellCardButtonGroup,
-  UpsellCardImageClass
+  UpsellCardImageClass,
+  UpsellCardActionType,
+  UpsellCardComponentType
 };

@@ -1,18 +1,24 @@
-import ready from '@rbx/core-scripts/util/ready';
-import { renderWithErrorBoundary } from '@rbx/core-scripts/react';
-import { infoTabHash, accountSettingsPathname } from './src/constants/footerConstants';
-import App from './src/App';
-import AccountSettingsLanguageSelector from './src/components/AccountSettingsLanguageSelector';
+import { QueryClientProvider } from "@tanstack/react-query";
+import ready from "@rbx/core-scripts/util/ready";
+import { queryClient, renderWithErrorBoundary } from "@rbx/core-scripts/react";
+import { infoTabHash, accountSettingsPathname } from "./src/constants/footerConstants";
+import App from "./src/App";
+import AccountSettingsLanguageSelector from "./src/components/AccountSettingsLanguageSelector";
+import "./src/css/footer.scss";
+import "./src/main.css";
 
-import './src/css/footer.scss';
-
-const rootElementId = 'footer-container';
-const accountSettingsLanguageSelectorId = 'account-settings-language-selector';
+const rootElementId = "footer-container";
+const accountSettingsLanguageSelectorId = "account-settings-language-selector";
 
 ready(() => {
   const rootElement = document.getElementById(rootElementId);
   if (rootElement) {
-    renderWithErrorBoundary(<App />, rootElement);
+    const appWithProviders = (
+      <QueryClientProvider client={queryClient}>
+        <App />
+      </QueryClientProvider>
+    );
+    renderWithErrorBoundary(appWithProviders, rootElement);
   }
 
   /* add langauge selector on account settings, if mount node is available
@@ -41,7 +47,7 @@ ready(() => {
     window.onhashchange = () => {
       if (window.location.hash === infoTabHash) {
         const newAccountSettingsMountNode = document.getElementById(
-          accountSettingsLanguageSelectorId
+          accountSettingsLanguageSelectorId,
         );
         if (newAccountSettingsMountNode) {
           renderWithErrorBoundary(<AccountSettingsLanguageSelector />, newAccountSettingsMountNode);

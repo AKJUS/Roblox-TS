@@ -1,7 +1,8 @@
+import * as queryString from "query-string";
+import { ParsedQuery } from "query-string";
+import normalizeUrl from "normalize-url";
 import { Brand } from "@rbx/core-types";
 import environmentUrls from "@rbx/environment-urls";
-import queryString, { ParsedQuery } from "query-string";
-import normalizeUrl from "normalize-url";
 import * as endpoints from "../../endpoints";
 
 export const parseUrlAndQueryString = queryString.parseUrl;
@@ -24,6 +25,11 @@ export const getGameDetailReferralUrls = (queryParams: Record<string, unknown>):
 
 export const getUrlWithQueries = (path: string, queryParams: Record<string, unknown>): string =>
   getAbsoluteUrl(`${path}?${composeQueryString(queryParams)}`);
+
+export const getRelativeUrlWithQueries = (
+  path: string,
+  queryParams: Record<string, unknown>,
+): string => `${path}?${composeQueryString(queryParams)}`;
 
 export const getUrlWithLocale = (path: string, locale: string): string => {
   if (locale) {
@@ -114,6 +120,7 @@ export const getHelpDeskUrl = (
 };
 
 export type ValidHttpUrl = Brand<string, "ValidUrl">;
+export type TValidHttpUrl = ValidHttpUrl;
 export type ValidStripeCheckoutUrl = Brand<string, "ValidStripeCheckoutUrl">;
 
 export const isValidHttpUrl = (urlString: string): urlString is ValidHttpUrl => {
@@ -126,7 +133,9 @@ export const isValidHttpUrl = (urlString: string): urlString is ValidHttpUrl => 
 };
 
 export const isValidStripeCheckoutUrl = (urlString: string): urlString is ValidStripeCheckoutUrl =>
-  isValidHttpUrl(urlString) && urlString.includes("checkout.stripe.com");
+  isValidHttpUrl(urlString) &&
+  (urlString.includes("checkout.stripe.com") ||
+    urlString.includes(environmentUrls.stripeCheckoutDomain));
 /*
  * This function is for a URL safety check.
  * It should be implemented to ensure that the URL is safe to use.

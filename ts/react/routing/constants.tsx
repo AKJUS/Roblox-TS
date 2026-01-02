@@ -44,7 +44,7 @@ function unmountElementId(id: string) {
   }
 }
 
-const FiveMinutesInMilis = 5 * 60 * 1000;
+const RefreshTimeInMilliseconds = 60 * 60 * 1000; // 1 hour
 
 const DynamicLocalizationResourceScriptBundleNamePrefix = 'DynamicLocalizationResourceScript_';
 
@@ -52,7 +52,7 @@ const HomeContainer = <div id='places-list-web-app' />;
 
 const CatalogContainer = <div id='catalog-react-container' />;
 
-const GameCarouselContainer = <div id='games-carousel-page' />;
+const GameCarouselContainer = <div id='game-carousel-web-app' />;
 
 const ItemDetailsContainer = (
   <div id='item-details-container'>
@@ -100,7 +100,9 @@ const ComponentToSetupAndTeardownFuncs: Map<string, SetupAndTeardownFunctions> =
         render(GameCarouselContainer, contentContainer);
       },
       teardown: () => {
+        // temporarily need to unmount both in the interrim
         unmountElementId('games-carousel-page');
+        unmountElementId('game-carousel-web-app');
       }
     }
   ],
@@ -120,6 +122,6 @@ const ComponentToSetupAndTeardownFuncs: Map<string, SetupAndTeardownFunctions> =
 export default {
   Setup,
   ComponentToSetupAndTeardownFuncs,
-  FiveMinutesInMilis,
+  RefreshTimeInMilliseconds,
   DynamicLocalizationResourceScriptBundleNamePrefix
 };

@@ -1,6 +1,3 @@
-// TODO: old, migrated code
-/* eslint-disable no-underscore-dangle, react/no-unused-class-component-methods */
-
 import React from "react";
 import PropTypes from "prop-types";
 import { createKeyboardEventHandler } from "@rbx/core-scripts/util/accessibility";

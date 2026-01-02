@@ -5,7 +5,7 @@ const deepLinkGroup = (target: DeepLink): Promise<boolean> => {
   if (groupId) {
     window.location.href = `/groups/${groupId}`;
   }
-  return Promise.resolve(!!groupId);
+  return Promise.resolve(Boolean(groupId));
 };
 
 export default deepLinkGroup;

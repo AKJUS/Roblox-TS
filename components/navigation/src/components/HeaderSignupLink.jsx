@@ -1,17 +1,13 @@
-/* eslint-disable jsx-a11y/anchor-is-valid */
-import { useEffect, useState } from 'react';
-import PropTypes from 'prop-types';
-import { Link } from '@rbx/core-ui/legacy/react-style-guide';
-import { AccountSwitcherService } from '@rbx/core-scripts/legacy/Roblox';
-import { dataStores } from '@rbx/core-scripts/legacy/core-roblox-utilities';
-import authUtil from '../util/authUtil';
-
-const { getSignupUrl, getIsVNGLandingRedirectEnabled } = authUtil;
+import { useEffect } from "react";
+import PropTypes from "prop-types";
+import { useQuery } from "@tanstack/react-query";
+import { Link } from "@rbx/core-ui/legacy/react-style-guide";
+import { AccountSwitcherService } from "@rbx/core-scripts/legacy/Roblox";
+import { dataStores } from "@rbx/core-scripts/legacy/core-roblox-utilities";
+import { getSignupUrl, getIsVNGLandingRedirectEnabled } from "../util/authUtil";
 
 function HeaderSignupLink({ translate }) {
   // use effect for get signupurl
-  // eslint-disable-next-line no-undef
-  const [showSignupButton, setShowSignupButton] = useState(false);
   const [isAccountSwitchingEnabledForBrowser] =
     AccountSwitcherService?.useIsAccountSwitcherAvailableForBrowser() ?? [false];
 
@@ -22,29 +18,22 @@ function HeaderSignupLink({ translate }) {
   useEffect(() => {
     try {
       const {
-        authIntentDataStore: { saveGameIntentFromCurrentUrl }
+        authIntentDataStore: { saveGameIntentFromCurrentUrl },
       } = dataStores;
       saveGameIntentFromCurrentUrl();
     } catch (e) {
-      console.error('Failed to save game intent from current url', e);
+      console.error("Failed to save game intent from current url", e);
     }
   }, []);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const isVNGComplianceEnabled = await getIsVNGLandingRedirectEnabled();
-        setShowSignupButton(!isVNGComplianceEnabled);
-      } catch (e) {
-        // Handle error from getIntAuthCompliancePolicy() or any other error in fetchData
-        setShowSignupButton(true); // fallback to show signup button
-      }
-    };
-    fetchData();
-  }, []);
+  const { data: hideSignupButton } = useQuery({
+    queryKey: ["getIsVNGLandingRedirectEnabled"],
+    queryFn: getIsVNGLandingRedirectEnabled,
+    placeholderData: true,
+  });
 
   return (
-    showSignupButton && (
+    !hideSignupButton && (
       <li className="signup-button-container">
         <Link
           onClick={handleSignupClick}
@@ -52,14 +41,14 @@ function HeaderSignupLink({ translate }) {
           id="sign-up-button"
           className="rbx-navbar-signup btn-growth-sm nav-menu-title signup-button"
         >
-          {translate('Label.sSignUp')}
+          {translate("Label.sSignUp")}
         </Link>
       </li>
     )
   );
 }
 HeaderSignupLink.propTypes = {
-  translate: PropTypes.func.isRequired
+  translate: PropTypes.func.isRequired,
 };
 
 export default HeaderSignupLink;

@@ -4,20 +4,23 @@ import {
   Thumbnail2d,
   ThumbnailFormat,
   ThumbnailGameIconSize,
+  ThumbnailGameThumbnailSize,
   ThumbnailTypes
 } from 'roblox-thumbnails';
 import '../../../../css/common/_gameTiles.scss';
 import { urlService } from 'core-utilities';
+import classNames from 'classnames';
 import useFocused from '../hooks/useFocused';
 import useFriendsPresence from '../hooks/useFriendsPresence';
 import useGetGameLayoutData from '../hooks/useGetGameLayoutData';
 import bedev1Services from '../services/bedev1Services';
 import { TGetPlaceDetails } from '../types/bedev1Types';
 import { buildGameDetailUrl } from '../utils/browserUtils';
-import { getInGameFriends } from '../utils/parsingUtils';
+import { getInGameFriends, isWideTileComponentType } from '../utils/parsingUtils';
 import { CreatorLabel } from './CreatorLabel';
 import GameTileOverlayPill from './GameTileOverlayPill';
 import GameTilePlayButtonV2 from './GameTilePlayButtonV2';
+import WideGameThumbnail from './WideGameThumbnail';
 import {
   GameTileFriendsInGame,
   GameTileStats,
@@ -25,10 +28,20 @@ import {
   TSharedGameTileProps
 } from './GameTileUtils';
 import { getGameTileTextFooterData } from '../utils/gameTileLayoutUtils';
+import { TComponentType } from '../types/bedev2Types';
 
 export const FeaturedGridTile = forwardRef(
   (
-    { id, buildEventProperties, gameData, translate, topicId }: TSharedGameTileProps,
+    {
+      id,
+      buildEventProperties,
+      gameData,
+      translate,
+      topicId,
+      componentType
+    }: TSharedGameTileProps & {
+      componentType?: TComponentType;
+    },
     ref: Ref<HTMLDivElement>
   ): JSX.Element => {
     const [game, setGame] = useState<TGetPlaceDetails | undefined>();
@@ -89,10 +102,39 @@ export const FeaturedGridTile = forwardRef(
 
     const gameLayoutFooterData = getGameTileTextFooterData(gameLayoutData);
 
+    const isWideTile = isWideTileComponentType(componentType);
+
+    const thumbnailComponent = useMemo(() => {
+      if (isWideTileComponentType(componentType)) {
+        return (
+          <div className='game-card-thumb-container'>
+            <WideGameThumbnail
+              gameData={gameData}
+              topicId={topicId}
+              wideTileType={componentType}
+              sizeOverride={ThumbnailGameThumbnailSize.width768}
+            />
+          </div>
+        );
+      }
+      return (
+        <Thumbnail2d
+          type={ThumbnailTypes.gameIcon}
+          size={ThumbnailGameIconSize.size512}
+          targetId={gameData.universeId}
+          containerClass='game-card-thumb-container'
+          format={ThumbnailFormat.jpeg}
+          altName={gameData.name}
+        />
+      );
+    }, [gameData, topicId, componentType]);
+
     return (
       <div
         ref={ref}
-        className='featured-grid-item-container game-card-container'
+        className={classNames('featured-grid-item-container game-card-container', {
+          'wide-featured-tile': isWideTile
+        })}
         data-testid='game-tile-featured'
         onMouseOver={onFocus}
         onMouseLeave={onFocusLost}
@@ -100,14 +142,7 @@ export const FeaturedGridTile = forwardRef(
         onBlur={onFocusLost}>
         <Link url={linkUrl} className='game-card-link' id={gameData.universeId.toString()}>
           <GameTileOverlayPill gameLayoutData={gameLayoutData} isFocused={isFocused} />
-          <Thumbnail2d
-            type={ThumbnailTypes.gameIcon}
-            size={ThumbnailGameIconSize.size512}
-            targetId={gameData.universeId}
-            containerClass='game-card-thumb-container'
-            format={ThumbnailFormat.jpeg}
-            altName={gameData.name}
-          />
+          {thumbnailComponent}
           <div className='game-card-name-info'>
             <div>
               <div className='game-card-name game-name-title' title={gameData.name}>

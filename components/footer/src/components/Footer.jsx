@@ -1,10 +1,10 @@
-import PropTypes from 'prop-types';
-import { authenticatedUser } from '@rbx/core-scripts/legacy/header-scripts';
-import { DeviceMeta } from '@rbx/core-scripts/legacy/Roblox';
-import { pageName, urlService } from '@rbx/core-scripts/legacy/core-utilities';
-import CopyrightMessage from './CopyrightMessage';
-import FooterLinks from './FooterLinks';
-import LanguageSelector from '../containers/LanguageSelector';
+import PropTypes from "prop-types";
+import { authenticatedUser } from "@rbx/core-scripts/legacy/header-scripts";
+import { DeviceMeta } from "@rbx/core-scripts/legacy/Roblox";
+import { pageName, urlService } from "@rbx/core-scripts/legacy/core-utilities";
+import CopyrightMessage from "./CopyrightMessage";
+import FooterLinks from "./FooterLinks";
+import LanguageSelector from "../containers/LanguageSelector";
 
 function Footer(props) {
   const isLandingPage = pageName.PageNameProvider && pageName.PageNameProvider.isLandingPage();
@@ -19,7 +19,7 @@ function Footer(props) {
       const queryParameters = Object.fromEntries(new URLSearchParams(window.location.search));
       const urlFormatObject = {
         pathname: language.languageCode,
-        query: queryParameters
+        query: queryParameters,
       };
       window.location.href = urlService.formatUrl(urlFormatObject);
     } else {
@@ -27,14 +27,14 @@ function Footer(props) {
     }
   };
 
-  const copyrightClassWithLanguageSelector = 'col-sm-6 col-md-9';
-  const copyrightClass = 'col-sm-12';
+  const copyrightClassWithLanguageSelector = "col-sm-6 col-md-9";
+  const copyrightClass = "col-sm-12";
   const { translate } = props;
 
   return (
     <div className="footer">
       <FooterLinks {...props} />
-      <div className="row copyright-container">
+      <div className="row copyright-container flex items-center justify-between padding-top-xlarge gutter-x-small">
         <div className="col-sm-6 col-md-3">
           {showLanguageSelector && (
             <LanguageSelector
@@ -42,8 +42,8 @@ function Footer(props) {
               onLanguageChange={handleLanguageChange}
               isAuthenticatedUser={isAuthenticatedUser}
               showWarningMessageForUnsupportedLocale={false}
-              isNative={isPortableDevice}
               hideSeoUnsupportedLocales={isLandingPage}
+              isNative={isPortableDevice}
             />
           )}
         </div>
@@ -56,7 +56,7 @@ function Footer(props) {
 }
 
 Footer.propTypes = {
-  translate: PropTypes.func.isRequired
+  translate: PropTypes.func.isRequired,
 };
 
 export default Footer;

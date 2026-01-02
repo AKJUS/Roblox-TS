@@ -31,7 +31,11 @@ const {
   LabelCurrentNumber,
   DescriptionEditPhoneWarning,
   ActionEditPhonePrimary,
-  ActionEditPhoneSecondary
+  ActionEditPhoneSecondary,
+  DescriptionAddPhoneNumber,
+  DescriptionAddPhoneBody,
+  ActionVerify,
+  DescriptionUpdatePhoneNumber
 } = phoneUpsellStrings;
 
 const {
@@ -45,7 +49,6 @@ function AddPhoneNumber({
   translate,
   onHide,
   existingPhoneNumber,
-  alwaysShowLegalText,
   requireLegalTextCheckbox,
   headingKey,
   descriptionKey,
@@ -61,24 +64,9 @@ function AddPhoneNumber({
     origin
   } = phoneUpsellState;
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [shouldHideShortCodeDisclaimer, setShouldHideShortCodeDisclaimer] = useState(false);
   const [isLegalChecked, setIsLegalChecked] = useState(false);
   const section = getSectionValueForPage(pageName);
 
-  useEffect(() => {
-    const countryCode = phonePrefixOptionsList?.[phonePrefixPickerIndex]?.code;
-    // short codees only apply phone numbers from the USA
-    setShouldHideShortCodeDisclaimer(
-      !alwaysShowLegalText && countryCode !== phoneSubmissionConstants.PhoneShortCodeCountryCode
-    );
-  }, [alwaysShowLegalText, phonePrefixOptionsList, phonePrefixPickerIndex]);
-
-  const shortCodeDisclaimerHtml = translate(legalTextKey, {
-    linkTagWithSmsTos,
-    linkTagWithPrivacyPolicy,
-    linkTagEnd,
-    linkTagBreak
-  });
   const handleContinueClick = async () => {
     setIsSubmitting(true);
     const { prefix, code } = phonePrefixOptionsList[phonePrefixPickerIndex];
@@ -126,7 +114,9 @@ function AddPhoneNumber({
       <Modal.Body>
         <div className='phone-number-submission-container'>
           <div className='verification-upsell-text-body text-description'>
-            {translate(descriptionKey)}
+            {existingPhoneNumber
+              ? translate(DescriptionUpdatePhoneNumber)
+              : translate(descriptionKey)}
           </div>
           {/* Edit Phone Number Info */}
           {existingPhoneNumber && (
@@ -161,26 +151,16 @@ function AddPhoneNumber({
               checked={isLegalChecked}
               onChange={() => setIsLegalChecked(!isLegalChecked)}
             />
-            {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
             <label
               className='text-description font-caption-body phone-verification-legal-text'
-              hidden={shouldHideShortCodeDisclaimer}
-              htmlFor='phone-verification-legal-checkbox'
-              // eslint-disable-next-line react/no-danger
-              dangerouslySetInnerHTML={{
-                __html: shortCodeDisclaimerHtml
-              }}
-            />
+              htmlFor='phone-verification-legal-checkbox'>
+              {translate(legalTextKey)}
+            </label>
           </div>
         ) : (
-          <div
-            className='text-description font-caption-body phone-verification-legal-text'
-            hidden={shouldHideShortCodeDisclaimer}
-            // eslint-disable-next-line react/no-danger
-            dangerouslySetInnerHTML={{
-              __html: shortCodeDisclaimerHtml
-            }}
-          />
+          <div className='text-description font-caption-body phone-verification-legal-text'>
+            {translate(legalTextKey)}
+          </div>
         )}
         <div className='buttons-section'>
           <Button
@@ -217,7 +197,6 @@ AddPhoneNumber.propTypes = {
   translate: PropTypes.func.isRequired,
   onHide: PropTypes.func.isRequired,
   existingPhoneNumber: PropTypes.string,
-  alwaysShowLegalText: PropTypes.bool,
   requireLegalTextCheckbox: PropTypes.bool,
   headingKey: PropTypes.string,
   descriptionKey: PropTypes.string,
@@ -227,12 +206,11 @@ AddPhoneNumber.propTypes = {
 
 AddPhoneNumber.defaultProps = {
   existingPhoneNumber: null, // default is user doesn't have phone number added yet
-  alwaysShowLegalText: false,
   requireLegalTextCheckbox: false,
   headingKey: ActionAddPhoneNumber,
-  descriptionKey: DescriptionVerificationCodeSmsFeesMayApply,
-  legalTextKey: DescriptionShortCodeLegalDisclaimer,
-  buttonKey: ActionContinue
+  descriptionKey: DescriptionAddPhoneNumber,
+  legalTextKey: DescriptionAddPhoneBody,
+  buttonKey: ActionVerify
 };
 
 export default AddPhoneNumber;

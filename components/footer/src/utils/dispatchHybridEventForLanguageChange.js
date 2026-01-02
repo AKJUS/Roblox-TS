@@ -1,5 +1,5 @@
-import { DeviceMeta } from '@rbx/core-scripts/legacy/Roblox';
-import { hybridService } from '@rbx/core-scripts/legacy/core-roblox-utilities';
+import { DeviceMeta } from "@rbx/core-scripts/legacy/Roblox";
+import { hybridService } from "@rbx/core-scripts/legacy/core-roblox-utilities";
 
 function dispatchHybridEventForLanguageChange(localeCode, callback) {
   if (DeviceMeta && hybridService) {

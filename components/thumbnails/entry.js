@@ -1,3 +1,5 @@
+// TODO: old, migrated code
+/* eslint-disable no-undef */
 import angular from "angular";
 import { addExternal } from "@rbx/externals";
 import { importAll, templateCacheGenerator } from "@rbx/core-scripts/angular";

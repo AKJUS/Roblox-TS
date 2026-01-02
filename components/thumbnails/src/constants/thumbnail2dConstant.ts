@@ -92,6 +92,7 @@ export enum ThumbnailAssetsSize {
   width660 = "660x220",
   width330 = "330x110",
   width720 = "720x228",
+  width930 = "930x480",
   width1440 = "1440x456",
 }
 

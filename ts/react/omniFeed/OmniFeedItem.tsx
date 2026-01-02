@@ -9,6 +9,7 @@ import FriendCarouselFeedItem from './FriendCarouselFeedItem';
 import FiltersFeedItem from './FiltersFeedItem';
 import SduiFeedItem from './SduiFeedItem';
 import SongCarouselFeedItem from './SongCarouselFeedItem';
+import { TGetFriendsResponse } from '../common/types/bedev1Types';
 import { TOmniRecommendationSduiTree, TSduiPageContextType } from '../sdui/system/SduiTypes';
 import { logSduiError, SduiErrorNames } from '../sdui/utils/logSduiError';
 import { isSupportedSduiPage } from '../sdui/utils/sduiValidationUtils';
@@ -21,14 +22,17 @@ type TOmniFeedItemProps = {
   itemsPerRow: number | undefined;
   startingRow: number | undefined;
   gridRecommendations?: TOmniRecommendationGame[];
+  friendsPresenceData: TGetFriendsResponse[];
   loadMoreGames?: () => void;
   isLoadingMoreGames?: boolean;
-  isExpandHomeContentEnabled?: boolean;
+  isDynamicLayoutSizingEnabled?: boolean;
   isMusicChartsCarouselEnabled?: boolean;
   isCarouselHorizontalScrollEnabled?: boolean;
   isNewScrollArrowsEnabled?: boolean;
   isNewSortHeaderEnabled?: boolean;
   sduiRoot?: TOmniRecommendationSduiTree;
+  hiddenUniverses?: Set<number>;
+  setHiddenUniverses?: React.Dispatch<React.SetStateAction<Set<number>>>;
   fetchGamesPageData?: (filters: Map<string, string>) => void;
 };
 
@@ -40,14 +44,17 @@ export const OmniFeedItem = ({
   itemsPerRow,
   startingRow,
   gridRecommendations,
+  friendsPresenceData,
   loadMoreGames,
   isLoadingMoreGames,
-  isExpandHomeContentEnabled,
+  isDynamicLayoutSizingEnabled,
   isMusicChartsCarouselEnabled,
   isCarouselHorizontalScrollEnabled,
   isNewScrollArrowsEnabled,
   isNewSortHeaderEnabled,
   sduiRoot,
+  hiddenUniverses,
+  setHiddenUniverses,
   fetchGamesPageData
 }: TOmniFeedItemProps): JSX.Element | null => {
   switch (sort.treatmentType) {
@@ -60,9 +67,10 @@ export const OmniFeedItem = ({
           page={currentPage}
           itemsPerRow={itemsPerRow}
           startingRow={startingRow}
+          friendsPresenceData={friendsPresenceData}
           loadMoreGames={loadMoreGames}
           isLoadingMoreGames={isLoadingMoreGames}
-          isExpandHomeContentEnabled={isExpandHomeContentEnabled}
+          isDynamicLayoutSizingEnabled={isDynamicLayoutSizingEnabled}
           isCarouselHorizontalScrollEnabled={isCarouselHorizontalScrollEnabled}
           isNewSortHeaderEnabled={isNewSortHeaderEnabled}
           isNewScrollArrowsEnabled={isNewScrollArrowsEnabled}
@@ -79,8 +87,11 @@ export const OmniFeedItem = ({
           itemsPerRow={itemsPerRow}
           startingRow={startingRow}
           recommendations={gridRecommendations ?? []}
-          isExpandHomeContentEnabled={isExpandHomeContentEnabled}
+          friendsPresenceData={friendsPresenceData}
+          isDynamicLayoutSizingEnabled={isDynamicLayoutSizingEnabled}
           isNewSortHeaderEnabled={isNewSortHeaderEnabled}
+          hiddenUniverses={hiddenUniverses}
+          setHiddenUniverses={setHiddenUniverses}
         />
       );
     case TTreatmentType.FriendCarousel:
@@ -134,7 +145,7 @@ OmniFeedItem.defaultProps = {
   loadMoreGames: undefined,
   isLoadingMoreGames: undefined,
   gridRecommendations: [],
-  isExpandHomeContentEnabled: undefined,
+  isDynamicLayoutSizingEnabled: undefined,
   isMusicChartsCarouselEnabled: undefined,
   isCarouselHorizontalScrollEnabled: undefined,
   fetchGamesPageData: undefined,

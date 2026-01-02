@@ -1,7 +1,7 @@
 export const rootElementId = 'access-management-upsell-container';
 
 export const accessManagementUpselTranslationConfig = {
-  common: ['CommonUI.Controls', 'CommonUI.Features', 'Amp.Upsell'],
+  common: ['CommonUI.Controls', 'CommonUI.Features', 'Amp.Upsell', 'Amp.FAEUpsell'],
   feature: 'Verification.Identity'
 };
 

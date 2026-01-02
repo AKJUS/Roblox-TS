@@ -1,9 +1,9 @@
 import React, { forwardRef } from 'react';
 import { TComponentType } from '../types/bedev2Types';
 import GameTile, { TGameTileProps } from './GameTile';
-import WideGameTile, { TWideGameTileProps } from './WideGameTile';
+import WideGameTileWrapper, { TWideGameTileWrapperProps } from './WideGameTileWrapper';
 
-type TTileProps = TGameTileProps | TWideGameTileProps;
+type TTileProps = TGameTileProps | TWideGameTileWrapperProps;
 
 export type TGameTileTypeMapProps = TTileProps & {
   componentType?: TComponentType;
@@ -17,7 +17,9 @@ export const GameTileTypeMap = forwardRef<HTMLDivElement, TGameTileTypeMapProps>
       case TComponentType.GridTile:
       case TComponentType.EventTile:
       case TComponentType.InterestTile:
-        return <WideGameTile ref={forwardedRef} wideTileType={componentType} {...tileProps} />;
+        return (
+          <WideGameTileWrapper ref={forwardedRef} wideTileType={componentType} {...tileProps} />
+        );
       default:
         return <GameTile ref={forwardedRef} {...tileProps} />;
     }

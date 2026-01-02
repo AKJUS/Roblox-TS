@@ -1,11 +1,11 @@
-import { useState, useEffect, useRef } from 'react';
-import PropTypes from 'prop-types';
-import { Popover } from '@rbx/core-ui/legacy/react-style-guide';
-import { AccountSwitcherService } from '@rbx/core-scripts/legacy/Roblox';
-import SettingsIcon from './SettingsIcon';
-import SettingsMenu from './SettingsMenu';
-import navigationUtil from '../util/navigationUtil';
-import { sendAccountSwitcherBlobPresentOnPageLoadEvent } from '../services/eventService';
+import { useState, useEffect, useRef } from "react";
+import PropTypes from "prop-types";
+import { Popover } from "@rbx/core-ui/legacy/react-style-guide";
+import { AccountSwitcherService } from "@rbx/core-scripts/legacy/Roblox";
+import SettingsIcon from "./SettingsIcon";
+import SettingsMenu from "./SettingsMenu";
+import navigationUtil from "../util/navigationUtil";
+import { sendAccountSwitcherBlobPresentOnPageLoadEvent } from "../services/eventService";
 // disabling the metadata call since this is fully released.
 // this will also reduce the traffic. ticket to remove comments: WEBGROW-10026
 // import navigationService from '../services/navigationService';
@@ -21,13 +21,13 @@ function SettingsPopover({ translate, accountNotificationCount }) {
       try {
         await AccountSwitcherService?.syncAccountSwitcherBlobIfNeeded();
       } catch (error) {
-        console.warn('account switching has issues', error);
+        console.warn("account switching has issues", error);
       }
     };
 
     setCrossDeviceLoginCodeValidationDisplayed(true);
     sendAccountSwitcherBlobPresentOnPageLoadEvent(
-      !!AccountSwitcherService?.getStoredAccountSwitcherBlob()
+      !!AccountSwitcherService?.getStoredAccountSwitcherBlob(),
     );
     // eslint-disable-next-line no-void
     void syncAccountBlob();
@@ -64,12 +64,12 @@ function SettingsPopover({ translate, accountNotificationCount }) {
 }
 
 SettingsPopover.defaultProps = {
-  accountNotificationCount: 0
+  accountNotificationCount: 0,
 };
 
 SettingsPopover.propTypes = {
   translate: PropTypes.func.isRequired,
-  accountNotificationCount: PropTypes.number
+  accountNotificationCount: PropTypes.number,
 };
 
 export default SettingsPopover;

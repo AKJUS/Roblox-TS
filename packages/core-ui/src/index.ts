@@ -41,6 +41,10 @@ export { default as ScrollBar } from "./js/scrollBar/ScrollBar";
 export { default as Section } from "./js/section/Section";
 export { default as SystemFeedback } from "./js/systemFeedback/components/SystemFeedbackContainer";
 export { default as createSystemFeedback } from "./js/systemFeedback/utils/createSystemFeedback";
+export type {
+  SystemFeedbackService,
+  SystemFeedbackComponent,
+} from "./js/systemFeedback/utils/createSystemFeedback";
 export { default as useSystemFeedback } from "./js/systemFeedback/utils/hooks/useSystemFeedback";
 export { default as SystemFeedbackProvider } from "./js/systemFeedback/components/SystemFeedbackProvider";
 export { default as SimpleTab } from "./js/tabs/components/SimpleTab";

@@ -8,17 +8,20 @@ import amendHOCDebuggingInfo from "../utils/amendHOCDebuggingInfo";
 import { validateTranslationConfig } from "./validateTranslationConfig";
 import { TranslationConfig, WithTranslationsProps } from "../intl";
 
+type State = { languageResources: TranslationResource };
+
+/** @deprecated Please use the `useTranslation` hook instead. */
 const withTranslations = <P,>(
   WrappedComponent: React.FC<P & WithTranslationsProps>,
   translationConfig: TranslationConfig,
-) => {
+): typeof React.Component<P, State> => {
   const validatedConfig = validateTranslationConfig(translationConfig);
   // TODO: old, migrated code
   // eslint-disable-next-line react/display-name
-  return class extends React.Component<P, { languageResources: TranslationResource }> {
+  return class extends React.Component<P, State> {
     private intl: Intl;
 
-    constructor(props: P & WithTranslationsProps) {
+    constructor(props: P) {
       super(props);
 
       this.intl = new Intl();

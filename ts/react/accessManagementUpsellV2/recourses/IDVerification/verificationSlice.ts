@@ -52,6 +52,7 @@ export interface IDVerificationState {
   status: VerificationStatus;
   completionPageState: PageText;
   error: string | null;
+  isAgeEstimation: boolean;
 }
 
 const IDVinitialState: IDVerificationState = {
@@ -60,7 +61,8 @@ const IDVinitialState: IDVerificationState = {
   loading: null,
   status: null,
   completionPageState: null,
-  error: null
+  error: null,
+  isAgeEstimation: false
 };
 
 export interface VerificationState {
@@ -85,7 +87,8 @@ export const startIDVerification = createAsyncThunk(
       const response = (await startPersonaIdVerification(ageEstimation)) as VendorVerificationData;
       return response;
     } catch (error) {
-      reportEvent(ReportEvent.VerificationFailed, Recourse.GovernmentId, {
+      const recourseToReport = ageEstimation ? Recourse.AgeEstimation : Recourse.GovernmentId;
+      reportEvent(ReportEvent.VerificationFailed, recourseToReport, {
         error: JSON.stringify(error)
       });
       return thunkAPI.rejectWithValue('Failed to start ID Verification');
@@ -100,7 +103,10 @@ export const fetchIDVerificationStatus = createAsyncThunk(
       const response = await getPersonaVerificationStatus(token);
       return response;
     } catch (error) {
-      reportEvent(ReportEvent.VerificationFailed, Recourse.GovernmentId, {
+      const state = thunkAPI.getState() as RootState;
+      const { isAgeEstimation } = state.verification.IDVerificationState;
+      const recourseToReport = isAgeEstimation ? Recourse.AgeEstimation : Recourse.GovernmentId;
+      reportEvent(ReportEvent.VerificationFailed, recourseToReport, {
         error: JSON.stringify(error)
       });
       return thunkAPI.rejectWithValue('Failed to fetch ID Verification status');
@@ -136,10 +142,13 @@ export const verificationSlice = createSlice({
           vendorVerificationData,
           loading: true
         };
+        state.loading = true;
       })
       .addCase(startIDVerification.fulfilled, (state, action) => {
         const vendorVerificationData = action.payload;
         const { daysUntilNextVerification } = vendorVerificationData;
+        // Get ageEstimation from the thunk argument
+        const ageEstimation = action.meta.arg;
         let completionPageState = null;
         vendorVerificationData.loading = false;
         if (daysUntilNextVerification != null && daysUntilNextVerification > 0) {
@@ -151,19 +160,21 @@ export const verificationSlice = createSlice({
           ...state.IDVerificationState,
           vendorVerificationData,
           completionPageState,
-          loading: false
+          loading: false,
+          isAgeEstimation: ageEstimation
         };
       })
       .addCase(startIDVerification.rejected, (state, action) => {
         const { vendorVerificationData } = state.IDVerificationState;
         vendorVerificationData.loading = false;
-
         state.IDVerificationState = {
           ...state.IDVerificationState,
           vendorVerificationData,
+          completionPageState: getPageStateConstants(VerificationViewState.ERROR),
           loading: false,
           error: action.error.message || 'Something went wrong'
         };
+        state.loading = false;
       })
       .addCase(fetchIDVerificationStatus.pending, state => {
         state.IDVerificationState = {
@@ -172,65 +183,77 @@ export const verificationSlice = createSlice({
         };
       })
       .addCase(fetchIDVerificationStatus.fulfilled, (state, action) => {
-        const vendorData = action.payload as VerificationStatus;
-        let completionPageState;
-        let { page } = state.IDVerificationState;
-        switch (vendorData.sessionStatus) {
-          case VerificationStatusCode.RequiresRetry:
-          case VerificationStatusCode.Failure:
-            page = IDVPage.Complete;
-            switch (vendorData.sessionErrorCode) {
-              case VerificationErrorCode.InvalidDocument:
-              case VerificationErrorCode.BelowMinimumAge:
-                completionPageState = getPageStateConstants(VerificationViewState.FAILURE, [
-                  'Label.FailedVerificationInvalidDocument'
-                ]);
-                break;
-              case VerificationErrorCode.LowQualityMedia:
-              case VerificationErrorCode.InvalidSelfie:
-                completionPageState = getPageStateConstants(VerificationViewState.FAILURE, [
-                  'Label.FailedVerificationLowQuality'
-                ]);
-                break;
-              case VerificationErrorCode.DocumentUnsupported:
-                completionPageState = getPageStateConstants(VerificationViewState.FAILURE, [
-                  'Label.FailedVerificationUnsupportedDocument'
-                ]);
-                break;
-              default:
-                completionPageState = getPageStateConstants(VerificationViewState.FAILURE);
-                break;
-            }
-            break;
-          case VerificationStatusCode.RequiresManualReview:
-            page = IDVPage.Complete;
-            completionPageState = getPageStateConstants(VerificationViewState.PENDING);
-            break;
-          case VerificationStatusCode.Success:
-          case VerificationStatusCode.Stored:
-            page = IDVPage.Complete;
-            completionPageState = getPageStateConstants(VerificationViewState.SUCCESS_GENERIC);
-            break;
-          case VerificationStatusCode.Started:
-            page = IDVPage.Checklist;
-            reportEvent(ReportEvent.VerificationStarted, Recourse.GovernmentId, {
-              session: state.IDVerificationState.vendorVerificationData.sessionIdentifier
-            });
-            break;
-          case VerificationStatusCode.Submitted:
-            reportEvent(ReportEvent.verificationInProgress, Recourse.GovernmentId, {
-              session: state.IDVerificationState.vendorVerificationData.sessionIdentifier
-            });
-            break;
-          default:
+        const { isAgeEstimation } = state.IDVerificationState;
+        // this FAE flow
+        if (isAgeEstimation) {
+          const vendorData = action.payload as VerificationStatus;
+          state.IDVerificationState = {
+            ...state.IDVerificationState,
+            loading: false,
+            status: vendorData
+          };
+        } else {
+          // tHis is the regular IDV flow
+          const vendorData = action.payload as VerificationStatus;
+          let completionPageState;
+          let { page } = state.IDVerificationState;
+          switch (vendorData.sessionStatus) {
+            case VerificationStatusCode.RequiresRetry:
+            case VerificationStatusCode.Failure:
+              page = IDVPage.Complete;
+              switch (vendorData.sessionErrorCode) {
+                case VerificationErrorCode.InvalidDocument:
+                case VerificationErrorCode.BelowMinimumAge:
+                  completionPageState = getPageStateConstants(VerificationViewState.FAILURE, [
+                    'Label.FailedVerificationInvalidDocument'
+                  ]);
+                  break;
+                case VerificationErrorCode.LowQualityMedia:
+                case VerificationErrorCode.InvalidSelfie:
+                  completionPageState = getPageStateConstants(VerificationViewState.FAILURE, [
+                    'Label.FailedVerificationLowQuality'
+                  ]);
+                  break;
+                case VerificationErrorCode.DocumentUnsupported:
+                  completionPageState = getPageStateConstants(VerificationViewState.FAILURE, [
+                    'Label.FailedVerificationUnsupportedDocument'
+                  ]);
+                  break;
+                default:
+                  completionPageState = getPageStateConstants(VerificationViewState.FAILURE);
+                  break;
+              }
+              break;
+            case VerificationStatusCode.RequiresManualReview:
+              page = IDVPage.Complete;
+              completionPageState = getPageStateConstants(VerificationViewState.PENDING);
+              break;
+            case VerificationStatusCode.Success:
+            case VerificationStatusCode.Stored:
+              page = IDVPage.Complete;
+              completionPageState = getPageStateConstants(VerificationViewState.SUCCESS_GENERIC);
+              break;
+            case VerificationStatusCode.Started:
+              page = IDVPage.Checklist;
+              reportEvent(ReportEvent.VerificationStarted, Recourse.GovernmentId, {
+                session: state.IDVerificationState.vendorVerificationData.sessionIdentifier
+              });
+              break;
+            case VerificationStatusCode.Submitted:
+              reportEvent(ReportEvent.verificationInProgress, Recourse.GovernmentId, {
+                session: state.IDVerificationState.vendorVerificationData.sessionIdentifier
+              });
+              break;
+            default:
+          }
+          state.IDVerificationState = {
+            ...state.IDVerificationState,
+            loading: false,
+            status: vendorData,
+            completionPageState,
+            page
+          };
         }
-        state.IDVerificationState = {
-          ...state.IDVerificationState,
-          loading: false,
-          status: vendorData,
-          completionPageState,
-          page
-        };
       })
       .addCase(fetchIDVerificationStatus.rejected, (state, action) => {
         state.IDVerificationState = {

@@ -1,19 +1,27 @@
-import React from 'react';
-import PropTypes from 'prop-types';
-import { urlService } from '@rbx/core-scripts/legacy/core-utilities';
-import { dataStores, eventStreamService } from '@rbx/core-scripts/legacy/core-roblox-utilities';
+import React from "react";
+import PropTypes from "prop-types";
+import { urlService } from "@rbx/core-scripts/legacy/core-utilities";
+import { dataStores, eventStreamService } from "@rbx/core-scripts/legacy/core-roblox-utilities";
 import {
-  Dropdown,
-  NativeDropdown,
-  SimpleModal,
-  Loading
-} from '@rbx/core-ui/legacy/react-style-guide';
-import { authenticatedUser } from '@rbx/core-scripts/legacy/header-scripts';
-import { refreshCurrentSession } from '@rbx/authentication-common/utils/authUtil';
-import eventStreamEvents from '../constants/languageSelectorEventStreamConstants';
-import cacheConstants from '../constants/cacheConstants';
+  Dropdown as FoundationDropdown,
+  Menu,
+  MenuItem,
+  MenuSection,
+  ProgressCircle,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogBody,
+  DialogFooter,
+  Button,
+} from "@rbx/foundation-ui";
+import { authenticatedUser } from "@rbx/core-scripts/legacy/header-scripts";
+import { refreshCurrentSession } from "@rbx/authentication-common/utils/authUtil";
+import eventStreamEvents from "../constants/languageSelectorEventStreamConstants";
+import cacheConstants from "../constants/cacheConstants";
+import { languageSelectorPlaceholder } from "../constants/languageSelectorConstants";
 
-const queryParamName = 'locale';
+const queryParamName = "locale";
 const { localeDataStore } = dataStores;
 
 const getLocaleLabel = supportedLocale => {
@@ -22,7 +30,7 @@ const getLocaleLabel = supportedLocale => {
       ? supportedLocale.locale.nativeName
       : `${supportedLocale.locale.nativeName}*`;
   }
-  return '';
+  return "";
 };
 
 class LanguageSelector extends React.Component {
@@ -33,9 +41,8 @@ class LanguageSelector extends React.Component {
       userLocale: {},
       showUnsupportedModal: false,
       isUserLocaleUnsupported: false,
-      isLocaleUpdateInProgress: false
+      isLocaleUpdateInProgress: false,
     };
-
     this.handleNativeLanguageChange = this.handleNativeLanguageChange.bind(this);
     this.hideUnsupportedModal = this.hideUnsupportedModal.bind(this);
   }
@@ -51,7 +58,7 @@ class LanguageSelector extends React.Component {
     const previousSupportedLocale = { ...userLocale };
     if (isAuthenticatedUser) {
       this.setState({
-        isLocaleUpdateInProgress: true
+        isLocaleUpdateInProgress: true,
       });
       localeDataStore
         .setUserLocale(supportedLocale.locale)
@@ -67,11 +74,11 @@ class LanguageSelector extends React.Component {
           },
           error => {
             console.error(error);
-          }
+          },
         )
         .finally(() => {
           this.setState({
-            isLocaleUpdateInProgress: false
+            isLocaleUpdateInProgress: false,
           });
         });
     } else {
@@ -83,42 +90,49 @@ class LanguageSelector extends React.Component {
     eventStreamService.sendEvent(eventStreamEvents.changeLanguage, {
       userId: authenticatedUser.id,
       newSupportedLocaleCode: supportedLocale.locale,
-      previousSupportedLocaleCode: previousSupportedLocale.locale.locale
+      previousSupportedLocaleCode: previousSupportedLocale.locale.locale,
     });
+  }
+
+  getFoundationSelector() {
+    const { supportedLocales, userLocale, isLocaleUpdateInProgress } = this.state;
+    const dict = Object.assign(
+      ...supportedLocales.map(supportedLocale => ({
+        [supportedLocale.locale.locale]: supportedLocale,
+      })),
+    );
+
+    return (
+      <FoundationDropdown
+        value={userLocale?.locale?.locale}
+        className="form-group"
+        onValueChange={selectedLocale => this.handleLanguageChange(dict[selectedLocale])}
+        size="Medium"
+        placeholder={languageSelectorPlaceholder}
+        isDisabled={isLocaleUpdateInProgress}
+      >
+        <Menu>
+          <MenuSection>
+            {supportedLocales.map(supportedLocale => (
+              <MenuItem
+                key={supportedLocale.locale.id}
+                title={getLocaleLabel(supportedLocale)}
+                value={supportedLocale.locale.locale}
+              />
+            ))}
+          </MenuSection>
+        </Menu>
+      </FoundationDropdown>
+    );
   }
 
   handleNativeLanguageChange(event) {
     const { supportedLocales } = this.state;
     const selectedLocaleCode = event.target.value;
     const selectedSupportedLocale = supportedLocales.find(
-      supportedLocale => supportedLocale.locale.locale === selectedLocaleCode
+      supportedLocale => supportedLocale.locale.locale === selectedLocaleCode,
     );
     this.handleLanguageChange(selectedSupportedLocale);
-  }
-
-  getDefaultSelector() {
-    const { supportedLocales, userLocale, isLocaleUpdateInProgress } = this.state;
-    const dropdownOptions = supportedLocales.map(supportedLocale => (
-      <Dropdown.Item
-        key={supportedLocale.locale.id}
-        onClick={() => this.handleLanguageChange(supportedLocale)}
-      >
-        {getLocaleLabel(supportedLocale)}
-      </Dropdown.Item>
-    ));
-
-    const dropdownLabel = getLocaleLabel(userLocale);
-
-    return (
-      <Dropdown
-        currSelectionLabel={dropdownLabel}
-        id="language-switcher"
-        icon="icon-globe"
-        disabled={isLocaleUpdateInProgress}
-      >
-        {dropdownOptions}
-      </Dropdown>
-    );
   }
 
   getNativeSelector() {
@@ -126,29 +140,48 @@ class LanguageSelector extends React.Component {
     const dropdownOptions = supportedLocales.map(supportedLocale => ({
       value: supportedLocale.locale.locale,
       key: supportedLocale.locale.id,
-      label: getLocaleLabel(supportedLocale)
+      label: getLocaleLabel(supportedLocale),
     }));
 
     const userLocaleCode = userLocale.locale && userLocale.locale.locale;
 
     return (
       dropdownOptions.length > 0 && (
-        <NativeDropdown
+        <select
           id="language-switcher"
-          selectionItems={dropdownOptions}
+          className="flex items-center justify-between width-full bg-none stroke-standard stroke-contrast-alpha cursor-pointer radius-medium height-1000 text-body-medium padding-x-medium"
+          value={userLocaleCode}
           onChange={this.handleNativeLanguageChange}
-          selectedItemvalue={userLocaleCode}
-        />
+        >
+          {dropdownOptions.map(option => (
+            <option
+              key={option.key}
+              value={option.value}
+              className="flex width-full items-center bg-none padding-x-medium stroke-standard "
+            >
+              {option.label}
+            </option>
+          ))}
+        </select>
       )
     );
+  }
+  getSelector() {
+    const { isNative } = this.props;
+
+    if (isNative) {
+      return this.getNativeSelector();
+    }
+
+    return this.getFoundationSelector();
   }
 
   setUserLocaleByLocaleCode(localeCode) {
     const selectedLocale = this.findSupportedLocaleByLocaleCode(localeCode);
     this.setState({
       userLocale: {
-        ...selectedLocale
-      }
+        ...selectedLocale,
+      },
     });
 
     if (!selectedLocale.isEnabledForFullExperience) {
@@ -178,7 +211,7 @@ class LanguageSelector extends React.Component {
         .filter(
           // SEO doesn't support extended language codes such as 'zh-hans' for now.
           locale =>
-            locale.isEnabledForFullExperience && locale.locale.language.languageCode.length === 2
+            locale.isEnabledForFullExperience && locale.locale.language.languageCode.length === 2,
         )
         .sort((a, b) => (a.locale.nativeName > b.locale.nativeName ? 1 : -1));
     }
@@ -197,11 +230,11 @@ class LanguageSelector extends React.Component {
 
         if (hideSeoUnsupportedLocales) {
           this.setState({
-            supportedLocales: this.filterLocalesBySeoSupport(response.data)
+            supportedLocales: this.filterLocalesBySeoSupport(response.data),
           });
         } else {
           this.setState({
-            supportedLocales: this.sortSupportedLocalesByFullExperience(response.data)
+            supportedLocales: this.sortSupportedLocalesByFullExperience(response.data),
           });
         }
 
@@ -209,7 +242,7 @@ class LanguageSelector extends React.Component {
       },
       error => {
         console.error(error);
-      }
+      },
     );
   }
 
@@ -228,7 +261,7 @@ class LanguageSelector extends React.Component {
         },
         error => {
           console.error(error);
-        }
+        },
       );
     }
   }
@@ -237,11 +270,11 @@ class LanguageSelector extends React.Component {
     const { showWarningModalForUnsupportedLocale } = this.props;
     if (showWarningModalForUnsupportedLocale) {
       this.setState({
-        showUnsupportedModal: true
+        showUnsupportedModal: true,
       });
       eventStreamService.sendEvent(eventStreamEvents.changeLanguageModal, {
         userId: authenticatedUser.id,
-        newSupportedLocaleCode: supportedLocale.locale
+        newSupportedLocaleCode: supportedLocale.locale,
       });
     }
   }
@@ -256,35 +289,50 @@ class LanguageSelector extends React.Component {
     const { showWarningMessageForUnsupportedLocale } = this.props;
     if (showWarningMessageForUnsupportedLocale) {
       this.setState({
-        isUserLocaleUnsupported: true
+        isUserLocaleUnsupported: true,
       });
     }
   }
 
   render() {
-    const { translate, isNative } = this.props;
+    const { translate } = this.props;
     const { showUnsupportedModal, isUserLocaleUnsupported, supportedLocales, userLocale } =
       this.state;
 
     return (
       <React.Fragment>
         {supportedLocales.length > 0 && userLocale.locale ? (
-          <div className="language-selector-wrapper">
-            {isNative ? this.getNativeSelector() : this.getDefaultSelector()}
-          </div>
+          <div className="language-selector-wrapper">{this.getSelector()}</div>
         ) : (
-          <Loading />
+          <ProgressCircle variant="Indeterminate" size="Medium" />
         )}
-        <SimpleModal
-          title={translate('Heading.UnsupportedLanguage')}
-          body={translate('Description.UnsupportedLanguage')}
-          show={showUnsupportedModal}
-          neutralButtonText={translate('Action.Ok')}
-          onNeutral={this.hideUnsupportedModal}
-        />
+        {showUnsupportedModal && (
+          <Dialog open={showUnsupportedModal} isModal size="Medium" type="Default">
+            <DialogContent>
+              <DialogBody className="flex flex-col gap-y-xsmall items-center">
+                <DialogTitle className="text-heading-medium">
+                  {translate("Heading.UnsupportedLanguage")}
+                </DialogTitle>
+                <div className="text-body-medium content-default">
+                  {translate("Description.UnsupportedLanguage")}
+                </div>
+              </DialogBody>
+              <DialogFooter className="flex gap-x-small items-center">
+                <Button
+                  variant="Standard"
+                  className="fill"
+                  size="Medium"
+                  onClick={this.hideUnsupportedModal}
+                >
+                  {translate("Action.Ok")}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        )}
         {isUserLocaleUnsupported && (
           <div className="row">
-            <span className="text text-error">{translate('Description.UnsupportedLanguage')}</span>
+            <span className="text text-error">{translate("Description.UnsupportedLanguage")}</span>
           </div>
         )}
       </React.Fragment>
@@ -293,12 +341,14 @@ class LanguageSelector extends React.Component {
 }
 
 LanguageSelector.defaultProps = {
-  onLanguageChange: () => {},
+  onLanguageChange: () => {
+    // do nothing
+  },
   isAuthenticatedUser: false,
   isNative: false,
   showWarningModalForUnsupportedLocale: true,
   showWarningMessageForUnsupportedLocale: true,
-  hideSeoUnsupportedLocales: false
+  hideSeoUnsupportedLocales: false,
 };
 
 LanguageSelector.propTypes = {
@@ -308,7 +358,7 @@ LanguageSelector.propTypes = {
   showWarningModalForUnsupportedLocale: PropTypes.bool,
   showWarningMessageForUnsupportedLocale: PropTypes.bool,
   translate: PropTypes.func.isRequired,
-  hideSeoUnsupportedLocales: PropTypes.bool
+  hideSeoUnsupportedLocales: PropTypes.bool,
 };
 
 export default LanguageSelector;

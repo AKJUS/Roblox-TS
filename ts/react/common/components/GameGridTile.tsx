@@ -9,6 +9,7 @@ import {
   THoverStyle
 } from '../types/bedev2Types';
 import GameTileTypeMap from './GameTileTypeMap';
+import { PageContext } from '../types/pageContext';
 
 type TGameGridTileProps = TSharedGameTileProps & {
   emphasis: boolean;
@@ -20,7 +21,15 @@ type TGameGridTileProps = TSharedGameTileProps & {
   hideTileMetadata?: boolean;
   hoverStyle?: THoverStyle;
   isInterestedUniverse?: boolean;
+  enableExplicitFeedback?: boolean;
+  isHidden?: boolean;
+  setIsHidden?: (isHidden: boolean) => void;
+  toggleIsHidden?: () => void;
   toggleInterest?: () => void;
+  page?: PageContext;
+  enableSponsoredFeedback?: boolean;
+  sponsoredUserCohort?: string;
+  enableReportAd?: boolean;
 };
 
 export const GameGridTile = forwardRef<HTMLDivElement, TGameGridTileProps>(
@@ -36,13 +45,21 @@ export const GameGridTile = forwardRef<HTMLDivElement, TGameGridTileProps>(
       hoverStyle,
       topicId,
       isInterestedUniverse,
+      enableExplicitFeedback,
+      isHidden,
+      setIsHidden,
+      toggleIsHidden,
       toggleInterest,
+      page,
+      enableSponsoredFeedback,
+      sponsoredUserCohort,
+      enableReportAd,
       ...props
     }: TGameGridTileProps,
     ref
   ) => {
     if (emphasis) {
-      return <FeaturedGridTile ref={ref} {...props} />;
+      return <FeaturedGridTile ref={ref} componentType={componentType} {...props} />;
     }
 
     return (
@@ -57,7 +74,15 @@ export const GameGridTile = forwardRef<HTMLDivElement, TGameGridTileProps>(
         hoverStyle={hoverStyle}
         topicId={topicId}
         isInterestedUniverse={isInterestedUniverse}
+        enableExplicitFeedback={enableExplicitFeedback}
+        isHidden={isHidden}
+        setIsHidden={setIsHidden}
+        toggleIsHidden={toggleIsHidden}
         toggleInterest={toggleInterest}
+        page={page}
+        enableSponsoredFeedback={enableSponsoredFeedback}
+        sponsoredUserCohort={sponsoredUserCohort}
+        enableReportAd={enableReportAd}
         {...props}
       />
     );

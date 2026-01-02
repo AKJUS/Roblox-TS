@@ -10,8 +10,10 @@ import {
   TPresence,
   TOnlineFriendType,
   TGetNewFriendRequestsCountResponse,
-  TProfile
+  TProfile,
+  TGetTrustedConnectionStatusResponse
 } from '../types/friendsCarouselTypes';
+import canAccessTCIndicatorViaAmp from '../../../../js/react/friends/util/tcIndicatorUtil';
 
 const getFriendsCount = async (userId: number): Promise<TGetFriendsCountResponse> => {
   const urlConfig = {
@@ -65,6 +67,19 @@ const getProfiles = async (userIds: number[]): Promise<TGetProfilesResponse> => 
   return data;
 };
 
+const getTrustedConnectionStatus = async (
+  targetUserId: number
+): Promise<TGetTrustedConnectionStatusResponse> => {
+  const urlConfig = {
+    url: `${EnvironmentUrls.friendsApi}/v1/my/trusted-friends/${targetUserId}/status`,
+    retryable: true,
+    withCredentials: true
+  };
+
+  const { data }: { data: TGetTrustedConnectionStatusResponse } = await httpService.get(urlConfig);
+  return data;
+};
+
 const getFriends = async (userId: number, isOwnUser: boolean): Promise<TFriend[]> => {
   const onlineFriendsResponse = isOwnUser ? (await getAllOnlineFriends(userId)).data : [];
   onlineFriendsResponse.sort((friend1: TOnlineFriendType, friend2: TOnlineFriendType): number => {
@@ -96,27 +111,32 @@ const getFriends = async (userId: number, isOwnUser: boolean): Promise<TFriend[]
   const friendProfilesMap = new Map<number, TProfile>(
     friendProfiles.map(profile => [profile.userId, profile])
   );
+  const canAccessTCIndicatorViaAmpStatus = await canAccessTCIndicatorViaAmp();
 
-  const friends: TFriend[] = [];
-
-  friendIds.forEach(id => {
-    const isOnline = presenceMapping.has(id);
-    const presence: TPresence = {
-      isOnline,
-      isInGame: isOnline && presenceMapping.get(id)?.UserPresenceType === 'InGame',
-      lastLocation: isOnline ? presenceMapping.get(id)?.lastLocation : undefined,
-      gameId: isOnline ? presenceMapping.get(id)?.gameInstanceId : undefined,
-      universeId: isOnline ? presenceMapping.get(id)?.universeId : undefined,
-      placeId: isOnline ? presenceMapping.get(id)?.placeId : undefined
-    };
-    const friend = friendProfilesMap.get(id);
-    friends.push({
-      id,
-      combinedName: friend?.names.combinedName,
-      presence,
-      hasVerifiedBadge: friend?.isVerified ?? false
-    });
-  });
+  const friends: TFriend[] = await Promise.all(
+    friendIds.map(async id => {
+      const isOnline = presenceMapping.has(id);
+      const presence: TPresence = {
+        isOnline,
+        isInGame: isOnline && presenceMapping.get(id)?.UserPresenceType === 'InGame',
+        lastLocation: isOnline ? presenceMapping.get(id)?.lastLocation : undefined,
+        gameId: isOnline ? presenceMapping.get(id)?.gameInstanceId : undefined,
+        universeId: isOnline ? presenceMapping.get(id)?.universeId : undefined,
+        placeId: isOnline ? presenceMapping.get(id)?.placeId : undefined
+      };
+      const trustedConnectionStatus = canAccessTCIndicatorViaAmpStatus
+        ? await getTrustedConnectionStatus(id)
+        : { status: 'Invalid' };
+      const friend = friendProfilesMap.get(id);
+      return {
+        id,
+        combinedName: friend?.names.combinedName,
+        presence,
+        hasVerifiedBadge: friend?.isVerified ?? false,
+        isTrustedConnection: trustedConnectionStatus.status === 'TrustedFriends'
+      };
+    })
+  );
 
   return friends;
 };
@@ -135,5 +155,6 @@ const getNewFriendRequestsCount = async (): Promise<number> => {
 export default {
   getFriendsCount,
   getFriends,
-  getNewFriendRequestsCount
+  getNewFriendRequestsCount,
+  getTrustedConnectionStatus
 };

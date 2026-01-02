@@ -19,7 +19,8 @@ const ParentalRequestContainer = ({
   onHidecallback,
   isPrologueUsed,
   value = null,
-  expChildModalType = null
+  expChildModalType = null,
+  source
 }: {
   translate: WithTranslationsProps['translate'];
   recourse: RecourseResponse;
@@ -27,6 +28,7 @@ const ParentalRequestContainer = ({
   isPrologueUsed: boolean;
   value: Record<string, string> | null;
   expChildModalType?: ExpNewChildModal;
+  source?: string;
 }): JSX.Element => {
   const { emailSentConfirmation } = parentalRequestConstants.translationKeys;
   const { action: recourseAction, parentConsentTypes } = recourse;
@@ -123,6 +125,7 @@ const ParentalRequestContainer = ({
           value={value}
           expChildModalType={expChildModalType}
           isPrologueUsed={isPrologueUsed}
+          source={source}
         />
       )}
       {confirmationModal}

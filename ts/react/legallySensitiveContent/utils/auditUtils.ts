@@ -222,7 +222,8 @@ export const getAuditDataForConsent = (
  */
 export const getAuditHeaderPayload = (
   auditData: TAuditData[],
-  surface: string
+  surface: string,
+  additionalContextualData?: Record<string, any>
 ): TAuditHeaderPayload => {
   const auditHeaderPayload = {
     content: auditData.reduce(
@@ -235,8 +236,8 @@ export const getAuditHeaderPayload = (
       }),
       {}
     ),
-
-    surface
+    surface,
+    ...additionalContextualData
   };
 
   return auditHeaderPayload;
@@ -249,8 +250,12 @@ export const getAuditHeaderPayload = (
  * @param {string} surface - The surface of the audit data
  * @returns {string} base64 url-safe encoded audit header value
  */
-export const getEncodedAuditHeader = (auditData: TAuditData[], surface: string): string => {
-  const auditHeaderPayload = getAuditHeaderPayload(auditData, surface);
+export const getEncodedAuditHeader = (
+  auditData: TAuditData[],
+  surface: string,
+  additionalContextualData?: Record<string, any>
+): string => {
+  const auditHeaderPayload = getAuditHeaderPayload(auditData, surface, additionalContextualData);
   const json = JSON.stringify(auditHeaderPayload);
   const encodedHeaderValue = cryptoUtil.stringToUrlSafeBase64(json);
 

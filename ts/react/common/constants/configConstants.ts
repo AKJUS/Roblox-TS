@@ -50,12 +50,17 @@ export const common = {
     enter: 'Enter',
     escape: 'Escape'
   },
-  RatingPercentageText: 'Label.RatingPercentage'
+  RatingPercentageText: 'Label.RatingPercentage',
+  NoMatchingEventContextFoundCounterEvent: 'NoMatchingEventContextFound',
+  NoMatchingSessionInfoTypeFoundCounterEvent: 'NoMatchingSessionInfoTypeFound'
 };
 
 export const gameSearchPage = {
   // when 10% of pixels on sentinel tile are visible, load more data
-  sentinelTileIntersectionThreshold: 0.1
+  sentinelTileIntersectionThreshold: 0.1,
+  unknownTopicId: 'Unknown',
+  omniSearchEndpointErrorEvent: 'OmniSearchEndpointError',
+  omniSearchEndpointSuccessEvent: 'OmniSearchEndpointSuccess'
 };
 
 export const surveyLocation = {
@@ -78,9 +83,26 @@ export const sortDetailPage = {
   mismatchedSongsSortMergeError: 'MismatchedSongsSortMergeError'
 };
 
+export const userSignal = {
+  ExplicitFeedbackUnexpectedAppPageCounterEvent: 'ExplicitFeedbackUnexpectedAppPage',
+  ExplicitFeedbackMissingAppPageCounterEvent: 'ExplicitFeedbackMissingAppPage',
+  ExplicitFeedbackMissingTopicIdCounterEvent: 'ExplicitFeedbackMissingTopicId',
+  ExplicitFeedbackUserSignalFailedCounterEvent: 'ExplicitFeedbackUserSignalFailed',
+  ExplicitFeedbackSignalStateRevertFailedDueToMissingToggle:
+    'ExplicitFeedbackSignalStateRevertFailedDueToMissingToggle',
+  ExplicitFeedbackDisabledDueToMissingSetter: 'ExplicitFeedbackDisabledDueToMissingSetter',
+  HiddenStateUndoFailedDueToMissingSetter: 'HiddenStateUndoFailedDueToMissingSetter'
+};
+
 export const errorContainer = {
   retryText: 'Action.Retry', // CommonUI.Controls
   somethingWentWrongText: 'Response.SomethingWentWrong' // CommonUI.Messages
+};
+
+export const gameTile = {
+  UnsupportedMenuItemCounterEvent: 'UnsupportedMenuItem',
+  ReportAdDisabledDueToMissingEncryptedAdTrackingData:
+    'ReportAdDisabledDueToMissingEncryptedAdTrackingData'
 };
 
 export default {

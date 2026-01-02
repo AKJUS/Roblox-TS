@@ -18,7 +18,8 @@ export default function createTransactionFailureModal() {
           body,
           thumbnail: <span className='icon-warning-orange-150x150' />,
           neutralButtonText: translate(resources.okAction),
-          onNeutral: onDecline
+          onNeutral: onDecline,
+          actionButtonShow: false
         }}
       />
     );

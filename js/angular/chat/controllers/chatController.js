@@ -2924,12 +2924,6 @@ function chatController(
         })
         .catch(error => {
           $log.debug(error);
-        }),
-      contactsService
-        .getContactsMetaData()
-        .then(() => {})
-        .catch(error => {
-          $log.debug(error);
         })
     ];
     return Promise.all(promises);

@@ -85,10 +85,26 @@ export function simulateEscapeKeyEvent(
 }
 
 function informParentOfCancelEvent(): void {
-  if (window.chrome?.webview) {
-    window.chrome.webview.postMessage(
-      JSON.stringify({ type: "navigation", action: "navigateBack" }),
-    );
+  try {
+    if (window.chrome?.webview) {
+      window.chrome.webview.postMessage(
+        JSON.stringify({ type: "navigation", action: "navigateBack" }),
+      );
+    }
+  } catch (error) {
+    console.error("Error informing parent of cancel event:", error);
+  }
+}
+
+function informParentOfInputFieldFocusedEvent(): void {
+  try {
+    if (window.chrome?.webview) {
+      window.chrome.webview.postMessage(
+        JSON.stringify({ type: "navigation", action: "inputFieldFocused" }),
+      );
+    }
+  } catch (error) {
+    console.error("Error informing parent of input field focused event:", error);
   }
 }
 
@@ -118,4 +134,24 @@ export function handleCancelPressed() {
       informParentOfCancelEvent();
     }
   }, 50);
+}
+
+export function handleActionPressed() {
+  const overlayedElement = getCurrentOverlayedElement();
+  if (overlayedElement) {
+    overlayedElement.focus();
+
+    // This is a workaround for resolving a Microsoft bug where the keyboard
+    // would not appear unless the handheld device is touched.
+    // TODO(UBIQUITY-2295): Remove this hack.
+    if (
+      overlayedElement instanceof HTMLInputElement ||
+      overlayedElement instanceof HTMLTextAreaElement ||
+      overlayedElement.isContentEditable
+    ) {
+      informParentOfInputFieldFocusedEvent();
+    }
+
+    overlayedElement.click();
+  }
 }

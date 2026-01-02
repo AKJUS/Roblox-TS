@@ -27,7 +27,6 @@ import * as guac from "@rbx/core-scripts/guac";
 import * as hybrid from "@rbx/core-scripts/hybrid";
 import * as localStorageService from "@rbx/core-scripts/local-storage";
 import * as localStorageKeys from "@rbx/core-scripts/local-storage/keys";
-import * as metrics from "@rbx/core-scripts/metrics";
 import * as paymentsFlow from "@rbx/core-scripts/payments-flow";
 import * as chat from "@rbx/core-scripts/util/chat";
 import * as defer from "@rbx/core-scripts/util/defer";
@@ -36,8 +35,8 @@ import * as upsell from "@rbx/core-scripts/util/upsell";
 import * as user from "@rbx/core-scripts/util/user";
 import * as CoreUtilities from "@rbx/core-scripts/legacy/core-utilities";
 import * as CoreRobloxUtilities from "@rbx/core-scripts/legacy/core-roblox-utilities";
-import * as directionalNavigation from "./src/directional-navigation";
 
+import * as directionalNavigation from "./src/directional-navigation";
 import heartbeatInit from "./src/pageHeartbeat";
 
 // Side-effect only import (singleton interceptor that applies bound auth tokens to all jQuery
@@ -71,6 +70,8 @@ const localizeAllLinks = () => {
 
 const rewriteDynamicLinksOnClick = () => {
   // Don't turn into arrow function, it changes the behavior of 'this'
+  // TODO: old, migrated code
+  // eslint-disable-next-line prefer-arrow-callback
   $("body").on("click", "a", function onClick() {
     // @ts-expect-error `this` is assumed to be an `HTMLAnchorElement`
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
@@ -121,12 +122,10 @@ addLegacyExternal(["Roblox", "Guac"], guac);
 addExternal(["Roblox", "core-scripts", "hybrid"], hybrid);
 addExternal(["Roblox", "core-scripts", "localStorage", "localStorage"], localStorageService);
 addExternal(["Roblox", "core-scripts", "localStorage", "keys"], localStorageKeys);
-addExternal(["Roblox", "core-scripts", "metrics"], metrics);
 addExternal(["Roblox", "core-scripts", "paymentsFlow"], paymentsFlow);
 addExternal(["Roblox", "core-scripts", "util", "chat"], chat);
 addExternal(["Roblox", "core-scripts", "util", "elementVisibility"], elementVisibility);
 addExternal(["Roblox", "core-scripts", "util", "upsell"], upsell);
-// eslint-disable-next-line @typescript-eslint/no-deprecated
 addExternal(["Roblox", "core-scripts", "util", "user"], user);
 
 addExternal("CoreRobloxUtilities", { ...CoreRobloxUtilities });
@@ -138,9 +137,7 @@ addLegacyExternal(["Roblox", "DeepLinkService"], {
 addLegacyExternal(["Roblox", "ShareLinks"], deepLink.ShareLinks);
 addLegacyExternal(["Roblox", "ShareLinksType"], deepLink.ShareLinksType);
 
-heartbeatInit().catch(() => {
-  // do nothing for now
-});
+heartbeatInit();
 
 try {
   CoreRobloxUtilities.initializeGenericChallengeInterceptor();

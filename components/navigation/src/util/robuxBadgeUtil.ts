@@ -1,17 +1,17 @@
-import { localStorageService } from '@rbx/core-scripts/legacy/core-roblox-utilities';
-import { CurrentUser } from '@rbx/core-scripts/legacy/Roblox';
-import RobuxBadgeType from '../constants/robuxBadgeConstants';
+import { localStorageService } from "@rbx/core-scripts/legacy/core-roblox-utilities";
+import { CurrentUser } from "@rbx/core-scripts/legacy/Roblox";
+import RobuxBadgeType from "../constants/robuxBadgeConstants";
 
 export const mapRobuxBadgeTypeToLocalStorageKey = (robuxBadgeType: string): string => {
   switch (robuxBadgeType) {
     case RobuxBadgeType.VIRTUAL_ITEM:
-      return `prevLocalVirtualItemStartTimeSeconds${CurrentUser?.userId ?? ''}`;
+      return `prevLocalVirtualItemStartTimeSeconds${CurrentUser?.userId ?? ""}`;
     case RobuxBadgeType.UPDATE:
-      return 'hasSeenRobuxUpdate';
+      return "hasSeenRobuxUpdate";
     case RobuxBadgeType.PERSONALIZED_BONUS_ITEMS:
-      return 'hasSeenRobuxPersonalizedBonusItems';
+      return "hasSeenRobuxPersonalizedBonusItems";
     default:
-      return '';
+      return "";
   }
 };
 
@@ -19,11 +19,11 @@ export const mapRobuxBadgeTypeToStr = (robuxBadgeType: string): string => {
   switch (robuxBadgeType) {
     case RobuxBadgeType.VIRTUAL_ITEM:
     case RobuxBadgeType.PERSONALIZED_BONUS_ITEMS:
-      return 'Labels.NewItem';
+      return "Labels.NewItem";
     case RobuxBadgeType.UPDATE:
-      return 'Labels.NewUpdate';
+      return "Labels.NewUpdate";
     default:
-      return '';
+      return "";
   }
 };
 
@@ -36,7 +36,7 @@ export const setRobuxBadgeLocalStorage = (robuxBadgeType: string): void => {
       break;
     case RobuxBadgeType.UPDATE:
     case RobuxBadgeType.PERSONALIZED_BONUS_ITEMS:
-      localStorageService.setLocalStorage(localStorageKey, 'true');
+      localStorageService.setLocalStorage(localStorageKey, "true");
       break;
     default:
   }
@@ -50,9 +50,9 @@ export const getRobuxBadgeLocalStorage = (robuxBadgeType: string): any => {
 };
 
 export const shouldShowRobuxUpdateBadge = (): string => {
-  if (getRobuxBadgeLocalStorage(RobuxBadgeType.PERSONALIZED_BONUS_ITEMS) !== 'true') {
+  if (getRobuxBadgeLocalStorage(RobuxBadgeType.PERSONALIZED_BONUS_ITEMS) !== "true") {
     return RobuxBadgeType.PERSONALIZED_BONUS_ITEMS;
   }
 
-  return '';
+  return "";
 };

@@ -1,14 +1,21 @@
+import {
+  ContentType as ContentTypeEnum,
+  parseEventParams as parseEventParamsUnifiedLogging
+} from '@rbx/unified-logging';
 import { eventStreamService } from 'core-roblox-utilities';
-import { parseEventParams } from '../utils/parsingUtils';
+import { uuidService } from 'core-utilities';
+import { getEventContext, parseEventParams } from '../utils/parsingUtils';
 import { AttributionType, getAttributionId } from '../utils/attributionUtils';
 import { getHttpReferrer } from '../utils/browserUtils';
 import { PageContext } from '../types/pageContext';
+import { GameTileOverflowMenuItems } from '../types/gameTileOverflowMenuItems';
 
 const {
   eventTypes: { pageLoad, formInteraction }
 } = eventStreamService;
 
 export enum EventStreamMetadata {
+  ActionType = 'actionType',
   AbsPositions = 'absPositions',
   AdsPositions = 'adsPositions',
   AdFlags = 'adFlags',
@@ -16,15 +23,20 @@ export enum EventStreamMetadata {
   AppliedFilters = 'appliedFilters',
   AttributionId = 'attributionId',
   ComponentType = 'componentType',
+  ContentType = 'contentType',
   Direction = 'direction',
   Distance = 'distance',
   HttpReferrer = 'httpReferrer',
   EmphasisFlag = 'emphasisFlag',
   FilterId = 'filterId',
   FilterIds = 'filterIds',
+  FooterTextLiterals = 'footerTextLiterals',
+  FooterLocalizationKeys = 'footerLocalizationKeys',
   GameSetTargetId = 'gameSetTargetId',
   GameSetTypeId = 'gameSetTypeId',
+  HeroUnitId = 'heroUnitId',
   InteractionType = 'interactionType',
+  InteractionUuid = 'interactionUuid',
   IsAd = 'isAd',
   NativeAdData = 'nativeAdData',
   AdIds = 'adIds',
@@ -71,13 +83,17 @@ export enum EventStreamMetadata {
   ThumbnailListIds = 'thumbnailListIds',
   LinkPath = 'linkPath',
   LocationName = 'locationName',
+  RowOnPage = 'rowOnPage',
   RowsOnPage = 'rowsOnPage',
+  PositionInRow = 'positionInRow',
   PositionsInRow = 'positionsInRow',
   NavigationUids = 'navigationUids',
   TileBadgeContexts = 'tileBadgeContexts',
   ButtonName = 'buttonName',
   IsInterested = 'isInterested',
-  InterestedUniverseIds = 'interestedUniverseIds'
+  InterestedUniverseIds = 'interestedUniverseIds',
+  MenuItem = 'menuItem',
+  AvailableMenuItems = 'availableMenuItems'
 }
 
 export enum EventType {
@@ -91,7 +107,9 @@ export enum EventType {
   InterestCatcherClick = 'interestCatcherClick',
   FilterImpressions = 'filterImpressions',
   GamesFilterClick = 'gamesFilterClick',
-  RequestRefundClick = 'requestRefundClick'
+  RequestRefundClick = 'requestRefundClick',
+  GameTileOverflowMenuAction = 'gameTileOverflowMenuAction',
+  NotInterestedFeedbackFormAction = 'notInterestedFeedbackFormAction'
 }
 
 export enum SessionInfoType {
@@ -158,6 +176,8 @@ type TBaseGameImpressions = {
   [EventStreamMetadata.ThumbnailListIds]?: string[];
   [EventStreamMetadata.NavigationUids]?: string[];
   [EventStreamMetadata.TileBadgeContexts]?: string[];
+  [EventStreamMetadata.FooterTextLiterals]?: string[];
+  [EventStreamMetadata.FooterLocalizationKeys]?: string[];
   [EventStreamMetadata.AppliedFilters]?: string;
   [EventStreamMetadata.ComponentType]?: string;
 };
@@ -247,7 +267,10 @@ export type TSortDetailReferral =
 export type TCommonReferralParams = {
   [EventStreamMetadata.IsAd]?: boolean | string;
   [EventStreamMetadata.NativeAdData]?: string;
+  [EventStreamMetadata.HeroUnitId]?: string;
   [EventStreamMetadata.Position]: number;
+  [EventStreamMetadata.PositionInRow]?: number;
+  [EventStreamMetadata.RowOnPage]?: number;
   [EventStreamMetadata.SortPos]?: number;
   [EventStreamMetadata.NumberOfLoadedTiles]?: number;
   [EventStreamMetadata.GameSetTypeId]?: number | string;
@@ -270,6 +293,9 @@ export type TCommonReferralParams = {
 
 export type TGameDetailReferral =
   | (TCommonReferralParams & {
+      [EventStreamMetadata.ContentType]?: string;
+      [EventStreamMetadata.ActionType]?: string;
+      [EventStreamMetadata.InteractionUuid]?: string;
       [EventStreamMetadata.PlaceId]: number;
       [EventStreamMetadata.UniverseId]: number;
       [EventStreamMetadata.GameSetTargetId]?: number;
@@ -370,6 +396,38 @@ export type TGamesFilterClick =
     }
   | {};
 
+export enum GameTileOverflowMenuActionType {
+  GameTileOverflowMenuItemOpened = 'GameTileOverflowMenuItemOpened',
+  GameTileOverflowMenuItemClosed = 'GameTileOverflowMenuItemClosed',
+  GameTileOverflowMenuItemActivated = 'GameTileOverflowMenuItemActivated'
+}
+
+export type TGameTileOverflowMenuAction =
+  | {
+      [EventStreamMetadata.UniverseId]: string;
+      [EventStreamMetadata.SortId]?: string;
+      [EventStreamMetadata.ActionType]: GameTileOverflowMenuActionType;
+      [EventStreamMetadata.MenuItem]?: GameTileOverflowMenuItems;
+      [EventStreamMetadata.AvailableMenuItems]?: string[];
+      [SessionInfoType.HomePageSessionInfo]?: string;
+    }
+  | {};
+
+export enum NotInterestedFeedbackFormActionType {
+  NotInterestedFeedbackFormOpened = 'NotInterestedFeedbackFormOpened',
+  NotInterestedFeedbackFormClosedWithoutSubmit = 'NotInterestedFeedbackFormClosedWithoutSubmit',
+  NotInterestedFeedbackFormSubmitted = 'NotInterestedFeedbackFormSubmitted'
+}
+
+export type TNotInterestedFeedbackFormAction =
+  | {
+      [EventStreamMetadata.UniverseId]: string;
+      [EventStreamMetadata.SortId]?: string;
+      [EventStreamMetadata.ActionType]: NotInterestedFeedbackFormActionType;
+      [SessionInfoType.HomePageSessionInfo]?: string;
+    }
+  | {};
+
 export default {
   [EventType.GameImpressions]: ({ ...params }: TGameImpressions): TEvent => [
     {
@@ -390,6 +448,9 @@ export default {
     parseEventParams({
       [EventStreamMetadata.AttributionId]: getAttributionId(AttributionType.GameDetailReferral),
       [EventStreamMetadata.HttpReferrer]: getHttpReferrer(),
+      [EventStreamMetadata.ContentType]: ContentTypeEnum.Game,
+      [EventStreamMetadata.ActionType]: 'OpenGameDetails',
+      [EventStreamMetadata.InteractionUuid]: uuidService.generateRandomUuid(),
       ...params
     })
   ],
@@ -471,6 +532,32 @@ export default {
     },
     parseEventParams({
       [EventStreamMetadata.PlaceId]: params.placeId
+    })
+  ],
+  [EventType.GameTileOverflowMenuAction]: (
+    params: TGameTileOverflowMenuAction,
+    page?: PageContext
+  ): TEvent => [
+    {
+      name: EventType.GameTileOverflowMenuAction,
+      type: EventType.GameTileOverflowMenuAction,
+      context: getEventContext(page)
+    },
+    parseEventParamsUnifiedLogging({
+      ...params
+    })
+  ],
+  [EventType.NotInterestedFeedbackFormAction]: (
+    params: TNotInterestedFeedbackFormAction,
+    page?: PageContext
+  ): TEvent => [
+    {
+      name: EventType.NotInterestedFeedbackFormAction,
+      type: EventType.NotInterestedFeedbackFormAction,
+      context: getEventContext(page)
+    },
+    parseEventParamsUnifiedLogging({
+      ...params
     })
   ]
 };

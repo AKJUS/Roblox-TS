@@ -2,30 +2,29 @@ import { TranslateFunction } from 'react-utilities';
 import { useEffect } from 'react';
 import { IModalService } from 'react-style-guide';
 import { useSelector } from 'react-redux';
+import { TFeatureSpecificData } from 'Roblox';
 import { Recourse, UpsellStage } from '../../enums';
 import ExpNewChildModal from '../../enums/ExpNewChildModal';
-import {
-  setVerificationStageRecourse,
-  setStage,
-  selectFeatureAccess
-} from '../accessManagementSlice';
+import { setStage, selectFeatureAccess } from '../accessManagementSlice';
 import { useAppDispatch } from '../../store';
 import VpcPrologue from './DefaultPrologue/VpcPrologue';
 import IdvAndVpcPrologue from './DefaultPrologue/IdvAndVpcPrologue';
 import IdvPrologue from './DefaultPrologue/IdvPrologue';
+import FaePrologue from './DefaultPrologue/FaePrologue';
 
 const Prologue = ({
   translate,
   onHide,
   recourseParameters,
-  expChildModalType
+  expChildModalType,
+  featureSpecificParams
 }: {
   translate: TranslateFunction;
   onHide: () => void;
   recourseParameters?: Record<string, string> | null;
   expChildModalType?: ExpNewChildModal;
+  featureSpecificParams?: TFeatureSpecificData;
 }): JSX.Element => {
-  // Trigger the opening of the error modal in response to a user action or effect
   const dispatch = useAppDispatch();
   let [prologueModal, prologueModelService]: [JSX.Element, IModalService] = [null, null];
 
@@ -42,13 +41,22 @@ const Prologue = ({
           translate,
           onHide,
           recourseParameters,
-          expChildModalType
+          expChildModalType,
+          source: featureSpecificParams?.source
         });
         break;
       case Recourse.GovernmentId:
         [prologueModal, prologueModelService] = IdvPrologue({
           translate,
           onHide
+        });
+        break;
+      case Recourse.AgeEstimation:
+        [prologueModal, prologueModelService] = FaePrologue({
+          translate,
+          onHide,
+          recourseParameters,
+          source: featureSpecificParams?.source
         });
         break;
       default:

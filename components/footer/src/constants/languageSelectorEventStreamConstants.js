@@ -1,21 +1,21 @@
-import { eventStreamService } from '@rbx/core-scripts/legacy/core-roblox-utilities';
+import { eventStreamService } from "@rbx/core-scripts/legacy/core-roblox-utilities";
 
 const { eventTypes } = eventStreamService;
 const eventContexts = {
-  localization: 'Localization'
+  localization: "Localization",
 };
 
 export default {
   changeLanguage: {
-    name: 'changeLanguage',
+    name: "changeLanguage",
     type: eventTypes.formInteraction,
     context: eventContexts.localization,
-    requiredParams: ['userId', 'newSupportedLocaleCode', 'previousSupportedLocaleCode']
+    requiredParams: ["userId", "newSupportedLocaleCode", "previousSupportedLocaleCode"],
   },
   changeLanguageModal: {
-    name: 'changeLanguageModal',
+    name: "changeLanguageModal",
     type: eventTypes.formInteraction,
     context: eventContexts.localization,
-    requiredParams: ['userId', 'newSupportedLocaleCode']
-  }
+    requiredParams: ["userId", "newSupportedLocaleCode"],
+  },
 };

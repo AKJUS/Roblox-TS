@@ -16,10 +16,12 @@ import useGameImpressionsIntersectionTracker, {
   TBuildGridGameImpressionsEventProperties
 } from '../../common/hooks/useGameImpressionsIntersectionTracker';
 import {
+  getAbsoluteRowClickData,
   getAbsoluteRowImpressionsData,
   getSponsoredAdImpressionsData,
   getThumbnailAssetIdImpressionsData,
-  getTileBadgeContextsImpressionsData
+  getTileBadgeContextsImpressionsData,
+  getTileFooterImpressionsData
 } from '../../common/utils/parsingUtils';
 import { usePageSession } from '../../common/utils/PageSessionContext';
 import GamesInfoTooltip from '../../common/components/GamesInfoTooltip';
@@ -40,9 +42,15 @@ type THomePageGridDiscoveryApiProps = {
   startingRow: number | undefined;
   isSponsoredFooterAllowed?: boolean;
   hideTileMetadata?: boolean;
-  isExpandHomeContentEnabled?: boolean;
+  isDynamicLayoutSizingEnabled?: boolean;
   isNewSortHeaderEnabled?: boolean;
+  enableExplicitFeedback?: boolean;
+  hiddenUniverses?: Set<number>;
+  setHiddenUniverses?: React.Dispatch<React.SetStateAction<Set<number>>>;
   translate: WithTranslationsProps['translate'];
+  enableSponsoredFeedback?: boolean;
+  sponsoredUserCohort?: string;
+  enableReportAd?: boolean;
 };
 
 export const HomePageGrid = ({
@@ -58,8 +66,14 @@ export const HomePageGrid = ({
   startingRow,
   isSponsoredFooterAllowed,
   hideTileMetadata,
-  isExpandHomeContentEnabled,
+  isDynamicLayoutSizingEnabled,
   isNewSortHeaderEnabled,
+  enableExplicitFeedback,
+  hiddenUniverses,
+  setHiddenUniverses,
+  enableSponsoredFeedback,
+  sponsoredUserCohort,
+  enableReportAd,
   translate
 }: THomePageGridDiscoveryApiProps): JSX.Element => {
   const gridRef = useRef<HTMLDivElement>(null);
@@ -72,6 +86,7 @@ export const HomePageGrid = ({
     [EventStreamMetadata.IsAd]: data.isSponsored,
     [EventStreamMetadata.NativeAdData]: data.nativeAdData,
     [EventStreamMetadata.Position]: id,
+    ...getAbsoluteRowClickData(startingRow, itemsPerRow, id),
     [EventStreamMetadata.SortPos]: positionId,
     [EventStreamMetadata.NumberOfLoadedTiles]: (gameData || []).length,
     [EventStreamMetadata.GameSetTypeId]: sort.topicId,
@@ -99,6 +114,7 @@ export const HomePageGrid = ({
             parsedViewedIndex,
             componentType
           ),
+          ...getTileFooterImpressionsData(gameData, sort.topicId, parsedViewedIndex, componentType),
           [EventStreamMetadata.NavigationUids]: parsedViewedIndex.map(
             id => gameData[id].navigationUid ?? '0'
           ),
@@ -192,7 +208,14 @@ export const HomePageGrid = ({
         hideTileMetadata={hideTileMetadata}
         hoverStyle={hoverStyle}
         topicId={sort.topicId?.toString()}
-        isExpandHomeContentEnabled={isExpandHomeContentEnabled}
+        isDynamicLayoutSizingEnabled={isDynamicLayoutSizingEnabled}
+        enableExplicitFeedback={enableExplicitFeedback}
+        hiddenUniverses={hiddenUniverses}
+        setHiddenUniverses={setHiddenUniverses}
+        page={PageContext.HomePage}
+        enableSponsoredFeedback={enableSponsoredFeedback}
+        sponsoredUserCohort={sponsoredUserCohort}
+        enableReportAd={enableReportAd}
       />
     </div>
   );
@@ -206,7 +229,7 @@ HomePageGrid.defaultProps = {
   itemsPerRow: undefined,
   isSponsoredFooterAllowed: undefined,
   hideTileMetadata: undefined,
-  isExpandHomeContentEnabled: undefined,
+  isDynamicLayoutSizingEnabled: undefined,
   isNewSortHeaderEnabled: undefined
 };
 

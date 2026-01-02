@@ -2,6 +2,7 @@ import React, { forwardRef, MutableRefObject } from 'react';
 import { WithTranslationsProps } from 'react-utilities';
 import classNames from 'classnames';
 import { TBuildEventProperties } from './GameTileUtils';
+import { isWideTileComponentType } from '../utils/parsingUtils';
 import { TGameData, TGetFriendsResponse } from '../types/bedev1Types';
 import {
   TComponentType,
@@ -26,7 +27,7 @@ export type TGameCarouselProps = {
   hideTileMetadata?: boolean;
   hoverStyle?: THoverStyle;
   topicId?: string;
-  isExpandHomeContentEnabled?: boolean;
+  isDynamicLayoutSizingEnabled?: boolean;
 };
 
 export const GameCarousel = forwardRef<HTMLDivElement, TGameCarouselProps>(
@@ -44,7 +45,7 @@ export const GameCarousel = forwardRef<HTMLDivElement, TGameCarouselProps>(
       hideTileMetadata,
       hoverStyle,
       topicId,
-      isExpandHomeContentEnabled,
+      isDynamicLayoutSizingEnabled,
       tileRef
     }: TGameCarouselProps,
     forwardedRef
@@ -52,14 +53,13 @@ export const GameCarousel = forwardRef<HTMLDivElement, TGameCarouselProps>(
     const carouselClassName = classNames(
       'game-carousel',
       {
-        'wide-game-tile-carousel':
-          componentType === TComponentType.GridTile || componentType === TComponentType.EventTile
+        'wide-game-tile-carousel': isWideTileComponentType(componentType)
       },
       {
-        'expand-home-content': isExpandHomeContentEnabled
+        'dynamic-layout-sizing': isDynamicLayoutSizingEnabled
       },
       {
-        'expand-home-content-disabled': !isExpandHomeContentEnabled
+        'dynamic-layout-sizing-disabled': !isDynamicLayoutSizingEnabled
       }
     );
 

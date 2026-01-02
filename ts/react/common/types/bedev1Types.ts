@@ -96,6 +96,10 @@ export type TGameTileTextFooter = {
   text: {
     textLiteral: string;
   };
+  analytics?: {
+    textLiteral?: string;
+    locKey?: string;
+  };
 };
 
 type TGameTileFooter = TGameTileTextFooter;
@@ -109,6 +113,7 @@ export type TGameTilePillData = {
   text?: string;
   icons?: string[];
   animationClass?: string | null;
+  componentType?: TGameTileBadgeComponentType;
 };
 
 export type TLayoutMetadata = {
@@ -121,11 +126,19 @@ export type TLayoutMetadata = {
 
 export type TTileBadgesByPosition = {
   ImageTopLeft?: TTileBadge[];
+  ImageTopRight?: TTileBadge[];
+  ImageBottomLeft?: TTileBadge[];
+  ImageBottomRight?: TTileBadge[];
 };
 
 export enum TGameTileBadgeType {
   Text = 'Text',
   Icon = 'Icon'
+}
+
+export enum TGameTileBadgeComponentType {
+  Pill = 'Pill',
+  RoundedRectangle = 'RoundedRectangle'
 }
 
 export type TTileBadge = {
@@ -134,6 +147,7 @@ export type TTileBadge = {
   text?: string;
   icons?: string[];
   isShimmerEnabled?: boolean;
+  tileBadgeComponentType?: TGameTileBadgeComponentType;
 };
 
 type TLayoutDataBySort = {
@@ -150,6 +164,7 @@ export type TGameData = {
   playerCount: number;
   isSponsored?: boolean;
   nativeAdData?: string;
+  payerName?: string;
   isShowSponsoredLabel?: boolean;
   creatorName: string;
   creatorType: string;
@@ -278,6 +293,10 @@ export type TGetGameDetails = {
   // Subgenre (level 2 genre) from Updated Taxonomy
   // eslint-disable-next-line camelcase
   genre_l2?: string;
+
+  // Untranslated genre (level 1) from Updated Taxonomy
+  // eslint-disable-next-line camelcase
+  untranslated_genre_l1?: string;
 
   gameRating?: TRating;
   isFavoritedByUser: boolean;

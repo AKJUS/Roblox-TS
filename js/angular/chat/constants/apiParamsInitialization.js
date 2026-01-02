@@ -30,6 +30,11 @@ const apiParamsInitialization = {
     keystrokeSampleRate: 1.0
   },
 
+  contactsParams: {
+    multiGetContactsMaxSize: 200,
+    multiGetContactsCacheTTLinMS: 30000
+  },
+
   gameUrls: {
     multiGetPlaceDetails: '/v1/games/multiget-place-details',
     getGamesByUniverseIds: EnvironmentUrls ? `${EnvironmentUrls.gamesApi}/v1/games` : '/v1/games',
@@ -63,13 +68,6 @@ const apiParamsInitialization = {
         ? `${Roblox.EnvironmentUrls.apiGatewayUrl}/platform-chat-api/v1/metadata`
         : '/v1/metadata',
       retryable: false,
-      withCredentials: true
-    },
-    getContactsMetadata: {
-      url: EnvironmentUrls
-        ? `${EnvironmentUrls.contactsApi}/v1/contacts/metadata`
-        : '/v1/contacts/metadata',
-      retryable: true,
       withCredentials: true
     }
   }

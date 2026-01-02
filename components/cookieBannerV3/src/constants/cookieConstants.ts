@@ -1,11 +1,11 @@
-const consentCookieName = 'RBXcb';
+const consentCookieName = "RBXcb";
 const consentExpirationDays = 180;
-const cookieBannerContent = 'Description.CookieBannerContent';
-const declineBtnText = 'Action.DeclineAll';
-const acceptBtnText = 'Action.AcceptAll';
-const privacyPolicy = 'Description.PrivacyPolicy';
-const privacyPolicyLinkPlaceholder = '{privacyPolicyLink}';
-const cookieConsent = 'Action.SetCookieOptions';
+const cookieBannerContent = "Description.CookieBannerContent";
+const declineBtnText = "Action.DeclineAll";
+const acceptBtnText = "Action.AcceptAll";
+const privacyPolicy = "Description.PrivacyPolicy";
+const privacyPolicyLinkPlaceholder = "{privacyPolicyLink}";
+const cookieConsent = "Action.SetCookieOptions";
 
 export default {
   consentCookieName,
@@ -15,5 +15,5 @@ export default {
   acceptBtnText,
   privacyPolicy,
   privacyPolicyLinkPlaceholder,
-  cookieConsent
+  cookieConsent,
 };

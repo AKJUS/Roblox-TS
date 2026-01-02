@@ -1,6 +1,9 @@
+import { EventContext } from '@rbx/unified-logging';
 import { Intl, Presence } from 'Roblox';
+import { fireEvent } from 'roblox-event-tracker';
 import { abbreviateNumber, numberFormat, urlService } from 'core-utilities';
-import { EventStreamMetadata } from '../constants/eventStreamConstants';
+import { EventStreamMetadata, SessionInfoType } from '../constants/eventStreamConstants';
+import { common } from '../constants/configConstants';
 import {
   TFriendVisits,
   TGameData,
@@ -8,11 +11,27 @@ import {
   TLayoutMetadata,
   TMediaLayoutData
 } from '../types/bedev1Types';
-import { TComponentType } from '../types/bedev2Types';
+import { TComponentType, TWideTileComponentType } from '../types/bedev2Types';
+import { PageContext } from '../types/pageContext';
+import { getGameLayoutData } from '../hooks/useGetGameLayoutData';
 
 export const GAME_STATS_PLACEHOLDER_STRING = '--';
 
 export const dateTimeFormatter = new Intl().getDateTimeFormatter();
+
+/**
+ * Type guard function to check whether a component type is a wide tile component type.
+ */
+export const isWideTileComponentType = (
+  componentType: TComponentType | undefined
+): componentType is TWideTileComponentType => {
+  return (
+    componentType === TComponentType.GridTile ||
+    componentType === TComponentType.EventTile ||
+    componentType === TComponentType.InterestTile ||
+    componentType === TComponentType.ExperienceEventsTile
+  );
+};
 
 export const getInGameFriends = (
   friendData: TGetFriendsResponse[],
@@ -201,11 +220,7 @@ export const getThumbnailAssetIdImpressionsData = (
   impressedIndexes: number[],
   componentType?: TComponentType
 ): TGameImpressionsEventThumbnailIdData | {} => {
-  if (
-    componentType === TComponentType.GridTile ||
-    componentType === TComponentType.EventTile ||
-    componentType === TComponentType.InterestTile
-  ) {
+  if (isWideTileComponentType(componentType)) {
     return {
       [EventStreamMetadata.ThumbnailAssetIds]: impressedIndexes.map(
         index => getThumbnailOverrideAssetId(gameData[index], topicId.toString()) ?? '0'
@@ -217,6 +232,74 @@ export const getThumbnailAssetIdImpressionsData = (
   }
 
   return {};
+};
+
+const extractFooterAnalytics = (
+  layoutData: TLayoutMetadata | undefined
+): {
+  textLiteral: string;
+  localizationKey: string;
+} => {
+  return {
+    textLiteral: layoutData?.footer?.analytics?.textLiteral ?? '0',
+    localizationKey: layoutData?.footer?.analytics?.locKey ?? '0'
+  };
+};
+
+export type TGameImpressionsTileFooterData = {
+  [EventStreamMetadata.FooterTextLiterals]: string[];
+  [EventStreamMetadata.FooterLocalizationKeys]: string[];
+};
+
+export const getTileFooterImpressionsData = (
+  gameData: TGameData[],
+  topicId: number | string,
+  impressedIndexes: number[],
+  componentType: TComponentType | undefined
+): TGameImpressionsTileFooterData | {} => {
+  if (!isWideTileComponentType(componentType)) {
+    return {};
+  }
+
+  const textLiterals: string[] = [];
+  const localizationKeys: string[] = [];
+
+  let hasTextLiteral = false;
+  let hasLocalizationKey = false;
+
+  impressedIndexes.forEach(index => {
+    if (gameData[index]) {
+      const topicIdString = topicId ? topicId.toString() : undefined;
+
+      const layoutData = getGameLayoutData(gameData[index], topicIdString);
+
+      const { textLiteral, localizationKey } = extractFooterAnalytics(layoutData);
+
+      textLiterals.push(textLiteral);
+      localizationKeys.push(localizationKey);
+
+      // Only add the fields to the event if there is at least one non-zero value
+      if (textLiteral !== '0') {
+        hasTextLiteral = true;
+      }
+      if (localizationKey !== '0') {
+        hasLocalizationKey = true;
+      }
+    }
+  });
+
+  return {
+    ...(hasTextLiteral
+      ? {
+          [EventStreamMetadata.FooterTextLiterals]: textLiterals
+        }
+      : {}),
+    ...(hasLocalizationKey
+      ? {
+          [EventStreamMetadata.FooterLocalizationKeys]: localizationKeys
+        }
+      : {})
+  };
 };
 
 export type TGameImpressionsEventTileBadgeContextsData = {
@@ -260,17 +343,56 @@ export const getTileBadgeContextsImpressionsData = (
   impressedIndexes: number[],
   componentType?: TComponentType
 ): TGameImpressionsEventTileBadgeContextsData | {} => {
-  if (
-    componentType === TComponentType.GridTile ||
-    componentType === TComponentType.EventTile ||
-    componentType === TComponentType.InterestTile
-  ) {
+  if (isWideTileComponentType(componentType)) {
     return {
       [EventStreamMetadata.TileBadgeContexts]: impressedIndexes.map(
         index => getTileBadgeContext(gameData[index], topicId.toString()) ?? '0'
       )
     };
   }
+  return {};
+};
+
+const calculateAbsoluteRowData = (
+  startingRow: number,
+  itemsPerRow: number,
+  index: number
+): {
+  positionInRow: number;
+  rowOnPage: number;
+} => {
+  const rowOnPage = startingRow + Math.floor(index / itemsPerRow);
+  const positionInRow = index % itemsPerRow;
+
+  return {
+    positionInRow,
+    rowOnPage
+  };
+};
+
+type TGameDetailReferralEventAbsoluteRowData = {
+  [EventStreamMetadata.RowOnPage]: number;
+  [EventStreamMetadata.PositionInRow]: number;
+};
+
+export const getAbsoluteRowClickData = (
+  startingRow: number | undefined,
+  itemsPerRow: number | undefined,
+  clickedIndex: number
+): TGameDetailReferralEventAbsoluteRowData | {} => {
+  if (startingRow !== undefined && itemsPerRow !== undefined) {
+    const { positionInRow, rowOnPage } = calculateAbsoluteRowData(
+      startingRow,
+      itemsPerRow,
+      clickedIndex
+    );
+
+    return {
+      [EventStreamMetadata.RowOnPage]: rowOnPage,
+      [EventStreamMetadata.PositionInRow]: positionInRow
+    };
+  }
+
   return {};
 };
 
@@ -289,11 +411,14 @@ export const getAbsoluteRowImpressionsData = (
     const rowsOnPage: number[] = [];
     const positionsInRow: number[] = [];
     impressedIndexes.forEach(impressedIndex => {
-      const rowNumber = startingRow + Math.floor(impressedIndex / itemsPerRow);
-      const positionInRow = impressedIndex % itemsPerRow;
+      const { positionInRow, rowOnPage } = calculateAbsoluteRowData(
+        startingRow,
+        itemsPerRow,
+        impressedIndex
+      );
 
-      rowsOnPage.push(rowNumber);
       positionsInRow.push(positionInRow);
+      rowsOnPage.push(rowOnPage);
     });
 
     return {
@@ -383,6 +508,41 @@ export const getInputUniverseIdsRequestParam = (
   return {};
 };
 
+// converts a PageContext to an EventContext to get a ctx that matches app ctx
+export const getEventContext = (pageContext?: PageContext): EventContext | string => {
+  switch (pageContext) {
+    case PageContext.HomePage:
+      return EventContext.Home;
+    case PageContext.GamesPage:
+      return EventContext.Games;
+    case PageContext.SpotlightPage:
+      return EventContext.Spotlight;
+    default:
+      fireEvent(common.NoMatchingEventContextFoundCounterEvent);
+      return 'UNKNOWN';
+  }
+};
+
+export const getSessionInfoTypeFromPageContext = (
+  pageContext?: PageContext
+): SessionInfoType | null => {
+  switch (pageContext) {
+    case PageContext.HomePage:
+      return SessionInfoType.HomePageSessionInfo;
+    case PageContext.SearchPage:
+      return SessionInfoType.GameSearchSessionInfo;
+    case PageContext.GamesPage:
+      return SessionInfoType.DiscoverPageSessionInfo;
+    case PageContext.SearchLandingPage:
+      return SessionInfoType.SearchLandingPageSessionInfo;
+    case PageContext.SpotlightPage:
+      return SessionInfoType.SpotlightPageSessionInfo;
+    default:
+      fireEvent(common.NoMatchingSessionInfoTypeFoundCounterEvent);
+      return null;
+  }
+};
+
 export default {
   capitalize,
   parseEventParams,
@@ -397,9 +557,12 @@ export default {
   getSponsoredAdImpressionsData,
   getThumbnailAssetIdImpressionsData,
   getTileBadgeContextsImpressionsData,
+  getTileFooterImpressionsData,
+  getAbsoluteRowClickData,
   calculateImpressedIndexes,
   splitArray,
   GAME_STATS_PLACEHOLDER_STRING,
   getQueryParamIfString,
-  getInputUniverseIdsRequestParam
+  getInputUniverseIdsRequestParam,
+  isWideTileComponentType
 };

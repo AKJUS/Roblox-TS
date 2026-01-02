@@ -34,6 +34,7 @@ export enum PathPart {
   Group = "group",
   ExternalWebUrl = "external_web_link",
   SecurityAlert = "security_alert",
+  Fae = "fae",
 }
 
 export enum ItemType {
@@ -41,6 +42,14 @@ export enum ItemType {
   Bundle = "Bundle",
   Look = "Look",
 }
+
+export const AmpFeatureName = {
+  Fae: "TriggerAgeVerifyRecourse",
+};
+
+export const AmpNamespace = {
+  Fae: "social/Upsells",
+};
 
 export const ItemTypePathMap: Record<string, string> = {
   [ItemType.Asset]: "/catalog",

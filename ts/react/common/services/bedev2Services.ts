@@ -24,8 +24,18 @@ import {
   TLandingPageResponse,
   TCanUserManagePlaceRequestBody,
   TCanUserManagePlaceResponse,
-  TPrivateServerSettingsResponse
+  TPrivateServerSettingsResponse,
+  TSortIdMapping,
+  TOmniSearchTextDataModel
 } from '../types/bedev2Types';
+import {
+  TUserSignalType,
+  TUserSignalValueType,
+  TUserSignalValue,
+  TUserSignalEntity,
+  TPostUserSignalRequestBody,
+  TPostUserSignalResponse
+} from '../types/userSignalTypes';
 import { TPageType } from '../types/bedev1Types';
 import { TDeviceFeatures } from '../utils/deviceFeaturesUtils';
 import { getInputUniverseIdsRequestParam } from '../utils/parsingUtils';
@@ -58,14 +68,14 @@ const getExperimentationValues = async <T extends Record<string, number | string
 export const getLandingPageData = async (
   pageSlug: string,
   sessionId: string,
-  deviceFeatures?: TDeviceFeatures
+  languageCode?: string
 ): Promise<TLandingPageResponse> => {
   const params = {
     pageSlug,
     sessionId,
-    ...deviceFeatures
+    languageCode
   };
-  const { data } = await httpService.post<TLandingPageResponse>(
+  const { data } = await httpService.get<TLandingPageResponse>(
     bedev2Constants.url.getLandingPageData(),
     params
   );
@@ -140,15 +150,23 @@ export const getOmniSearch = async (
   );
 
   const gamesList: TOmniSearchGameDataModel[] = [];
+  const textList: TOmniSearchTextDataModel[] = [];
+  const gameTopicIds: Set<string> = new Set();
 
   if (data && data.searchResults && data.searchResults.length > 0) {
     data.searchResults.forEach(contentGroup => {
-      // 08/31/22 Currently the backend only returns the "Game" content type.
+      // Currently the backend only returns the "Game" and "Text" content types.
       // Future content types can be added here for parsing.
       if (contentGroup.contentGroupType === TOmniSearchContentType.Game) {
         const contents = contentGroup.contents as TOmniSearchGameDataModel[];
         contents.forEach(item => {
           gamesList.push(item);
+        });
+        gameTopicIds.add(contentGroup.topicId);
+      } else if (contentGroup.contentGroupType === TOmniSearchContentType.Text) {
+        const contents = contentGroup.contents as TOmniSearchTextDataModel[];
+        contents.forEach(item => {
+          textList.push({ ...item, topicId: contentGroup.topicId });
         });
       }
     });
@@ -158,7 +176,10 @@ export const getOmniSearch = async (
     paginationMethod: data.paginationMethod,
     filteredSearchQuery: data.filteredSearchQuery,
     nextPageToken: data.nextPageToken,
-    gamesList
+    sorts: data.sorts || [],
+    gamesList,
+    textList,
+    gameTopicIds
   };
 };
 
@@ -235,6 +256,23 @@ const postSurveyResults = async (
 
   const urlConfig = bedev2Constants.url.postSurveyResults(locationName);
   const response = await httpService.post<TSendSurveyResultsResponse>(urlConfig, requestBody);
+  return response.data;
+};
+
+const postUserSignal = async (
+  signalValue: TUserSignalValue,
+  signalValueType: TUserSignalValueType,
+  signalEntity: TUserSignalEntity,
+  signalType: TUserSignalType
+): Promise<TPostUserSignalResponse> => {
+  const timestampMs = Date.now().toString();
+
+  const requestBody: TPostUserSignalRequestBody = {
+    userSignalEvents: [{ signalValue, timestampMs, signalValueType, signalEntity, signalType }]
+  };
+
+  const urlConfig = bedev2Constants.url.postUserSignal();
+  const response = await httpService.post<TPostUserSignalResponse>(urlConfig, requestBody);
   return response.data;
 };
 
@@ -340,6 +378,22 @@ const getPrivateServerSettings = async (
     });
 };
 
+const getSortIdMapping = async (): Promise<TSortIdMapping> => {
+  const urlConfig = {
+    url: `${EnvironmentUrls.apiGatewayUrl}/explore-api/v1/get-sort-ids`,
+    retryable: true
+  };
+
+  return httpService
+    .get<TSortIdMapping>(urlConfig)
+    .then(response => {
+      return response.data;
+    })
+    .catch(() => {
+      return Promise.reject();
+    });
+};
+
 export default {
   getExperimentationValues,
   getOmniRecommendations,
@@ -350,10 +404,12 @@ export default {
   getLandingPageData,
   getSurvey,
   postSurveyResults,
+  postUserSignal,
   getThumbnailForAsset,
   getGuacAppPolicyBehaviorData,
   getProfiles,
   getSearchLandingRecommendations,
   getCanUserManagePlace,
-  getPrivateServerSettings
+  getPrivateServerSettings,
+  getSortIdMapping
 };

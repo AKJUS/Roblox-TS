@@ -1,9 +1,9 @@
-import PropTypes from 'prop-types';
-import { eventStreamService } from '@rbx/core-scripts/legacy/core-roblox-utilities';
-import { pageName } from '@rbx/core-scripts/legacy/core-utilities';
-import searchUtil from '../util/searchUtil';
-import { AutocompleteSearchLink, AvatarAutocompleteSearchLink, SearchLink } from './SearchLink';
-import events from '../constants/searchEventStreamConstants';
+import PropTypes from "prop-types";
+import { eventStreamService } from "@rbx/core-scripts/legacy/core-roblox-utilities";
+import { pageName } from "@rbx/core-scripts/legacy/core-utilities";
+import searchUtil from "../util/searchUtil";
+import { AutocompleteSearchLink, AvatarAutocompleteSearchLink, SearchLink } from "./SearchLink";
+import events from "../constants/searchEventStreamConstants";
 
 function NewSearchLinks({
   translate,
@@ -11,7 +11,7 @@ function NewSearchLinks({
   indexOfSelectedOption,
   searchSuggestions,
   autocompleteSessionInfo,
-  resetSessionInfo
+  resetSessionInfo,
 }) {
   const onClick = (suggestionType, index) => () => {
     const suggestion = searchSuggestions[index];
@@ -23,14 +23,14 @@ function NewSearchLinks({
         searchUtil.isAutocompleteSuggestion(suggestion) ? suggestion.searchQuery : searchInput,
         suggestionType,
         searchUtil.serializeSuggestions(searchSuggestions, searchInput),
-        autocompleteSessionInfo
-      )
+        autocompleteSessionInfo,
+      ),
     );
     resetSessionInfo();
 
-    const isAutocomplete = suggestionType.includes('default') ? 0 : 1;
+    const isAutocomplete = suggestionType.includes("default") ? 0 : 1;
     eventStreamService.sendEvent(
-      ...events.catalogSearch(isAutocomplete, pageName.PageNameProvider.getInternalPageName())
+      ...events.catalogSearch(isAutocomplete, pageName.PageNameProvider.getInternalPageName()),
     );
   };
   return searchSuggestions.map((suggestion, index) => {
@@ -86,22 +86,22 @@ NewSearchLinks.propTypes = {
         canonicalTitle: PropTypes.string,
         thumbnailUrl: PropTypes.string,
         searchQuery: PropTypes.string.isRequired,
-        trendingSearchStartDateTime: PropTypes.string
+        trendingSearchStartDateTime: PropTypes.string,
       }),
       PropTypes.shape({
         url: PropTypes.string.isRequired,
         label: PropTypes.string.isRequired,
         pageSort: PropTypes.arrayOf(PropTypes.string).isRequired,
-        icon: PropTypes.string.isRequired
+        icon: PropTypes.string.isRequired,
       }),
       PropTypes.shape({
         Query: PropTypes.string.isRequired,
-        Score: PropTypes.number.isRequired
-      })
-    ])
+        Score: PropTypes.number.isRequired,
+      }),
+    ]),
   ).isRequired,
   autocompleteSessionInfo: PropTypes.string.isRequired,
-  resetSessionInfo: PropTypes.func.isRequired
+  resetSessionInfo: PropTypes.func.isRequired,
 };
 
 export default NewSearchLinks;

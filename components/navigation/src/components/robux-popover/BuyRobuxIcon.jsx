@@ -1,25 +1,25 @@
-import { Fragment } from 'react';
-import PropTypes from 'prop-types';
-import { Tooltip } from '@rbx/core-ui/legacy/react-style-guide';
-import { abbreviateNumber } from '@rbx/core-scripts/legacy/core-utilities';
-import ClassNames from 'classnames';
-import layoutConstant from '../../constants/layoutConstants';
-import RobuxBadgeType from '../../constants/robuxBadgeConstants';
+import { Fragment } from "react";
+import PropTypes from "prop-types";
+import ClassNames from "classnames";
+import { Tooltip } from "@rbx/core-ui/legacy/react-style-guide";
+import { abbreviateNumber } from "@rbx/core-scripts/legacy/core-utilities";
+import layoutConstant from "../../constants/layoutConstants";
+import RobuxBadgeType from "../../constants/robuxBadgeConstants";
 
 function BuyRobuxIcon({
   robuxAmount,
   isGetCurrencyCallDone,
   robuxError,
   creditDisplayConfig,
-  robuxBadgeType
+  robuxBadgeType,
 }) {
   const robuxAmountValue = robuxError
     ? layoutConstant.robuxOnEconomySystemOutage
     : abbreviateNumber.getTruncValue(robuxAmount);
 
   // Robux value not shown for experiment variant hideRobuxAndCredit
-  const robuxBadgeClass = ClassNames('notification-red robux-badge', {
-    hidden: !robuxBadgeType
+  const robuxBadgeClass = ClassNames("notification-red robux-badge", {
+    hidden: !robuxBadgeType,
   });
   const icon = (
     <Fragment>
@@ -53,8 +53,8 @@ function BuyRobuxIcon({
 
 BuyRobuxIcon.defaultProps = {
   robuxAmount: 0,
-  robuxError: '',
-  robuxBadgeType: null
+  robuxError: "",
+  robuxBadgeType: null,
 };
 
 BuyRobuxIcon.propTypes = {
@@ -62,7 +62,7 @@ BuyRobuxIcon.propTypes = {
   robuxError: PropTypes.string,
   isGetCurrencyCallDone: PropTypes.bool.isRequired,
   creditDisplayConfig: PropTypes.string.isRequired,
-  robuxBadgeType: PropTypes.oneOf(Object.values(RobuxBadgeType))
+  robuxBadgeType: PropTypes.oneOf(Object.values(RobuxBadgeType)),
 };
 
 export default BuyRobuxIcon;

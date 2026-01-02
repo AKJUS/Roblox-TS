@@ -1,12 +1,16 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { withTranslations } from 'react-utilities';
+import { withTranslations, TranslationProvider } from 'react-utilities';
 import { translation } from './app.config';
 import HomePageUpsellContainer from './container/homePageUpsellCardContainer';
 import { UpsellCardType } from './constants/upsellCardConstants';
 
 function App({ translate, context }) {
-  return <HomePageUpsellContainer translate={translate} context={context} />;
+  return (
+    <TranslationProvider config={translation}>
+      <HomePageUpsellContainer translate={translate} context={context} />
+    </TranslationProvider>
+  );
 }
 
 App.defaultProps = {

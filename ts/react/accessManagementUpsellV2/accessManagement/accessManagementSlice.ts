@@ -28,6 +28,7 @@ export interface UpsellState {
   redirectLink: string | null;
   loading: boolean;
   prologueUsed?: boolean;
+  namespace: string | null;
 }
 
 const initialState: UpsellState = {
@@ -39,7 +40,8 @@ const initialState: UpsellState = {
   showUpsell: false,
   redirectLink: null,
   loading: false,
-  prologueUsed: false
+  prologueUsed: false,
+  namespace: null
 };
 
 export const fetchFeatureAccess = createAsyncThunk(
@@ -103,6 +105,9 @@ export const accessManagementSlice = createSlice({
     },
     setLoading: (state, action: PayloadAction<boolean>) => {
       state.loading = action.payload;
+    },
+    setNamespace: (state, action: PayloadAction<string>) => {
+      state.namespace = action.payload;
     }
   },
   extraReducers: builder => {
@@ -118,8 +123,12 @@ export const accessManagementSlice = createSlice({
           data: ampResponse
         };
         state.featureName = ampResponse.featureName;
-        if (ampResponse.access === Access.Actionable) {
+        if (ampResponse.access !== Access.Granted) {
+          // This would work now, because we don't have any Denied without Epilogue yet
+          // TODO: need to handle Denied in a more configurable way later
           state.showUpsell = true;
+        }
+        if (ampResponse.access === Access.Actionable) {
           // Set default recourse to be the first one
           [state.verificationStageRecourse] = ampResponse.recourses;
         }
@@ -143,7 +152,8 @@ export const {
   setVerificationStageRecourse,
   showUpsell,
   setStage,
-  setPrologueUsed
+  setPrologueUsed,
+  setNamespace
 } = accessManagementSlice.actions;
 
 // The function below is called a selector and allows us to select a value from
@@ -159,5 +169,6 @@ export const selectCurrentStage = (state: RootState) => state.accessManagement.s
 export const selectVerificationStageRecourse = (state: RootState) =>
   state.accessManagement.verificationStageRecourse;
 export const selectPrologueStatus = (state: RootState) => state.accessManagement.prologueUsed;
+export const selectNamespace = (state: RootState) => state.accessManagement.namespace;
 
 export default accessManagementSlice.reducer;

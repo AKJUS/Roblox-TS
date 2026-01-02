@@ -27,7 +27,6 @@ export enum HttpRequestMethods {
   PATCH = "patch",
 }
 
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export interface ResponseConfig extends AxiosResponse {
   status: number;
   headers: Record<string, string>;
@@ -38,7 +37,6 @@ export interface ResponseConfig extends AxiosResponse {
   };
 }
 
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export interface UrlConfig extends AxiosRequestConfig {
   url: string;
   withCredentials?: boolean;

@@ -1,12 +1,12 @@
-import { getCookie, deleteCookie, setCookie } from '@rbx/core-scripts/cookie';
-import cookieConstants from '../constants/cookieConstants';
+import { getCookie, deleteCookie, setCookie } from "@rbx/core-scripts/cookie";
+import cookieConstants from "../constants/cookieConstants";
 
 const setUserConsent = (acceptCookieNames: string[], nonEssentialCookieList: string[]): void => {
   const currentConsentCookie = getCookie(cookieConstants.consentCookieName);
   if (currentConsentCookie && currentConsentCookie.length > 0) {
     deleteCookie(cookieConstants.consentCookieName);
   }
-  let consentCookieConfig = '';
+  let consentCookieConfig = "";
   const cookiesToBeDeleted: string[] = [];
   nonEssentialCookieList.forEach((cookie, index) => {
     if (acceptCookieNames.includes(cookie)) {
@@ -27,19 +27,19 @@ const setUserConsent = (acceptCookieNames: string[], nonEssentialCookieList: str
   setCookie(
     cookieConstants.consentCookieName,
     consentCookieConfig,
-    cookieConstants.consentExpirationDays
+    cookieConstants.consentExpirationDays,
   );
 };
 
 const isAnalyticsCookieAccepted = (): boolean => {
   const consentCookie = getCookie(cookieConstants.consentCookieName);
-  if (!consentCookie || consentCookie === '') {
+  if (!consentCookie || consentCookie === "") {
     return false;
   }
-  const analyticsCookies = consentCookie.split('&');
+  const analyticsCookies = consentCookie.split("&");
   const acceptedAnalyticsCookie = analyticsCookies.find(cookie => {
-    const value = cookie.split('=')[1];
-    return value === 'true';
+    const value = cookie.split("=")[1];
+    return value === "true";
   });
   return !!acceptedAnalyticsCookie;
 };

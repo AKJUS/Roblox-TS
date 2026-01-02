@@ -65,7 +65,7 @@ export const createKeyboardEventHandler = (
         return false;
       }
       // TODO: old, migrated code
-      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
       return keys.includes((event as KeyboardEvent | ReactKeyboardEvent).key);
     },
     preventDefault,

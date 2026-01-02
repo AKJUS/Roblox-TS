@@ -56,6 +56,13 @@ export default {
     };
   },
 
+  getTrustedConnectionStatus(userId) {
+    return {
+      url: `${friendsApi}/v1/my/trusted-friends/${userId}/status`,
+      withCredentials: true
+    };
+  },
+
   getChatMetadata() {
     return {
       url: `${chatApi}/v1/metadata`,

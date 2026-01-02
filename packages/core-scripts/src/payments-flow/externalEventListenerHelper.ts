@@ -1,5 +1,5 @@
 // TODO: old, migrated code
-// eslint-disable-next-line import/no-cycle
+// eslint-disable-next-line import-x/no-cycle
 import { PaymentFlowAnalyticsService } from "./index";
 
 const BUY_ROBUX_MENU_BUTTON_SELECTOR = "#header li a.robux-menu-btn";
@@ -15,7 +15,7 @@ const setupBuyRobuxMenuBtn = (paymentFlowAnalyticsService: PaymentFlowAnalyticsS
       paymentFlowAnalyticsService.ENUM_VIEW_NAME.NAVIGATION_MENU,
       paymentFlowAnalyticsService.ENUM_PURCHASE_EVENT_TYPE.USER_INPUT,
       // TODO: old, migrated code
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/consistent-type-assertions, @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
       (event.target as any).innerText as string,
     );
   });
@@ -52,7 +52,7 @@ const setupPremiumUpsellBtnOnItemDetailPage = (
         paymentFlowAnalyticsService.ENUM_VIEW_NAME.PREMIUM_UPSELL,
         paymentFlowAnalyticsService.ENUM_PURCHASE_EVENT_TYPE.USER_INPUT,
         // TODO: old, migrated code
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/consistent-type-assertions, @typescript-eslint/no-explicit-any
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
         (event.target as any).innerText as string,
       );
     });

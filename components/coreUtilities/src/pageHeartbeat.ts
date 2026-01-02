@@ -6,9 +6,7 @@ import {
   defaultActivityTimeoutMs,
   defaultHeartbeatPulseIntervalMs,
   defaultWorkerVersion,
-  guacBehaviourName,
 } from "@rbx/page-heartbeat-worker";
-import { callBehaviour } from "@rbx/core-scripts/guac";
 
 const { CurrentUser } = window.Roblox;
 
@@ -85,14 +83,10 @@ class PageHeartbeatScheduler {
     const currentTime = new Date();
     const thresholdTime = new Date(currentTime.getTime() - this.activityTimeoutMs);
     if (this.lastActiveTime >= thresholdTime) {
-      // TODO: old, migrated code
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
       sendEventWithTarget(
         "pageHeartbeat_v2",
         `heartbeat${this.heartbeatCount}`,
         {},
-        // TODO: old, migrated code
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         targetTypes.WWW,
       );
       this.incrementCount();
@@ -104,14 +98,6 @@ class PageHeartbeatScheduler {
   }
 }
 
-type GuacResponse = {
-  isEnabled?: boolean;
-  rolloutPermille?: number;
-  activityTimeoutMs?: number;
-  heartbeatPulseIntervalMs?: number;
-  workerVersion?: number;
-};
-
 type GuacConfig = {
   isEnabled: boolean;
   rolloutPermille: number;
@@ -120,47 +106,18 @@ type GuacConfig = {
   workerVersion: number;
 };
 
-const loadGuacConfig = async (): Promise<GuacConfig> => {
-  try {
-    const data = await callBehaviour<GuacResponse>(guacBehaviourName);
-
-    // TODO: old, migrated code
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    if (!data) {
-      return {
-        isEnabled: true,
-        rolloutPermille: defaultRolloutPermille,
-        activityTimeoutMs: defaultActivityTimeoutMs,
-        heartbeatPulseIntervalMs: defaultHeartbeatPulseIntervalMs,
-        workerVersion: defaultWorkerVersion,
-      };
-    }
-
-    return {
-      isEnabled: Boolean(data.isEnabled),
-      rolloutPermille: data.rolloutPermille ?? defaultRolloutPermille,
-      activityTimeoutMs: data.activityTimeoutMs ?? defaultActivityTimeoutMs,
-      heartbeatPulseIntervalMs: data.heartbeatPulseIntervalMs ?? defaultHeartbeatPulseIntervalMs,
-      workerVersion: data.workerVersion ?? defaultWorkerVersion,
-    };
-  } catch {
-    return {
-      isEnabled: true,
-      rolloutPermille: defaultRolloutPermille,
-      activityTimeoutMs: defaultActivityTimeoutMs,
-      heartbeatPulseIntervalMs: defaultHeartbeatPulseIntervalMs,
-      workerVersion: defaultWorkerVersion,
-    };
-  }
-};
-
-export default async (): Promise<void> => {
-  // Avoid calling guac behaviour if the user is not logged in
+export default (): void => {
   if (!CurrentUser?.userId) {
     return;
   }
 
-  const config = await loadGuacConfig();
+  const config: GuacConfig = {
+    isEnabled: true,
+    rolloutPermille: defaultRolloutPermille,
+    activityTimeoutMs: defaultActivityTimeoutMs,
+    heartbeatPulseIntervalMs: defaultHeartbeatPulseIntervalMs,
+    workerVersion: defaultWorkerVersion,
+  };
 
   if (!(config.isEnabled && parseInt(CurrentUser.userId, 10) % 1000 < config.rolloutPermille)) {
     return;

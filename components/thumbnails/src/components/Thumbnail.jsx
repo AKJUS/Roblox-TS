@@ -44,7 +44,9 @@ Thumbnail.defaultProps = {
   imgClassName: "",
   containerClass: "",
   altName: "",
-  onLoad: () => {},
+  onLoad: () => {
+    // do nothing
+  },
 };
 
 Thumbnail.propTypes = {

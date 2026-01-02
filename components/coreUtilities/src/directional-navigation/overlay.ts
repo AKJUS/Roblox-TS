@@ -18,7 +18,7 @@ class Overlay {
 
   private container: HTMLElement | null;
 
-  private overlayElement: HTMLDivElement;
+  private readonly overlayElement: HTMLDivElement;
 
   private resizeTimeout: number | null = null;
 
@@ -69,7 +69,7 @@ class Overlay {
     this.updateState(true, targetElement, targetContainer);
   };
 
-  private render = (): void => {
+  private render(): void {
     if (!this.isVisible || !this.targetElement || !this.container) {
       // Hide the overlay.
       this.overlayElement.style.display = "none";
@@ -102,13 +102,13 @@ class Overlay {
     Object.assign(this.targetElement.style, {
       outline: "none",
     } satisfies Partial<CSSStyleDeclaration>);
-  };
+  }
 
-  private updateState = (
+  private updateState(
     isVisible: boolean,
     targetElement: HTMLElement | null,
     targetContainer: HTMLElement | null,
-  ): void => {
+  ): void {
     if (isVisible) {
       assert(targetElement, "Target element must be provided");
       assert(targetContainer, "Target container must be provided");
@@ -125,12 +125,12 @@ class Overlay {
     }
 
     this.render();
-  };
+  }
 
   private setupListeners(): void {
-    window.addEventListener("resize", this.handleResize);
-    document.addEventListener("mousedown", this.handleMouseDown, true);
-    document.addEventListener("focusin", this.handleFocusIn, true);
+    window.addEventListener("resize", this.handleResize.bind(this));
+    document.addEventListener("mousedown", this.handleMouseDown.bind(this), true);
+    document.addEventListener("focusin", this.handleFocusIn.bind(this), true);
   }
 
   private addScrollListener(): void {
@@ -138,7 +138,7 @@ class Overlay {
       this.removeScrollListener();
 
       if (this.container !== document.body) {
-        this.container.addEventListener("scroll", this.handleScroll);
+        this.container.addEventListener("scroll", this.handleScroll.bind(this));
       }
       this.currentScrollContainer = this.container;
     }
@@ -146,34 +146,34 @@ class Overlay {
 
   private removeScrollListener(): void {
     if (this.currentScrollContainer) {
-      this.currentScrollContainer.removeEventListener("scroll", this.handleScroll);
+      this.currentScrollContainer.removeEventListener("scroll", this.handleScroll.bind(this));
       this.currentScrollContainer = null;
     }
   }
 
-  private handleScroll = (): void => {
+  private handleScroll(): void {
     if (this.isVisible) {
       this.render();
     }
-  };
+  }
 
   // Re-renders the overlay when the window is resized.
-  private handleResize = (): void => {
+  private handleResize(): void {
     if (!this.isVisible) {
       return;
     }
 
     if (this.resizeTimeout) clearTimeout(this.resizeTimeout);
-    this.resizeTimeout = window.setTimeout(this.render, 150);
-  };
+    this.resizeTimeout = window.setTimeout(this.render.bind(this), 150);
+  }
 
   // Hide overlay on mousedown.
-  private handleMouseDown = (): void => {
+  private handleMouseDown(): void {
     this.hide();
-  };
+  }
 
   // Move overlay to the target (or the first focusable element inside it) when the focus is gained.
-  private handleFocusIn = (event: FocusEvent): void => {
+  private handleFocusIn(event: FocusEvent): void {
     if (!this.isVisible) {
       return;
     }
@@ -197,7 +197,7 @@ class Overlay {
         this.moveToTarget(target);
       }, MOVE_OVELAY_ON_FOCUSIN_DELAY_MS);
     }
-  };
+  }
 }
 
 let overlay: Overlay | null = null;

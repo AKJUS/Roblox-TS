@@ -1,14 +1,14 @@
-import React, { createRef, useEffect, useRef, useState, useCallback } from 'react';
-import PropTypes from 'prop-types';
-import classNames from 'classnames';
-import { SearchLandingService } from '@rbx/core-scripts/legacy/Roblox';
-import { eventStreamService } from '@rbx/core-scripts/legacy/core-roblox-utilities';
-import { useOnClickOutside } from '@rbx/core-scripts/legacy/react-utilities';
-import { pageName } from '@rbx/core-scripts/legacy/core-utilities';
-import SearchLinks from './SearchLinks';
-import events from '../constants/searchEventStreamConstants';
-import searchConstants from '../constants/searchConstants';
-import NewSearchLinks from './NewSearchLinks';
+import React, { createRef, useEffect, useRef, useState, useCallback } from "react";
+import PropTypes from "prop-types";
+import classNames from "classnames";
+import { SearchLandingService } from "@rbx/core-scripts/legacy/Roblox";
+import { eventStreamService } from "@rbx/core-scripts/legacy/core-roblox-utilities";
+import { useOnClickOutside } from "@rbx/core-scripts/legacy/react-utilities";
+import { pageName } from "@rbx/core-scripts/legacy/core-utilities";
+import SearchLinks from "./SearchLinks";
+import events from "../constants/searchEventStreamConstants";
+import searchConstants from "../constants/searchConstants";
+import NewSearchLinks from "./NewSearchLinks";
 
 function SearchInput({
   translate,
@@ -25,7 +25,7 @@ function SearchInput({
   searchSuggestions,
   autocompleteSessionInfo,
   resetSessionInfo,
-  isAvatarAutocompleteEnabled
+  isAvatarAutocompleteEnabled,
 }) {
   const inputRef = createRef();
   const dropdownRef = createRef();
@@ -41,9 +41,9 @@ function SearchInput({
     // as we don't want the search overlay to show if there are no recommendations
     // and the user is just focused on the search input
     // Copied event name from Roblox.Games.WebApp/ts/react/searchLandingPage/service/modalConstants.ts
-    window.addEventListener('SetSearchLandingHasContent', onSetSearchLandingHasContent);
+    window.addEventListener("SetSearchLandingHasContent", onSetSearchLandingHasContent);
     return () => {
-      window.removeEventListener('SetSearchLandingHasContent', onSetSearchLandingHasContent);
+      window.removeEventListener("SetSearchLandingHasContent", onSetSearchLandingHasContent);
     };
   }, []);
 
@@ -54,12 +54,12 @@ function SearchInput({
         searchInput,
         undefined,
         autocompleteSessionInfo,
-        pageName?.PageNameProvider?.getInternalPageName()
-      )
+        pageName?.PageNameProvider?.getInternalPageName(),
+      ),
     );
     isClearingInputRef.current = true;
     inputRef?.current?.focus();
-    handleSearchOpenOrInputChange('');
+    handleSearchOpenOrInputChange("");
   }, [autocompleteSessionInfo, inputRef, handleSearchOpenOrInputChange, searchInput]);
 
   const onFocus = useCallback(() => {
@@ -80,26 +80,26 @@ function SearchInput({
     e => {
       handleSearchOpenOrInputChange(e.target.value);
     },
-    [handleSearchOpenOrInputChange]
+    [handleSearchOpenOrInputChange],
   );
 
   const menuClassName = classNames(
-    'navbar-left navbar-search col-xs-5 col-sm-6 col-md-2 col-lg-3',
+    "navbar-left navbar-search col-xs-5 col-sm-6 col-md-2 col-lg-3",
     {
-      'navbar-search-open': isMenuOpen && searchInput.length > 0,
-      shown: isUniverseSearchShown
-    }
+      "navbar-search-open": isMenuOpen && searchInput.length > 0,
+      shown: isUniverseSearchShown,
+    },
   );
 
-  const searchLandingClassName = classNames('search-landing-root', {
-    'search-landing-root-open': searchInput.length === 0 && isFocused
+  const searchLandingClassName = classNames("search-landing-root", {
+    "search-landing-root-open": searchInput.length === 0 && isFocused,
   });
 
   // Only show the search overlay if the SLP has recommendations or autocomplete results are being shown
   const showOverlay =
     isFocused && ((!isSearchLandingEmpty && searchInput.length === 0) || searchInput.length > 0);
-  const searchOverlayClassName = classNames('search-overlay', {
-    'search-overlay-show': showOverlay
+  const searchOverlayClassName = classNames("search-overlay", {
+    "search-overlay-show": showOverlay,
   });
 
   // jpark 3/4/2022 Avatar Shop Autocomplete is fully enabled - this check can be removed when this IXP test code is cleaned up
@@ -131,7 +131,7 @@ function SearchInput({
                   className="form-control input-field new-input-field"
                   value={searchInput}
                   onChange={onChange}
-                  placeholder={translate('Label.sSearch')}
+                  placeholder={translate("Label.sSearch")}
                   maxLength="120"
                   onFocus={onFocus}
                   onBlur={onBlur}
@@ -166,7 +166,7 @@ function SearchInput({
                 className="form-control input-field"
                 value={searchInput}
                 onChange={onChange}
-                placeholder={translate('Label.sSearch')}
+                placeholder={translate("Label.sSearch")}
                 maxLength="120"
                 onFocus={onFocus}
                 onBlur={onBlur}
@@ -177,6 +177,8 @@ function SearchInput({
             )}
           </form>
           <div className="input-group-btn">
+            {/* TODO: old, migrated code. */}
+            {/* eslint-disable-next-line jsx-a11y/control-has-associated-label */}
             <button
               data-testid="navigation-search-input-search-button"
               className="input-addon-btn"
@@ -188,8 +190,8 @@ function SearchInput({
         </div>
         <ul
           ref={dropdownRef}
-          className={classNames('dropdown-menu', {
-            'new-dropdown-menu': showNewSearchLinks
+          className={classNames("dropdown-menu", {
+            "new-dropdown-menu": showNewSearchLinks,
           })}
           role="menu"
           onMouseEnter={() => {
@@ -232,7 +234,7 @@ function SearchInput({
 
 SearchInput.defaultProps = {
   isUniverseSearchShown: true,
-  isAvatarAutocompleteEnabled: false
+  isAvatarAutocompleteEnabled: false,
 };
 
 SearchInput.propTypes = {
@@ -257,22 +259,22 @@ SearchInput.propTypes = {
         canonicalTitle: PropTypes.string,
         thumbnailUrl: PropTypes.string,
         searchQuery: PropTypes.string.isRequired,
-        trendingSearchStartDateTime: PropTypes.string
+        trendingSearchStartDateTime: PropTypes.string,
       }),
       PropTypes.shape({
         url: PropTypes.string.isRequired,
         label: PropTypes.string.isRequired,
         pageSort: PropTypes.arrayOf(PropTypes.string).isRequired,
-        icon: PropTypes.string
+        icon: PropTypes.string,
       }),
       PropTypes.shape({
         query: PropTypes.string.isRequired,
-        score: PropTypes.number.isRequired
-      })
-    ])
+        score: PropTypes.number.isRequired,
+      }),
+    ]),
   ).isRequired,
   autocompleteSessionInfo: PropTypes.string.isRequired,
-  resetSessionInfo: PropTypes.func.isRequired
+  resetSessionInfo: PropTypes.func.isRequired,
 };
 
 export default SearchInput;

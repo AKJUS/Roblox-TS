@@ -1,9 +1,9 @@
-import { useState, useEffect, useCallback } from 'react';
-import { authenticatedUser } from '@rbx/core-scripts/legacy/header-scripts';
-import { withTranslations } from '@rbx/core-scripts/react';
-import layoutConstant from '../constants/layoutConstants';
-import { translations } from '../../component.json';
-import LeftNavigationComponent from '../components/LeftNavigation';
+import { useState, useEffect, useCallback } from "react";
+import { authenticatedUser } from "@rbx/core-scripts/legacy/header-scripts";
+import { withTranslations } from "@rbx/core-scripts/react";
+import layoutConstant from "../constants/layoutConstants";
+import { translations } from "../../component.json";
+import LeftNavigationComponent from "../components/LeftNavigation";
 
 const { headerMenuIconClickEvent } = layoutConstant;
 

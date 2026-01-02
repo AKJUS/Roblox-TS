@@ -4,25 +4,35 @@ export const EventConstants = {
   state: {
     U13To18: 'U13To18',
     U13To1318: 'U13To1318',
-    U13ToU13: 'U13ToU13'
+    U13ToU13: 'U13ToU13',
+    U13ToU13NotEligible: 'U13ToU13NotEligible'
   },
   text: {
     IdvOrVpc: 'Verify Your Age/Parent Permission Needed',
     VPC: 'Parent Permission Needed',
+    VpcNotEligible: 'Parent Permission Not Eligible',
     AskYourParent: 'Ask Your Parent',
     VerifyId: 'Verify ID',
     EmailMyParent: 'Email My Parent',
     AskNow: 'Ask Now',
-    Cancel: 'X icon or "Cancel"'
+    Cancel: 'X icon or "Cancel"',
+    WeNeedToCheckYourAge: 'We need to check your age'
   },
   btn: {
     VerifyId: 'verifyId',
     EmailParent: 'emailParent',
-    verifyCancel: 'verifyCancel'
+    verifyCancel: 'verifyCancel',
+    VpcNotEligibleModalClose: 'vpcNotEligibleModalClose',
+    VpcNotEligibleLearnMore: 'vpcNotEligibleLearnMore',
+    askParent: 'askParent',
+    cancel: 'cancel'
   },
   context: {
     SettingsAgeChangeVerify: 'settingsAgeChangeVerify',
-    UpdateSetting: 'parentalEntrySettings'
+    SettingsAgeChangeVpcNotEligible: 'settingsAgeChangeVpcNotEligible',
+    UpdateSetting: 'parentalEntrySettings',
+    vpcPrologue: 'vpcPrologue',
+    faePrologue: 'faePrologue'
   },
   eventName: {
     AuthPageload: 'authPageload',
@@ -53,7 +63,8 @@ export function sendEmailParentClickEvent(
   featureName: string,
   vpcOnly: boolean,
   settingName?: string,
-  recourseParameters?: Record<string, string>
+  recourseParameters?: Record<string, string>,
+  source?: string
 ): void {
   if (featureName === 'CanCorrectAge') {
     eventStreamService.sendEventWithTarget(
@@ -96,11 +107,22 @@ export function sendEmailParentClickEvent(
       }
     );
   }
+  if (vpcOnly && settingName) {
+    eventStreamService.sendEventWithTarget(
+      EventConstants.eventName.AuthButtonClick,
+      EventConstants.context.vpcPrologue,
+      {
+        btn: EventConstants.btn.askParent,
+        state: generateState(source, settingName),
+        associatedText: EventConstants.text.AskNow
+      }
+    );
+  }
 }
 
-function getEventStateForCanCorrectAge(prologue: string) {
+function getEventStateForCanCorrectAge(prologueOrEpilogue: string) {
   let currentState;
-  switch (prologue) {
+  switch (prologueOrEpilogue) {
     case 'Idv':
       currentState = EventConstants.state.U13To18;
       break;
@@ -109,6 +131,9 @@ function getEventStateForCanCorrectAge(prologue: string) {
       break;
     case 'IdvOrVpc':
       currentState = EventConstants.state.U13To1318;
+      break;
+    case 'VpcNotEligible':
+      currentState = EventConstants.state.U13ToU13NotEligible;
       break;
     default:
       break;
@@ -120,7 +145,8 @@ export function sendVerifyCancelClickEvent(
   featureName: string,
   prologue: string,
   settingName?: string,
-  recourseParameters?: Record<string, string>
+  recourseParameters?: Record<string, string>,
+  source?: string
 ): void {
   if (featureName === 'CanCorrectAge') {
     const currentState = getEventStateForCanCorrectAge(prologue);
@@ -165,16 +191,39 @@ export function sendVerifyCancelClickEvent(
       }
     );
   }
+
+  if (settingName) {
+    let context;
+    switch (prologue) {
+      case 'Vpc':
+        context = EventConstants.context.vpcPrologue;
+        break;
+      case 'Fae':
+        context = EventConstants.context.faePrologue;
+        break;
+      default:
+        break;
+    }
+
+    if (context) {
+      eventStreamService.sendEventWithTarget(EventConstants.eventName.AuthButtonClick, context, {
+        btn: EventConstants.btn.cancel,
+        state: generateState(source, settingName),
+        associatedText: EventConstants.text.Cancel
+      });
+    }
+  }
 }
 
 export function sendInitialUpsellPageLoadEvent(
   featureName: string,
-  prologue: string,
+  prologueOrEpilogue: string,
   settingName?: string,
-  recourseParameters?: Record<string, string>
+  recourseParameters?: Record<string, string>,
+  source?: string
 ): void {
   if (featureName === 'CanCorrectAge') {
-    const currentState = getEventStateForCanCorrectAge(prologue);
+    const currentState = getEventStateForCanCorrectAge(prologueOrEpilogue);
 
     eventStreamService.sendEventWithTarget(
       EventConstants.eventName.AuthPageload,
@@ -209,6 +258,58 @@ export function sendInitialUpsellPageLoadEvent(
       {
         state: `unblockExperience ${recourseParameters?.experienceId}`,
         associatedText: EventConstants.text.AskYourParent
+      }
+    );
+  }
+
+  if (settingName) {
+    let context;
+    let associatedText;
+    switch (prologueOrEpilogue) {
+      case 'Vpc':
+        context = EventConstants.context.vpcPrologue;
+        associatedText = EventConstants.text.AskYourParent;
+        break;
+      case 'Fae':
+        context = EventConstants.context.faePrologue;
+        associatedText = EventConstants.text.WeNeedToCheckYourAge;
+        break;
+      default:
+        break;
+    }
+
+    if (context) {
+      eventStreamService.sendEventWithTarget(EventConstants.eventName.AuthPageload, context, {
+        state: generateState(source, settingName),
+        associatedText
+      });
+    }
+  }
+}
+
+export function sendVpcNotEligibleLearnMoreClickEvent(featureName: string): void {
+  if (featureName === 'CanCorrectAge') {
+    eventStreamService.sendEventWithTarget(
+      EventConstants.eventName.AuthButtonClick,
+      EventConstants.context.SettingsAgeChangeVpcNotEligible,
+      {
+        btn: EventConstants.btn.VpcNotEligibleLearnMore,
+        state: EventConstants.state.U13ToU13,
+        associatedText: EventConstants.text.VpcNotEligible
+      }
+    );
+  }
+}
+
+export function sendVpcNotEligibleModalCloseClickEvent(featureName: string): void {
+  if (featureName === 'CanCorrectAge') {
+    eventStreamService.sendEventWithTarget(
+      EventConstants.eventName.AuthButtonClick,
+      EventConstants.context.SettingsAgeChangeVpcNotEligible,
+      {
+        btn: EventConstants.btn.VpcNotEligibleModalClose,
+        state: EventConstants.state.U13ToU13,
+        associatedText: EventConstants.text.VpcNotEligible
       }
     );
   }

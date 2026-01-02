@@ -41,6 +41,8 @@ class ModalService {
 
     // Mute unhandled rejection exception
     const { promise } = this.deferred;
+    // TODO: old, migrated code
+    // eslint-disable-next-line no-empty-function
     promise.catch(() => {});
     return promise;
   }

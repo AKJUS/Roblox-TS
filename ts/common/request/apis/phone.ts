@@ -37,3 +37,21 @@ export const getPhonePrefixList = async (): Promise<
     prioritizeDefaultPrefix
   );
 };
+
+export const updatePhone = async (
+  value: Phone.UpdatePhoneParameters
+): Promise<Result<Phone.UpdatePhoneReturnType, Phone.UpdatePhoneError | null>> => {
+  return toResult(httpService.post(Phone.POST_PHONE_CONFIG, value), Phone.UpdatePhoneError);
+};
+
+export const verifyCode = async (
+  value: Phone.VerifyCodeParameters
+): Promise<Result<Phone.VerifyCodeReturnType, Phone.VerifyCodeError | null>> => {
+  return toResult(httpService.post(Phone.VERIFY_CODE_CONFIG, value), Phone.VerifyCodeError);
+};
+
+export const resendCode = async (
+  value: Phone.ResendCodeParameters
+): Promise<Result<Phone.ResendCodeReturnType, Phone.ResendCodeError | null>> => {
+  return toResult(httpService.post(Phone.RESEND_CODE_CONFIG, value), Phone.ResendCodeError);
+};

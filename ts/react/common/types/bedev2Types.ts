@@ -36,6 +36,12 @@ export enum TComponentType {
   ExperienceEventsTile = 'ExperienceEventsTile'
 }
 
+export type TWideTileComponentType =
+  | TComponentType.GridTile
+  | TComponentType.EventTile
+  | TComponentType.InterestTile
+  | TComponentType.ExperienceEventsTile;
+
 export enum TPlayerCountStyle {
   Always = 'Always',
   Hover = 'Hover',
@@ -93,6 +99,10 @@ export type TTopicLayoutData = {
   countdownString?: string;
   backgroundImageAssetId?: string;
   hideTileMetadata?: 'true' | 'false';
+  enableExplicitFeedback?: 'true' | 'false';
+  enableSponsoredFeedback?: 'true' | 'false';
+  sponsoredUserCohort?: string;
+  enableReportAd?: 'true' | 'false';
 };
 
 type TSharedGameSort = {
@@ -276,7 +286,8 @@ export enum TOmniSearchPageType {
 }
 
 export enum TOmniSearchContentType {
-  Game = 'Game'
+  Game = 'Game',
+  Text = 'Text'
 }
 
 export type TOmniSearchContentDataModel = {
@@ -303,13 +314,28 @@ export type TOmniSearchGameDataModel = {
   creatorHasVerifiedBadge?: boolean;
 };
 
+export type TOmniSearchTextDataModel = {
+  topicId: string; // e.g. 'HotlineSearchText'
+  contentType: string; // 'Text'
+  contentId: number; // 0 for text data model
+  name: string; // content of the text
+  defaultLayoutData: TTopicLayoutData;
+};
+
 export type TOmniSearchContentGroup = {
+  topicId: string; // e.g. 'HotlineSearchText'
   contentGroupType: string;
   contents: TOmniSearchContentDataModel[];
 };
 
+export type TGameSearchSortData = {
+  topicId: string;
+  topicLayoutData: TTopicLayoutData;
+};
+
 export type TGetOmniSearchResponse = {
   searchResults: TOmniSearchContentGroup[];
+  sorts?: TGameSearchSortData[];
   filteredSearchQuery: string;
   paginationMethod?: TPaginationMethod;
   nextPageToken: string;
@@ -319,7 +345,10 @@ export type TGetOmniSearchParsedResponse = {
   filteredSearchQuery: string;
   nextPageToken: string;
   gamesList: TOmniSearchGameDataModel[];
+  gameTopicIds: Set<string>;
+  textList: TOmniSearchTextDataModel[];
   paginationMethod?: TPaginationMethod;
+  sorts: TGameSearchSortData[];
 };
 
 export type TSurvey = {
@@ -412,4 +441,8 @@ export type TPrivateServerResponseData = {
 export type TPrivateServerSettingsResponse = {
   rootPlaceId: number;
   privateServerData: TPrivateServerResponseData;
+};
+
+export type TSortIdMapping = {
+  genreToSortId: Record<string, string>;
 };

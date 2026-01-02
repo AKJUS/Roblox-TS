@@ -4,6 +4,6 @@ export const contactMethodPromptRootElementId = 'contactMethodPrompt-container';
 export const ageEstimationPromptRootElementId = 'ageEstimationPrompt-container';
 
 export const translation = {
-  common: [],
+  common: ['Feature.AccountSettings'],
   feature: 'Feature.VerificationUpsell'
 };

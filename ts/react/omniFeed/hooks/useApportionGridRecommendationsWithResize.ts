@@ -12,6 +12,7 @@ import {
 } from '../../common/types/bedev2Types';
 import { homePage } from '../../common/constants/configConstants';
 import { getNumTilesPerRow } from '../../common/components/GameTileUtils';
+import { isWideTileComponentType } from '../../common/utils/parsingUtils';
 
 type TGridRecommendationsMap = Map<number, TOmniRecommendationGame[]>;
 type TItemsPerRowMap = Map<number, number>;
@@ -19,7 +20,7 @@ type TStartingRowNumbersMap = Map<number, number>;
 
 const useApportionGridRecommendationsWithResize = (
   recommendations: TGetOmniRecommendationsResponse | undefined,
-  isExpandHomeContentEnabled: boolean | undefined,
+  isDynamicLayoutSizingEnabled: boolean | undefined,
   isCarouselHorizontalScrollEnabled: boolean | undefined
 ): {
   homeFeedRef: React.RefObject<HTMLDivElement>;
@@ -140,7 +141,7 @@ const useApportionGridRecommendationsWithResize = (
 
   const getItemsPerRow = useCallback(
     (sort: TOmniRecommendationGameSort, homeFeedWidth: number) => {
-      if (isExpandHomeContentEnabled || sort.treatmentType === TTreatmentType.InterestGrid) {
+      if (isDynamicLayoutSizingEnabled || sort.treatmentType === TTreatmentType.InterestGrid) {
         const componentType = sort.topicLayoutData?.componentType;
 
         // Subtract one pixel buffer from homeFeedWidth due to Firefox calc() rounding issue
@@ -160,9 +161,7 @@ const useApportionGridRecommendationsWithResize = (
         );
       }
 
-      const useWideGameTiles =
-        sort.topicLayoutData?.componentType === TComponentType.GridTile ||
-        sort.topicLayoutData?.componentType === TComponentType.EventTile;
+      const useWideGameTiles = isWideTileComponentType(sort.topicLayoutData?.componentType);
 
       if (useWideGameTiles) {
         if (homeFeedWidth && homeFeedWidth < homePage.wideGameTileTilesPerRowBreakpointWidth) {
@@ -177,7 +176,7 @@ const useApportionGridRecommendationsWithResize = (
 
       return homePage.maxTilesPerCarouselPage;
     },
-    [isExpandHomeContentEnabled, isCarouselHorizontalScrollEnabled]
+    [isDynamicLayoutSizingEnabled, isCarouselHorizontalScrollEnabled]
   );
 
   const updateItemsPerRow = useCallback(
@@ -188,7 +187,7 @@ const useApportionGridRecommendationsWithResize = (
         if (
           sort.treatmentType === TTreatmentType.SortlessGrid ||
           sort.treatmentType === TTreatmentType.InterestGrid ||
-          (isExpandHomeContentEnabled && sort.treatmentType === TTreatmentType.Carousel)
+          (isDynamicLayoutSizingEnabled && sort.treatmentType === TTreatmentType.Carousel)
         ) {
           allItemsPerRow.set(positionId, getItemsPerRow(sort, homeFeedWidth));
         }
@@ -196,7 +195,7 @@ const useApportionGridRecommendationsWithResize = (
 
       setItemsPerRowMap(allItemsPerRow);
     },
-    [recommendations?.sorts, getItemsPerRow, isExpandHomeContentEnabled]
+    [recommendations?.sorts, getItemsPerRow, isDynamicLayoutSizingEnabled]
   );
 
   useLayoutEffect(() => {

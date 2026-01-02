@@ -5,7 +5,6 @@ import useParentEmailModal from '../hooks/useParentEmailModal';
 import RequestType from '../enums/RequestType';
 import ExpNewChildModal from '../../../enums/ExpNewChildModal';
 import { sendInitialUpsellPageLoadEvent } from '../../../accessManagement/constants/eventConstants';
-import { useAppDispatch } from '../../../store';
 import { selectFeatureName } from '../../../accessManagement/accessManagementSlice';
 import parentalRequestConstants from '../constants/parentalRequestConstants';
 
@@ -16,7 +15,8 @@ const ParentEmailModal = ({
   onHidecallback,
   isPrologueUsed,
   value,
-  expChildModalType = null
+  expChildModalType = null,
+  source
 }: {
   translate: WithTranslationsProps['translate'];
   consentType: RequestType;
@@ -25,6 +25,7 @@ const ParentEmailModal = ({
   isPrologueUsed: boolean;
   value: Record<string, unknown> | null;
   expChildModalType?: ExpNewChildModal;
+  source?: string;
 }): JSX.Element => {
   const featureName = useSelector(selectFeatureName);
   const [parentEmailModal, parentEmailModalService] = useParentEmailModal(
@@ -33,7 +34,8 @@ const ParentEmailModal = ({
     successCallback,
     onHidecallback,
     value,
-    expChildModalType
+    expChildModalType,
+    source
   );
   useEffect(() => {
     if (!isPrologueUsed) {

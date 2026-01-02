@@ -1,33 +1,33 @@
-import { useEffect, useState, useMemo, useCallback } from 'react';
-import PropTypes from 'prop-types';
-import { usePrevious, useDebounce } from '@rbx/core-scripts/legacy/react-utilities';
-import { withTranslations } from '@rbx/core-scripts/react';
-import { httpService, pageName } from '@rbx/core-scripts/legacy/core-utilities';
-import { eventStreamService } from '@rbx/core-scripts/legacy/core-roblox-utilities';
-import { SearchLandingService, Endpoints } from '@rbx/core-scripts/legacy/Roblox';
-import { translations } from '../../component.json';
-import SearchInput from '../components/SearchInput';
-import layout from '../constants/layoutConstants';
-import linkConstants from '../constants/linkConstants';
-import search from '../constants/searchConstants';
-import searchService, { GamesAutocompleteSuggestionEntryType } from '../services/searchService';
-import events from '../constants/searchEventStreamConstants';
-import navigationUtil from '../util/navigationUtil';
-import searchUtil from '../util/searchUtil';
+import { useEffect, useState, useMemo, useCallback } from "react";
+import PropTypes from "prop-types";
+import { usePrevious, useDebounce } from "@rbx/core-scripts/legacy/react-utilities";
+import { withTranslations } from "@rbx/core-scripts/react";
+import { httpService, pageName } from "@rbx/core-scripts/legacy/core-utilities";
+import { eventStreamService } from "@rbx/core-scripts/legacy/core-roblox-utilities";
+import { SearchLandingService, Endpoints } from "@rbx/core-scripts/legacy/Roblox";
+import { translations } from "../../component.json";
+import SearchInput from "../components/SearchInput";
+import layout from "../constants/layoutConstants";
+import linkConstants from "../constants/linkConstants";
+import search from "../constants/searchConstants";
+import searchService, { GamesAutocompleteSuggestionEntryType } from "../services/searchService";
+import events from "../constants/searchEventStreamConstants";
+import navigationUtil from "../util/navigationUtil";
+import searchUtil from "../util/searchUtil";
 
 export function UniversalSearch({ translate, isUniverseSearchShown }) {
   const [searchInput, setSearchInput] = useState(
-    navigationUtil.parseQuery(window.location.search).keyword || ''
+    navigationUtil.parseQuery(window.location.search).keyword || "",
   );
 
   const debouncedSearchInput = useDebounce(searchInput, search.debounceTimeout);
   const previousDebouncedSearchInput = usePrevious(debouncedSearchInput);
   const [autocompleteSuggestions, setAutocompleteSuggestions] = useState(null);
   const [autocompleteSessionInfo, setAutocompleteSessionInfo] = useState(
-    events.generateSessionInfo()
+    events.generateSessionInfo(),
   );
   const [searchLandingPageSessionInfo, setSearchLandingPageSessionInfo] = useState(
-    events.generateSessionInfo()
+    events.generateSessionInfo(),
   );
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isInitialCall, setIsInitialCall] = useState(true);
@@ -39,10 +39,10 @@ export function UniversalSearch({ translate, isUniverseSearchShown }) {
   const [universalSearchLinks, setUniversalSearchLinks] = useState(
     search.isAutocompleteSuggestionsIXPTestEnabled()
       ? navigationUtil.getNewUniversalSearchLinks()
-      : navigationUtil.getUniversalSearchLinks()
+      : navigationUtil.getUniversalSearchLinks(),
   );
   const gameSearchLinkIndex = universalSearchLinks.findIndex(
-    ({ label }) => label === linkConstants.gameSearchLink.label
+    ({ label }) => label === linkConstants.gameSearchLink.label,
   );
   const avatarShopSearchLinkIndex = navigationUtil
     .getNewUniversalSearchLinks()
@@ -57,20 +57,20 @@ export function UniversalSearch({ translate, isUniverseSearchShown }) {
           autocompleteSuggestions.findIndex(
             suggestion =>
               suggestion.searchQuery === debouncedSearchInput.toLowerCase() &&
-              searchUtil.isAvatarAutocompleteSuggestion(suggestion)
+              searchUtil.isAvatarAutocompleteSuggestion(suggestion),
           ) === -1;
         const avatarSplicedSuggestions = additionalSuggestions.filter(
           suggestion =>
             suggestion.searchQuery !== debouncedSearchInput.toLowerCase() ||
-            searchUtil.isAvatarAutocompleteSuggestion(suggestion)
+            searchUtil.isAvatarAutocompleteSuggestion(suggestion),
         );
         return [
           ...universalSearchLinks.slice(
             0,
-            showAvatarSearchLink ? avatarShopSearchLinkIndex + 1 : avatarShopSearchLinkIndex
+            showAvatarSearchLink ? avatarShopSearchLinkIndex + 1 : avatarShopSearchLinkIndex,
           ),
           ...avatarSplicedSuggestions,
-          ...universalSearchLinks.slice(avatarShopSearchLinkIndex + 1)
+          ...universalSearchLinks.slice(avatarShopSearchLinkIndex + 1),
         ];
       }
       if (search.isSpecialTreatmentAutocompleteRestricted()) {
@@ -80,28 +80,28 @@ export function UniversalSearch({ translate, isUniverseSearchShown }) {
         additionalSuggestions.findIndex(
           suggestion =>
             suggestion.searchQuery === debouncedSearchInput.toLowerCase() &&
-            suggestion.type === GamesAutocompleteSuggestionEntryType.GameSuggestion
+            suggestion.type === GamesAutocompleteSuggestionEntryType.GameSuggestion,
         ) === -1;
       const splicedSuggestions = additionalSuggestions
         .filter(
           suggestion =>
             suggestion.searchQuery !== debouncedSearchInput.toLowerCase() ||
-            suggestion.type === GamesAutocompleteSuggestionEntryType.GameSuggestion
+            suggestion.type === GamesAutocompleteSuggestionEntryType.GameSuggestion,
         )
         .slice(
           0,
           search.isSpecialTreatment()
             ? search.numberOfSpecialTreatmentAutocompleteSuggestions
-            : search.numberOfAutocompleteSuggestions()
+            : search.numberOfAutocompleteSuggestions(),
         );
 
       return [
         ...universalSearchLinks.slice(
           0,
-          showGameSearchLink ? gameSearchLinkIndex + 1 : gameSearchLinkIndex
+          showGameSearchLink ? gameSearchLinkIndex + 1 : gameSearchLinkIndex,
         ),
         ...splicedSuggestions,
-        ...universalSearchLinks.slice(gameSearchLinkIndex + 1)
+        ...universalSearchLinks.slice(gameSearchLinkIndex + 1),
       ];
     }
     return universalSearchLinks;
@@ -110,7 +110,7 @@ export function UniversalSearch({ translate, isUniverseSearchShown }) {
   const searchSuggestions = useMemo(
     () => constructSearchSuggestions(autocompleteSuggestions),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [autocompleteSuggestions, universalSearchLinks]
+    [autocompleteSuggestions, universalSearchLinks],
   );
 
   const processAvatarShopAutocompleteSuggestions = (avatarShopSuggestions, query) => {
@@ -138,8 +138,8 @@ export function UniversalSearch({ translate, isUniverseSearchShown }) {
           searchInput,
           events.contexts.searchAutocomplete,
           events.actionTypes.submit,
-          autocompleteSessionInfo
-        )
+          autocompleteSessionInfo,
+        ),
       );
     }
     setIsInitialCall(false);
@@ -147,7 +147,7 @@ export function UniversalSearch({ translate, isUniverseSearchShown }) {
     const getAutocompleteSuggestion = async () => {
       if (
         debouncedSearchInput !== undefined &&
-        debouncedSearchInput !== '' &&
+        debouncedSearchInput !== "" &&
         debouncedSearchInput.length <= search.debouncedSearchInputMaxLength
       ) {
         setAutocompleteSuggestions(null);
@@ -161,11 +161,11 @@ export function UniversalSearch({ translate, isUniverseSearchShown }) {
               userLanguageCode,
               search.avatarAutocompleteQueryPaddingAmount,
               previousDebouncedSearchInput,
-              useAvatarAutocompletFallbackUrl
+              useAvatarAutocompletFallbackUrl,
             );
             const constructedSuggestions = processAvatarShopAutocompleteSuggestions(
               data.Data,
-              debouncedSearchInput
+              debouncedSearchInput,
             );
             eventStreamService.sendEvent(
               ...events.searchAutocomplete(
@@ -176,10 +176,10 @@ export function UniversalSearch({ translate, isUniverseSearchShown }) {
                 data.Args.Algo,
                 end - start,
                 search.debounceTimeout,
-                '',
+                "",
                 pageName.PageNameProvider.getInternalPageName(),
-                previousDebouncedSearchInput !== ''
-              )
+                previousDebouncedSearchInput !== "",
+              ),
             );
             setAutocompleteSuggestions(constructedSuggestions);
           } catch (error) {
@@ -204,8 +204,8 @@ export function UniversalSearch({ translate, isUniverseSearchShown }) {
                 search.debounceTimeout,
                 autocompleteSessionInfo,
                 pageName.PageNameProvider.getInternalPageName(),
-                false
-              )
+                false,
+              ),
             );
             setAutocompleteSuggestions(data.entries);
           } catch (error) {
@@ -249,8 +249,8 @@ export function UniversalSearch({ translate, isUniverseSearchShown }) {
         events.contexts.searchLandingPage,
         events.actionTypes.open,
         undefined,
-        newSearchLandingSessionInfo
-      )
+        newSearchLandingSessionInfo,
+      ),
     );
     setSearchLandingPageSessionInfo(newSearchLandingSessionInfo);
   }, []);
@@ -258,13 +258,15 @@ export function UniversalSearch({ translate, isUniverseSearchShown }) {
   const handleSearchOpenOrInputChange = useCallback(
     // If the search input is not provided, its a search open from clicking the search bar
     // not from a user typing or hitting clear search ("")
+    // TODO: old, migrated code
+    // eslint-disable-next-line require-await
     async (newSearchInput = searchInput) => {
       setSearchInput(newSearchInput);
 
       // If the search input is trimmed, send a search text trim event
       if (newSearchInput.length < searchInput.length) {
         eventStreamService.sendEvent(
-          ...events.searchTextTrim(searchInput, newSearchInput, undefined, autocompleteSessionInfo)
+          ...events.searchTextTrim(searchInput, newSearchInput, undefined, autocompleteSessionInfo),
         );
       }
 
@@ -278,8 +280,8 @@ export function UniversalSearch({ translate, isUniverseSearchShown }) {
             newSearchInput,
             events.contexts.searchAutocomplete,
             events.actionTypes.open,
-            newAutocompleteSessionInfo
-          )
+            newAutocompleteSessionInfo,
+          ),
         );
         setAutocompleteSessionInfo(newAutocompleteSessionInfo);
         // Reset any previously selected autocomplete suggestions
@@ -291,7 +293,7 @@ export function UniversalSearch({ translate, isUniverseSearchShown }) {
       // SLP menu will be shown for empty input and autocomplete menu shown for non-empty input
       setIsMenuOpen(true);
     },
-    [autocompleteSessionInfo, showSearchLandingPage, isMenuHover, searchInput]
+    [autocompleteSessionInfo, showSearchLandingPage, isMenuHover, searchInput],
   );
 
   const closeMenu = () => {
@@ -306,8 +308,8 @@ export function UniversalSearch({ translate, isUniverseSearchShown }) {
           events.contexts.searchLandingPage,
           events.actionTypes.cancel,
           undefined,
-          searchLandingPageSessionInfo
-        )
+          searchLandingPageSessionInfo,
+        ),
       );
     } else {
       eventStreamService.sendEvent(
@@ -315,8 +317,8 @@ export function UniversalSearch({ translate, isUniverseSearchShown }) {
           searchInput,
           events.contexts.searchAutocomplete,
           events.actionTypes.close,
-          autocompleteSessionInfo
-        )
+          autocompleteSessionInfo,
+        ),
       );
     }
 
@@ -371,11 +373,11 @@ export function UniversalSearch({ translate, isUniverseSearchShown }) {
             suggestion.searchQuery,
             searchUtil.getAutocompleteSearchType(suggestion),
             searchUtil.serializeSuggestions(searchSuggestions, searchInput),
-            autocompleteSessionInfo
-          )
+            autocompleteSessionInfo,
+          ),
         );
         eventStreamService.sendEvent(
-          ...events.catalogSearch(1, pageName.PageNameProvider.getInternalPageName())
+          ...events.catalogSearch(1, pageName.PageNameProvider.getInternalPageName()),
         );
       } else {
         eventStreamService.sendEvent(
@@ -386,18 +388,18 @@ export function UniversalSearch({ translate, isUniverseSearchShown }) {
             debouncedSearchInput,
             searchUtil.getDefaultSearchType(suggestion),
             searchUtil.serializeSuggestions(searchSuggestions, searchInput),
-            autocompleteSessionInfo
-          )
+            autocompleteSessionInfo,
+          ),
         );
         eventStreamService.sendEvent(
-          ...events.catalogSearch(0, pageName.PageNameProvider.getInternalPageName())
+          ...events.catalogSearch(0, pageName.PageNameProvider.getInternalPageName()),
         );
       }
       resetAutocompleteSessionInfo();
       const suggestionUrl = searchUtil.getSuggestionUrl(suggestion, e);
       if (suggestionUrl) {
         let redirectUrl = suggestionUrl;
-        if (suggestion.label === 'Label.CreatorStore') {
+        if (suggestion.label === "Label.CreatorStore") {
           const { creatorStoreUrl } = linkConstants;
           redirectUrl = creatorStoreUrl;
           if (e?.target?.value) {
@@ -405,19 +407,19 @@ export function UniversalSearch({ translate, isUniverseSearchShown }) {
           }
         }
 
-        if (document.getElementById('routing')) {
+        if (document.getElementById("routing")) {
           const url = new URL(redirectUrl);
           if (
             url.origin === window.location.origin &&
-            Endpoints.removeUrlLocale(url.pathname).toLowerCase() === '/catalog'
+            Endpoints.removeUrlLocale(url.pathname).toLowerCase() === "/catalog"
           ) {
-            const customEvent = new CustomEvent('externalNavigation', {
-              detail: { url: redirectUrl }
+            const customEvent = new CustomEvent("externalNavigation", {
+              detail: { url: redirectUrl },
             });
             window.dispatchEvent(customEvent);
             // close auto completes and unfocus the input
             setIsMenuOpen(false);
-            document.getElementById('navbar-search-input').blur();
+            document.getElementById("navbar-search-input").blur();
             return;
           }
         }
@@ -432,9 +434,9 @@ export function UniversalSearch({ translate, isUniverseSearchShown }) {
   };
 
   useEffect(() => {
-    window.addEventListener('setSearchMenuClose', setSearchMenuClose);
+    window.addEventListener("setSearchMenuClose", setSearchMenuClose);
     return () => {
-      window.removeEventListener('setSearchMenuClose', setSearchMenuClose);
+      window.removeEventListener("setSearchMenuClose", setSearchMenuClose);
     };
   }, [isMenuOpen]);
 
@@ -455,19 +457,19 @@ export function UniversalSearch({ translate, isUniverseSearchShown }) {
         searchSuggestions,
         autocompleteSessionInfo,
         resetSessionInfo,
-        isAvatarAutocompleteEnabled: showAvatarAutocompleteSuggestions
+        isAvatarAutocompleteEnabled: showAvatarAutocompleteSuggestions,
       }}
     />
   );
 }
 
 UniversalSearch.defaultProps = {
-  isUniverseSearchShown: true
+  isUniverseSearchShown: true,
 };
 
 UniversalSearch.propTypes = {
   translate: PropTypes.func.isRequired,
-  isUniverseSearchShown: PropTypes.bool
+  isUniverseSearchShown: PropTypes.bool,
 };
 
 export const UniversalSearchContainer = withTranslations(UniversalSearch, translations);

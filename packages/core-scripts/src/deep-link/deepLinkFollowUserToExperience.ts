@@ -5,7 +5,7 @@ const deepLinkFollowUserToExperience = (target: DeepLink): Promise<boolean> => {
   if (userId) {
     window.location.href = `/games/start?userId=${userId}`;
   }
-  return Promise.resolve(!!userId);
+  return Promise.resolve(Boolean(userId));
 };
 
 export default deepLinkFollowUserToExperience;

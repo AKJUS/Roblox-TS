@@ -1,19 +1,18 @@
-/* eslint-disable jsx-a11y/anchor-is-valid */
-import React from 'react';
-import PropTypes from 'prop-types';
-import ClassNames from 'classnames';
-import { eventStreamService } from '@rbx/core-scripts/legacy/core-roblox-utilities';
-import { Link } from '@rbx/core-ui/legacy/react-style-guide';
-import navigationUtil from '../util/navigationUtil';
-import searchUtil from '../util/searchUtil';
-import events from '../constants/searchEventStreamConstants';
+import React from "react";
+import PropTypes from "prop-types";
+import ClassNames from "classnames";
+import { eventStreamService } from "@rbx/core-scripts/legacy/core-roblox-utilities";
+import { Link } from "@rbx/core-ui/legacy/react-style-guide";
+import navigationUtil from "../util/navigationUtil";
+import searchUtil from "../util/searchUtil";
+import events from "../constants/searchEventStreamConstants";
 
 function SearchLinks({
   translate,
   searchInput,
   indexOfSelectedOption,
   autocompleteSessionInfo,
-  resetSessionInfo
+  resetSessionInfo,
 }) {
   const universalSearchLinks = navigationUtil.getUniversalSearchLinks();
   return (
@@ -21,8 +20,8 @@ function SearchLinks({
       {Object.entries(universalSearchLinks).map(([key, suggestion]) => {
         const { url, label } = suggestion;
         const listClass = ClassNames(
-          'navbar-search-option rbx-clickable-li',
-          parseInt(key, 10) === indexOfSelectedOption ? ' selected' : ''
+          "navbar-search-option rbx-clickable-li",
+          parseInt(key, 10) === indexOfSelectedOption ? " selected" : "",
         );
         return (
           <li key={key} className={listClass}>
@@ -38,15 +37,15 @@ function SearchLinks({
                     searchInput,
                     searchUtil.getDefaultSearchType(suggestion),
                     searchUtil.serializeSuggestions(universalSearchLinks, searchInput),
-                    autocompleteSessionInfo
-                  )
+                    autocompleteSessionInfo,
+                  ),
                 );
                 resetSessionInfo();
               }}
             >
-              {translate('Label.sSearchPhrase', {
+              {translate("Label.sSearchPhrase", {
                 phrase: searchInput,
-                location: translate(label)
+                location: translate(label),
               })}
             </Link>
           </li>
@@ -61,7 +60,7 @@ SearchLinks.propTypes = {
   searchInput: PropTypes.string.isRequired,
   indexOfSelectedOption: PropTypes.number.isRequired,
   autocompleteSessionInfo: PropTypes.string.isRequired,
-  resetSessionInfo: PropTypes.func.isRequired
+  resetSessionInfo: PropTypes.func.isRequired,
 };
 
 export default SearchLinks;

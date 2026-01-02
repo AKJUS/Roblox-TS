@@ -8,12 +8,15 @@ import { GAMES_PAGE_PREFIX, LANG_KEYS, UPSELL_COUNTER_NAMES } from '../constants
 import reportCounter from '../utils/common/reportCounter';
 import { redirectToRobuxStore } from '../utils/common/redirectionHelpers';
 import getGamePassThumbnailUrl from '../utils/common/getGamePassThumbnailUrl';
+import openUnifiedRobuxUpsellModal from './openUnifiedRobuxUpsellModal';
+import ItemPreviewThumbnail from '../../../../../ts/react/components/ItemPreviewThumbnail';
 
 export default function openInsufficientRobuxExceedLargestPackageModal(
   robuxShortfallPrice: number,
   defaultThumbnailUrl: string,
   itemDetail: ItemDetailElementDataset,
-  translationResource: RobloxTranslationResource
+  translationResource: RobloxTranslationResource,
+  shouldShowUnifiedPurchaseModal = false
 ): void {
   const robuxNeeded = formattingRobux(robuxShortfallPrice);
   const expectedPrice = parseInt(itemDetail.expectedPrice, 10);
@@ -52,30 +55,53 @@ export default function openInsufficientRobuxExceedLargestPackageModal(
   );
   reportCounter(UPSELL_COUNTER_NAMES.UpsellExceedLargestShown, itemDetail.assetType);
 
+  function onAccept() {
+    paymentFlowAnalyticsService.sendUserPurchaseFlowEvent(
+      paymentFlowAnalyticsService.ENUM_TRIGGERING_CONTEXT.WEB_CATALOG_ROBUX_UPSELL,
+      true,
+      paymentFlowAnalyticsService.ENUM_VIEW_NAME.ROBUX_UPSELL_EXCEED_LARGEST_PACKAGE,
+      paymentFlowAnalyticsService.ENUM_PURCHASE_EVENT_TYPE.USER_INPUT,
+      paymentFlowAnalyticsService.ENUM_VIEW_MESSAGE.GO_TO_ROBUX_STORE
+    );
+    reportCounter(
+      UPSELL_COUNTER_NAMES.UpsellExceedLargestGoToRobuxStoreClicked,
+      itemDetail?.assetType
+    );
+    redirectToRobuxStore(
+      deviceMeta.getDeviceMeta()?.isTablet ?? false,
+      deviceMeta.getDeviceMeta()?.isUniversalApp ?? false
+    );
+    return false;
+  }
+
+  function onCancel() {
+    paymentFlowAnalyticsService.sendUserPurchaseFlowEvent(
+      paymentFlowAnalyticsService.ENUM_TRIGGERING_CONTEXT.WEB_CATALOG_ROBUX_UPSELL,
+      true,
+      paymentFlowAnalyticsService.ENUM_VIEW_NAME.ROBUX_UPSELL_EXCEED_LARGEST_PACKAGE,
+      paymentFlowAnalyticsService.ENUM_PURCHASE_EVENT_TYPE.USER_INPUT,
+      paymentFlowAnalyticsService.ENUM_VIEW_MESSAGE.CANCEL
+    );
+    reportCounter(UPSELL_COUNTER_NAMES.UpsellCancelled, itemDetail?.assetType);
+  }
+  if (shouldShowUnifiedPurchaseModal) {
+    openUnifiedRobuxUpsellModal({
+      variant: 'tooExpensive',
+      expectedPrice,
+      assetName: itemDetail.itemName,
+      thumbnail: ItemPreviewThumbnail({ thumbnailImageUrl: thumbnailImageUrl ?? '' }),
+      onAccept,
+      onCancel
+    });
+    return;
+  }
   Dialog.open({
     titleText: translationResource.get(LANG_KEYS.insufficientRobuxHeading, {}),
     bodyContent: dialogBody,
     declineText: translationResource.get(LANG_KEYS.cancelAction, {}),
     acceptText: translationResource.get(LANG_KEYS.goToRobuxStoreAction, {}),
     acceptColor: 'btn-primary-md',
-    onAccept: () => {
-      paymentFlowAnalyticsService.sendUserPurchaseFlowEvent(
-        paymentFlowAnalyticsService.ENUM_TRIGGERING_CONTEXT.WEB_CATALOG_ROBUX_UPSELL,
-        true,
-        paymentFlowAnalyticsService.ENUM_VIEW_NAME.ROBUX_UPSELL_EXCEED_LARGEST_PACKAGE,
-        paymentFlowAnalyticsService.ENUM_PURCHASE_EVENT_TYPE.USER_INPUT,
-        paymentFlowAnalyticsService.ENUM_VIEW_MESSAGE.GO_TO_ROBUX_STORE
-      );
-      reportCounter(
-        UPSELL_COUNTER_NAMES.UpsellExceedLargestGoToRobuxStoreClicked,
-        itemDetail?.assetType
-      );
-      redirectToRobuxStore(
-        deviceMeta.getDeviceMeta()?.isTablet ?? false,
-        deviceMeta.getDeviceMeta()?.isUniversalApp ?? false
-      );
-      return false;
-    },
+    onAccept,
     onDecline: () => {
       paymentFlowAnalyticsService.sendUserPurchaseFlowEvent(
         paymentFlowAnalyticsService.ENUM_TRIGGERING_CONTEXT.WEB_CATALOG_ROBUX_UPSELL,
@@ -86,16 +112,7 @@ export default function openInsufficientRobuxExceedLargestPackageModal(
       );
       reportCounter(UPSELL_COUNTER_NAMES.UpsellExceedLargestCancelled, itemDetail?.assetType);
     },
-    onCancel: () => {
-      paymentFlowAnalyticsService.sendUserPurchaseFlowEvent(
-        paymentFlowAnalyticsService.ENUM_TRIGGERING_CONTEXT.WEB_CATALOG_ROBUX_UPSELL,
-        true,
-        paymentFlowAnalyticsService.ENUM_VIEW_NAME.ROBUX_UPSELL_EXCEED_LARGEST_PACKAGE,
-        paymentFlowAnalyticsService.ENUM_PURCHASE_EVENT_TYPE.USER_INPUT,
-        paymentFlowAnalyticsService.ENUM_VIEW_MESSAGE.CANCEL
-      );
-      reportCounter(UPSELL_COUNTER_NAMES.UpsellCancelled, itemDetail?.assetType);
-    },
+    onCancel,
     allowHtmlContentInBody: true,
     allowHtmlContentInFooter: false,
     fieldValidationRequired: true,

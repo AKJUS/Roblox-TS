@@ -1,47 +1,17 @@
 import "../global";
 import * as E from "fp-ts/Either";
-import * as TE from "fp-ts/TaskEither";
-import * as T from "fp-ts/Task";
 import * as O from "fp-ts/Option";
-import { pipe } from "fp-ts/lib/function";
-import environmentUrls from "@rbx/environment-urls";
 import {
   getWithDefaultHandlers,
   tryGetIndexedDBConnectionWithDefaults,
 } from "@rbx/buffered-telemetry";
 import type { UrlConfig } from "../http";
 import { hbaMeta } from "./hba";
-import { getCryptoKeyPair, putCryptoKeyPair } from "./internal/indexedDB";
 import { BatGenerationErrorInfo, BatGenerationErrorKind, HbaMeta } from "./internal/types";
 import { hashStringWithSha256, sign } from "./crypto";
 import { ONE_MILLION, sendBATMissingEvent, sendBATSuccessEvent } from "./internal/events";
 import { getErrorMessage } from "./internal/errorMessage";
-
-const { Cookies } = window.Roblox;
-
-const newIdbFlagEnabledTask = pipe(
-  TE.tryCatch(
-    async () => {
-      const res = await fetch(
-        `${environmentUrls.apiGatewayUrl}/rotating-client-service/v1/metadata`,
-        {
-          credentials: "include",
-        },
-      );
-      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-      return (await res.json()) as { enableIndexedDbTelemetry: boolean };
-    },
-    e => e,
-  ),
-  TE.map(enabled => !!enabled),
-  TE.getOrElse(() => T.of(false)),
-);
-let newIdbEnabledForPage: boolean | null = null;
-
-// eslint-disable-next-line @typescript-eslint/no-floating-promises
-(async () => {
-  newIdbEnabledForPage = await newIdbFlagEnabledTask();
-})();
+import { putCryptoKeyPair } from "./internal/indexedDB";
 
 // This remains module-level so that flag results remain stable between requests on the
 // same page load, but is overridable in exported function definitions to make things easier
@@ -146,33 +116,6 @@ export const shouldRequestWithBoundAuthToken = (
   }
 };
 
-const updateKeyForCryptoKeyPair = async (hbaMeta: HbaMeta): Promise<CryptoKeyPair> => {
-  const { hbaIndexedDBName, hbaIndexedDBObjStoreName, hbaIndexedDBKeyName } = hbaMeta;
-  // TODO: old, migrated code
-  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-  const browserTrackerId = Cookies?.getBrowserTrackerId() || "";
-  let keyPair = await getCryptoKeyPair(
-    hbaIndexedDBName,
-    hbaIndexedDBObjStoreName,
-    browserTrackerId,
-  );
-  if (keyPair && hbaIndexedDBKeyName) {
-    await putCryptoKeyPair(
-      hbaIndexedDBName,
-      hbaIndexedDBObjStoreName,
-      hbaIndexedDBKeyName,
-      keyPair,
-    );
-    keyPair = await getCryptoKeyPair(
-      hbaIndexedDBName,
-      hbaIndexedDBObjStoreName,
-      hbaIndexedDBKeyName,
-    );
-  }
-  // @ts-expect-error TODO: old, migrated code
-  return keyPair;
-};
-
 export const getWithDisasterRecovery = async (
   databaseName: string,
   objectStoreName: string,
@@ -219,50 +162,29 @@ export const getWithDisasterRecovery = async (
 export const generateBoundAuthToken = async (
   urlConfig: UrlConfigForBat,
   hbaMeta: HbaMeta = defaultStableHbaMeta,
-  // For unit testing.
-  useNewInstrumentedIdb = false,
 ): Promise<E.Either<BatGenerationErrorInfo, string>> => {
   try {
     const { hbaIndexedDBName, hbaIndexedDBObjStoreName, hbaIndexedDBKeyName, hbaIndexedDBVersion } =
       hbaMeta;
 
-    const useNewIdbCryptoOperations = useNewInstrumentedIdb || !!newIdbEnabledForPage;
-    // Flagged internally in getWithDisasterRecovery.
-    const maybeNewPair = await getWithDisasterRecovery(
-      hbaIndexedDBName,
-      hbaIndexedDBObjStoreName,
-      hbaIndexedDBVersion,
-      hbaIndexedDBKeyName,
-      useNewIdbCryptoOperations,
-    );
-    // Don't overwrite an existing key if it exists.
-    if (maybeNewPair !== null) {
-      // This should effectively skip the legacy path if this is both enabled and non-null.
-      // When this gets rolled out we can just replace the statement below directly for clarity.
+    if (clientCryptoKeyPair === null) {
+      // Flagged internally in getWithDisasterRecovery.
+      const maybeNewPair = await getWithDisasterRecovery(
+        hbaIndexedDBName,
+        hbaIndexedDBObjStoreName,
+        hbaIndexedDBVersion,
+        hbaIndexedDBKeyName,
+        true,
+      );
       clientCryptoKeyPair = maybeNewPair;
-    }
-
-    // Read client keys from indexedDB.
-    if (!clientCryptoKeyPair) {
+    } else {
       try {
-        clientCryptoKeyPair = await getCryptoKeyPair(
+        await putCryptoKeyPair(
           hbaIndexedDBName,
           hbaIndexedDBObjStoreName,
           hbaIndexedDBKeyName,
+          clientCryptoKeyPair,
         );
-      } catch (e) {
-        // Don't block the request if `getCryptoKeyPair` rejects.
-        return E.left({
-          message: getErrorMessage(e),
-          kind: BatGenerationErrorKind.GetKeyPairFailed,
-        });
-      }
-      try {
-        // Only attempt `updateKeyForCryptoKeyPair` if `clientCryptoKeyPair` can't be found via
-        // `hbaIndexedDBkeyName`.
-        if (!clientCryptoKeyPair) {
-          clientCryptoKeyPair = await updateKeyForCryptoKeyPair(hbaMeta);
-        }
       } catch (e) {
         // Don't block the request if `updateKeyForCryptoKeyPair` rejects.
         return E.left({
@@ -271,10 +193,7 @@ export const generateBoundAuthToken = async (
         });
       }
     }
-
     // If no key is found, return empty.
-    // TODO: old, migrated code
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (!clientCryptoKeyPair) {
       return E.left({
         message: "",
@@ -348,7 +267,6 @@ export const generateBoundAuthToken = async (
       ),
     );
   } catch (e) {
-    // eslint-disable-next-line no-console
     console.warn("BAT generation error:", e);
     return E.left({
       message: getErrorMessage(e),

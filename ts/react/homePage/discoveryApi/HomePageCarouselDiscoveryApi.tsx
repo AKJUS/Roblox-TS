@@ -22,10 +22,12 @@ import useGameImpressionsIntersectionTracker, {
   TBuildCarouselGameImpressionsEventProperties
 } from '../../common/hooks/useGameImpressionsIntersectionTracker';
 import {
+  getAbsoluteRowClickData,
   getAbsoluteRowImpressionsData,
   getSponsoredAdImpressionsData,
   getThumbnailAssetIdImpressionsData,
-  getTileBadgeContextsImpressionsData
+  getTileBadgeContextsImpressionsData,
+  getTileFooterImpressionsData
 } from '../../common/utils/parsingUtils';
 import { usePageSession } from '../../common/utils/PageSessionContext';
 import GameCarouselContainerHeader from '../../common/components/GameCarouselContainerHeader';
@@ -54,7 +56,7 @@ type THomePageGameCarouselDiscoveryApiProps = {
   endTimestamp?: string;
   countdownString?: string;
   hideTileMetadata?: boolean;
-  isExpandHomeContentEnabled?: boolean;
+  isDynamicLayoutSizingEnabled?: boolean;
   isCarouselHorizontalScrollEnabled?: boolean;
   isNewScrollArrowsEnabled?: boolean;
   isNewSortHeaderEnabled?: boolean;
@@ -81,7 +83,7 @@ export const HomePageCarousel = ({
   endTimestamp,
   countdownString,
   hideTileMetadata,
-  isExpandHomeContentEnabled,
+  isDynamicLayoutSizingEnabled,
   isCarouselHorizontalScrollEnabled,
   isNewScrollArrowsEnabled,
   isNewSortHeaderEnabled
@@ -96,6 +98,7 @@ export const HomePageCarousel = ({
     [EventStreamMetadata.IsAd]: data.isSponsored,
     [EventStreamMetadata.NativeAdData]: data.nativeAdData,
     [EventStreamMetadata.Position]: id,
+    ...getAbsoluteRowClickData(startingRow, itemsPerRow, id),
     [EventStreamMetadata.SortPos]: positionId,
     [EventStreamMetadata.NumberOfLoadedTiles]: (gameData || []).length,
     [EventStreamMetadata.GameSetTypeId]: sort.topicId,
@@ -120,6 +123,12 @@ export const HomePageCarousel = ({
             componentType
           ),
           ...getTileBadgeContextsImpressionsData(
+            gameData,
+            sort.topicId,
+            filteredViewedIndexes,
+            componentType
+          ),
+          ...getTileFooterImpressionsData(
             gameData,
             sort.topicId,
             filteredViewedIndexes,
@@ -155,12 +164,12 @@ export const HomePageCarousel = ({
   );
 
   useEffect(() => {
-    if (isExpandHomeContentEnabled) {
+    if (isDynamicLayoutSizingEnabled) {
       if (itemsPerRow && carouselRef?.current) {
         carouselRef.current.style.setProperty('--items-per-row', itemsPerRow.toString());
       }
     }
-  }, [isExpandHomeContentEnabled, itemsPerRow]);
+  }, [isDynamicLayoutSizingEnabled, itemsPerRow]);
 
   const seeAllLink: string = useMemo(() => {
     if (seeAllLinkPath) {
@@ -255,7 +264,7 @@ export const HomePageCarousel = ({
           hideTileMetadata={hideTileMetadata}
           hoverStyle={hoverStyle}
           topicId={sort.topicId?.toString()}
-          isExpandHomeContentEnabled={isExpandHomeContentEnabled}
+          isDynamicLayoutSizingEnabled={isDynamicLayoutSizingEnabled}
           isCarouselHorizontalScrollEnabled={isCarouselHorizontalScrollEnabled}
           isNewScrollArrowsEnabled={isNewScrollArrowsEnabled}
           translate={translate}
@@ -277,7 +286,7 @@ export const HomePageCarousel = ({
           hideTileMetadata={hideTileMetadata}
           hoverStyle={hoverStyle}
           topicId={sort.topicId?.toString()}
-          isExpandHomeContentEnabled={isExpandHomeContentEnabled}
+          isDynamicLayoutSizingEnabled={isDynamicLayoutSizingEnabled}
         />
       )}
     </SortBackgroundMuralWrapper>
@@ -299,7 +308,7 @@ HomePageCarousel.defaultProps = {
   endTimestamp: undefined,
   countdownString: undefined,
   hideTileMetadata: undefined,
-  isExpandHomeContentEnabled: undefined,
+  isDynamicLayoutSizingEnabled: undefined,
   isCarouselHorizontalScrollEnabled: undefined,
   isNewScrollArrowsEnabled: undefined,
   isNewSortHeaderEnabled: undefined

@@ -53,6 +53,8 @@ function FileUploadBase({ className, onChange, children, ...otherProps }) {
 
   const onDragOverOrEnter = e => {
     e.preventDefault();
+    // TODO: old, migrated code
+    // eslint-disable-next-line no-param-reassign
     e.dataTransfer.effectAllowed = allowedEffectTypes.copy;
   };
 

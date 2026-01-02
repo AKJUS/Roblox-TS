@@ -117,19 +117,20 @@ export const useTranslatedLegallySensitiveContentAndActions = (
   const updateSettingWithAuditing = async (
     settingName: UserSetting,
     settingValue: SettingValue,
-    additionalContextualData: string
+    additionalContextualData?: Record<string, any>
   ) => {
     const auditData = getAuditDataForConsent(consentName, translate);
+    const auditHeaderValue = getEncodedAuditHeader(auditData, surface, additionalContextualData);
     try {
-      await updateUserSetting(settingName, settingValue, surface, auditData);
+      await updateUserSetting(settingName, settingValue, auditHeaderValue);
     } catch (error) {
       // TODO: Add error handling
     }
   };
 
-  const getBase64EncodedAuditHeader = (): string => {
+  const getBase64EncodedAuditHeader = (additionalContextualData?: Record<string, any>): string => {
     const auditData = getAuditDataForConsent(consentName, translate);
-    const encodedHeaderValue = getEncodedAuditHeader(auditData, surface);
+    const encodedHeaderValue = getEncodedAuditHeader(auditData, surface, additionalContextualData);
     return encodedHeaderValue;
   };
 

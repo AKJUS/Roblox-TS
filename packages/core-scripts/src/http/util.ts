@@ -11,10 +11,7 @@ const getMetaData = () => {
 
   return {
     duplicationEnabled: duplicationMeta?.dataset.duplicationEnabled === "true",
-    apiSitesAllowList:
-      duplicationMeta?.dataset.apiSitesAllowList != null
-        ? duplicationMeta.dataset.apiSitesAllowList
-        : "",
+    apiSitesAllowList: duplicationMeta?.dataset.apiSitesAllowList ?? "",
     duplicationRatio,
     retryAttemptHeaderEnabled: retryMeta?.dataset.retryAttemptHeaderEnabled === "True",
   };

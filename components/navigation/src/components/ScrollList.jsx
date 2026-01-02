@@ -1,16 +1,16 @@
-import { Intl } from '@rbx/core-scripts/legacy/Roblox';
-import environmentUrls from '@rbx/environment-urls';
-import { paymentFlowAnalyticsService } from '@rbx/core-scripts/legacy/core-roblox-utilities';
-import React, { useState, useCallback } from 'react';
-import PropTypes from 'prop-types';
-import { SimpleModal } from '@rbx/core-ui/legacy/react-style-guide';
-import { authenticatedUser } from '@rbx/core-scripts/legacy/header-scripts';
-import links from '../constants/linkConstants';
-import layoutConstants from '../constants/layoutConstants';
-import LeftNavItem from './LeftNavItem';
-import SponsoredEventsContainer from '../containers/SponsoredEventsContainer';
-import navigationUtil from '../util/navigationUtil';
-import platformEventConstants from '../constants/platformEventConstants';
+import React, { useState, useCallback } from "react";
+import PropTypes from "prop-types";
+import { Intl } from "@rbx/core-scripts/legacy/Roblox";
+import environmentUrls from "@rbx/environment-urls";
+import { paymentFlowAnalyticsService } from "@rbx/core-scripts/legacy/core-roblox-utilities";
+import { SimpleModal } from "@rbx/core-ui/legacy/react-style-guide";
+import { authenticatedUser } from "@rbx/core-scripts/legacy/header-scripts";
+import links from "../constants/linkConstants";
+import layoutConstants from "../constants/layoutConstants";
+import LeftNavItem from "./LeftNavItem";
+import SponsoredEventsContainer from "../containers/SponsoredEventsContainer";
+import navigationUtil from "../util/navigationUtil";
+import platformEventConstants from "../constants/platformEventConstants";
 
 const { shopEvents } = layoutConstants;
 const turnOnEventLabel = false; // kill the Event on the NavBar
@@ -29,7 +29,7 @@ function ScrollList({ translate, ...props }) {
 
   const goToAmazonStop = () => {
     const decodedUrl = decodeURIComponent(environmentUrls.amazonWebStoreLink);
-    window.open(decodedUrl, '_blank');
+    window.open(decodedUrl, "_blank");
     navigationUtil.sendClickEvent(shopEvents.goToAmazonStore);
   };
 
@@ -45,7 +45,7 @@ function ScrollList({ translate, ...props }) {
       paymentFlowAnalyticsService.ENUM_PURCHASE_EVENT_TYPE.USER_INPUT,
       authenticatedUser.isPremiumUser
         ? paymentFlowAnalyticsService.ENUM_VIEW_MESSAGE.PREMIUM
-        : paymentFlowAnalyticsService.ENUM_VIEW_MESSAGE.GET_PREMIUM
+        : paymentFlowAnalyticsService.ENUM_VIEW_MESSAGE.GET_PREMIUM,
     );
   };
 
@@ -64,18 +64,18 @@ function ScrollList({ translate, ...props }) {
 
   const modalBody = (
     <React.Fragment>
-      <p className="shop-description">{translate('Description.RetailWebsiteRedirect')}</p>
-      <p className="shop-warning">{translate('Description.PurchaseAgeWarning')}</p>
+      <p className="shop-description">{translate("Description.RetailWebsiteRedirect")}</p>
+      <p className="shop-warning">{translate("Description.PurchaseAgeWarning")}</p>
     </React.Fragment>
   );
   const shopModal = (
     <SimpleModal
-      title={translate('Heading.LeavingRoblox')}
+      title={translate("Heading.LeavingRoblox")}
       body={modalBody}
       show={isShopModalOpen}
       actionButtonShow
-      actionButtonText={translate('Action.Continue')}
-      neutralButtonText={translate('Action.Cancel')}
+      actionButtonText={translate("Action.Continue")}
+      neutralButtonText={translate("Action.Cancel")}
       onAction={goToAmazonStop}
       onNeutral={closeShopModel}
       onClose={closeShopModel}
@@ -88,20 +88,20 @@ function ScrollList({ translate, ...props }) {
   const platformEventThumbnailUrl = platformEventConstants.platfromEventURL();
   const intl = Intl && new Intl();
   const platformEventThumbnailImage = platformEventConstants.localizedThumbnail(
-    intl.getRobloxLocale()
+    intl.getRobloxLocale(),
   );
   const platformEventEntry = (
     <a href={platformEventThumbnailUrl} className="rbx-platform-event-container">
       <div className="rbx-platform-event-header dynamic-overflow-container">
         <span className="rbx-event-icon" />
         <span className="rbx-event-header-text dynamic-ellipsis-item">
-          {translate('Label.sEvents')}
+          {translate("Label.sEvents")}
         </span>
       </div>
       <img
         className="rbx-platform-event-thumbnail"
         src={platformEventThumbnailImage}
-        alt={translate('Label.TheHunt')} // Despite the key, this is not actually specific to The Hunt
+        alt={translate("Label.TheHunt")} // Despite the key, this is not actually specific to The Hunt
       />
     </a>
   );
@@ -120,13 +120,8 @@ function ScrollList({ translate, ...props }) {
   );
 }
 
-ScrollList.defaultProps = {
-  sponsoredPagesData: []
-};
-
 ScrollList.propTypes = {
-  sponsoredPagesData: PropTypes.instanceOf(Array),
-  translate: PropTypes.func.isRequired
+  translate: PropTypes.func.isRequired,
 };
 
 export default ScrollList;

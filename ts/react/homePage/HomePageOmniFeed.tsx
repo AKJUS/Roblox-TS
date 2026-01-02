@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { withTranslations, WithTranslationsProps } from 'react-utilities';
+import { useSystemFeedback } from 'react-style-guide';
 import { dataStores } from 'core-roblox-utilities';
 import { fireEvent } from 'roblox-event-tracker';
 import bedev2Services from '../common/services/bedev2Services';
@@ -21,10 +22,10 @@ import useApportionGridRecommendationsWithResize from '../omniFeed/hooks/useAppo
 import { PageContext } from '../common/types/pageContext';
 import { useVerticalScrollTracker } from '../common/components/useVerticalScrollTracker';
 import { usePageSession, withPageSession } from '../common/utils/PageSessionContext';
+import useFriendsPresence from '../common/hooks/useFriendsPresence';
 import { logOmniFeedStats } from '../sdui/utils/logSduiError';
 import personalizationTranslationConfig from './translation.config';
 import getDeviceFeatures from '../common/utils/deviceFeaturesUtils';
-import experimentConstants from '../common/constants/experimentConstants';
 import HomePageUpsellCardContainerEntry from '../../../js/react/homePageUpsellCard/App';
 import InterestCatcher from './interestCatcher/InterestCatcher';
 import { isGameSortFromOmniRecommendations } from '../omniFeed/utils/gameSortUtils';
@@ -32,14 +33,17 @@ import FriendsCarousel from './FriendsCarousel';
 
 const { maxTilesPerCarouselPage } = homePage;
 
-const { layerNames, defaultValues } = experimentConstants;
-
 export const HomePageOmniFeed = ({ translate }: WithTranslationsProps): JSX.Element => {
   const homePageSessionInfo = usePageSession();
+  const friendsPresenceData = useFriendsPresence();
+  const { SystemFeedbackComponent } = useSystemFeedback();
+
   const [recommendations, setRecommendations] = useState<
     TGetOmniRecommendationsResponse | undefined
   >(undefined);
   const [error, setError] = useState<boolean>(false);
+
+  const [hiddenUniverses, setHiddenUniverses] = useState<Set<number>>(new Set());
 
   const deviceFeatures = useMemo(() => {
     return getDeviceFeatures();
@@ -88,44 +92,11 @@ export const HomePageOmniFeed = ({ translate }: WithTranslationsProps): JSX.Elem
     fetchRecommendations();
   }, [fetchRecommendations]);
 
-  const [experimentationValues, setExperimentationValues] = useState<
-    typeof defaultValues.homePageWeb | undefined
-  >(undefined);
+  const isDynamicLayoutSizingEnabled = true;
 
-  useEffect(() => {
-    bedev2Services
-      .getExperimentationValues(layerNames.homePageWeb, defaultValues.homePageWeb)
-      .then(data => {
-        setExperimentationValues(data);
-      })
-      .catch(() => {
-        setExperimentationValues(defaultValues.homePageWeb);
-      });
-  }, []);
-
-  const isExpandHomeContentEnabled = experimentationValues?.IsExpandHomeContentEnabled;
-
-  const [gridUiExperimentationValues, setGridUiExperimentationValues] = useState<
-    typeof defaultValues.gridUi | undefined
-  >(undefined);
-
-  useEffect(() => {
-    bedev2Services
-      .getExperimentationValues(layerNames.gridUi, defaultValues.gridUi)
-      .then(data => {
-        setGridUiExperimentationValues(data);
-      })
-      .catch(() => {
-        setGridUiExperimentationValues(defaultValues.gridUi);
-      });
-  }, []);
-
-  const isNewSortHeaderEnabled = gridUiExperimentationValues?.IsNewSortHeaderEnabled;
-
-  const isCarouselHorizontalScrollEnabled =
-    gridUiExperimentationValues?.IsCarouselHorizontalScrollEnabled;
-
-  const isNewScrollArrowsEnabled = gridUiExperimentationValues?.IsNewScrollArrowsEnabled;
+  const isNewSortHeaderEnabled = true;
+  const isCarouselHorizontalScrollEnabled = true;
+  const isNewScrollArrowsEnabled = true;
 
   const appendContentMetadata = useCallback(
     (additionalMetadata: TOmniRecommendationsContentMetadata) => {
@@ -162,7 +133,7 @@ export const HomePageOmniFeed = ({ translate }: WithTranslationsProps): JSX.Elem
     startingRowNumbersMap
   } = useApportionGridRecommendationsWithResize(
     recommendations,
-    isExpandHomeContentEnabled,
+    isDynamicLayoutSizingEnabled,
     isCarouselHorizontalScrollEnabled
   );
 
@@ -260,15 +231,19 @@ export const HomePageOmniFeed = ({ translate }: WithTranslationsProps): JSX.Elem
                 currentPage={PageContext.HomePage}
                 itemsPerRow={itemsPerRowMap.get(positionId)}
                 gridRecommendations={gridRecommendationsMap.get(positionId) ?? []}
-                isExpandHomeContentEnabled={isExpandHomeContentEnabled}
+                friendsPresenceData={friendsPresenceData}
+                isDynamicLayoutSizingEnabled={isDynamicLayoutSizingEnabled}
                 isCarouselHorizontalScrollEnabled={isCarouselHorizontalScrollEnabled}
                 isNewScrollArrowsEnabled={isNewScrollArrowsEnabled}
                 isNewSortHeaderEnabled={isNewSortHeaderEnabled}
                 sduiRoot={recommendations.sdui}
+                hiddenUniverses={hiddenUniverses}
+                setHiddenUniverses={setHiddenUniverses}
               />
             </React.Fragment>
           ))}
         </ContentMetadataContext.Provider>
+        <SystemFeedbackComponent />
       </div>
     </div>
   );

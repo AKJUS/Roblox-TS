@@ -30,23 +30,17 @@ const layerNames = {
 
 const defaultValues = {
   homePage: {},
-  homePageWeb: {
-    IsExpandHomeContentEnabled: true
-  },
-  gridUi: {
-    IsNewSortHeaderEnabled: false,
-    IsCarouselHorizontalScrollEnabled: false,
-    IsNewScrollArrowsEnabled: false
-  },
+  homePageWeb: {},
+  gridUi: {},
   serverTab: {},
   gameDetails: {
     ShouldHidePrivateServersInAboutTab: false,
-    IsGameStorePreviewEnabled: false
+    IsGameStorePreviewEnabled: false,
+    HasUpdatedRecommendedSortTitle: true,
+    IsGamePreviewVideoEnabled: false
   },
   gameDetailsExposure: {},
-  searchPage: {
-    ShouldUseOmniSearchAPI: false
-  },
+  searchPage: {},
   discoverPage: {
     // MUS-2078 TODO: Remove this and all other FE experimentation logic for the
     // Music surfaces

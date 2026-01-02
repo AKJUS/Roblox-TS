@@ -1,6 +1,6 @@
-import { UpsellCardType } from '../constants/upsellCardConstants';
+import { UpsellCardType, UpsellCardComponentType } from '../constants/upsellCardConstants';
 
-const isCardTypeSupported = cardType => {
+const getCardComponentType = upsellCardType => {
   const {
     ContactMethodEmail,
     ContactMethodPhoneNumber,
@@ -10,6 +10,10 @@ const isCardTypeSupported = cardType => {
     ContactMethodPhoneNumberEmailVerticalLayout,
     ContactMethodPhoneNumberVoiceOptIn
   } = UpsellCardType;
+
+  if (upsellCardType === UpsellCardType.AgeVerificationModal) {
+    return UpsellCardComponentType.UpsellBanner;
+  }
   if (
     [
       ContactMethodEmail,
@@ -19,11 +23,11 @@ const isCardTypeSupported = cardType => {
       ContactMethodPhoneNumberEmailVerticalLayout,
       ContactMethodPhoneNumberVoiceOptIn,
       FacebookSunset
-    ].includes(cardType)
+    ].includes(upsellCardType)
   ) {
-    return true;
+    return UpsellCardComponentType.HomePageUpsellCard;
   }
-  return false;
+  return null;
 };
 
-export default isCardTypeSupported;
+export default getCardComponentType;

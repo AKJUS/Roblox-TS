@@ -1,9 +1,9 @@
-import PropTypes from 'prop-types';
-import { authenticatedUser } from '@rbx/core-scripts/legacy/header-scripts';
-import HeaderIconsGroup from '../containers/HeaderIconsGroup';
-import UniverseSearchIcon from './UniverseSearchIcon';
-import HeaderSignupLink from './HeaderSignupLink';
-import HeaderLoginLink from './HeaderLoginLink';
+import PropTypes from "prop-types";
+import { authenticatedUser } from "@rbx/core-scripts/legacy/header-scripts";
+import HeaderIconsGroup from "../containers/HeaderIconsGroup";
+import UniverseSearchIcon from "./UniverseSearchIcon";
+import HeaderSignupLink from "./HeaderSignupLink";
+import HeaderLoginLink from "./HeaderLoginLink";
 
 function HeaderRightNav({ translate, toggleUniverseSearch, ...props }) {
   const { isAuthenticated } = authenticatedUser;
@@ -32,7 +32,7 @@ function HeaderRightNav({ translate, toggleUniverseSearch, ...props }) {
 
 HeaderRightNav.propTypes = {
   translate: PropTypes.func.isRequired,
-  toggleUniverseSearch: PropTypes.func.isRequired
+  toggleUniverseSearch: PropTypes.func.isRequired,
 };
 
 export default HeaderRightNav;

@@ -4,12 +4,12 @@ import { sendEventWithTarget, sendGamePlayEvent } from "../event-stream";
 
 // TODO: this should not be part of core-scripts
 
-type JoinDataProperties = {
+export type JoinDataProperties = {
   launchData?: string;
   eventId?: string;
 };
 
-type PlayGameProperties = {
+export type PlayGameProperties = {
   rootPlaceId?: string;
   placeId?: string;
   gameInstanceId?: string;

@@ -2445,10 +2445,11 @@ export const GamesApiAxiosParamCreator = function (configuration?: Configuration
      *
      * @summary Gets a list of games\' detail
      * @param {Array<number>} universeIds A list of universe Ids. Cannot exceed a maximum of 100 IDs.
+     * @param {string} languageCode the html language code.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    v1GamesGet(universeIds: Array<number>, options: any = {}): RequestArgs {
+    v1GamesGet(universeIds: Array<number>, languageCode?: string, options: any = {}): RequestArgs {
       // verify required parameter 'universeIds' is not null or undefined
       if (universeIds === null || universeIds === undefined) {
         throw new RequiredError(
@@ -2468,6 +2469,10 @@ export const GamesApiAxiosParamCreator = function (configuration?: Configuration
 
       if (universeIds) {
         localVarQueryParameter["universeIds"] = universeIds.join(COLLECTION_FORMATS.csv);
+      }
+
+      if (languageCode) {
+        localVarQueryParameter["languageCode"] = languageCode;
       }
 
       localVarUrlObj.query = {
@@ -3175,11 +3180,13 @@ export const GamesApiFp = function (configuration?: Configuration) {
      *
      * @summary Gets a list of games\' detail
      * @param {Array<number>} universeIds A list of universe Ids. Cannot exceed a maximum of 100 IDs.
+     * @param {string} languageCode the html language code.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     v1GamesGet(
       universeIds: Array<number>,
+      languageCode?: string,
       options?: any,
     ): (
       axios?: AxiosInstance,
@@ -3187,6 +3194,7 @@ export const GamesApiFp = function (configuration?: Configuration) {
     ) => AxiosPromise<RobloxWebWebAPIModelsApiArrayResponseRobloxGamesApiModelsResponseGameDetailResponse> {
       const localVarAxiosArgs = GamesApiAxiosParamCreator(configuration).v1GamesGet(
         universeIds,
+        languageCode,
         options,
       );
       return (axios: AxiosInstance = globalAxios, basePath: string = BASE_PATH) => {
@@ -3595,11 +3603,16 @@ export const GamesApiFactory = function (
      *
      * @summary Gets a list of games\' detail
      * @param {Array<number>} universeIds A list of universe Ids. Cannot exceed a maximum of 100 IDs.
+     * @param {string} languageCode the html language code.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    v1GamesGet(universeIds: Array<number>, options?: any) {
-      return GamesApiFp(configuration).v1GamesGet(universeIds, options)(axios, basePath);
+    v1GamesGet(universeIds: Array<number>, languageCode?: string, options?: any) {
+      return GamesApiFp(configuration).v1GamesGet(
+        universeIds,
+        languageCode,
+        options,
+      )(axios, basePath);
     },
     /**
      *
@@ -3886,12 +3899,14 @@ export interface GamesApiInterface {
    *
    * @summary Gets a list of games\' detail
    * @param {Array<number>} universeIds A list of universe Ids. Cannot exceed a maximum of 100 IDs.
+   * @param {string} languageCode the html language code.
    * @param {*} [options] Override http request option.
    * @throws {RequiredError}
    * @memberof GamesApiInterface
    */
   v1GamesGet(
     universeIds: Array<number>,
+    languageCode?: string,
     options?: any,
   ): AxiosPromise<RobloxWebWebAPIModelsApiArrayResponseRobloxGamesApiModelsResponseGameDetailResponse>;
 
@@ -4154,15 +4169,17 @@ export class GamesApi extends BaseAPI implements GamesApiInterface {
    *
    * @summary Gets a list of games\' detail
    * @param {Array<number>} universeIds A list of universe Ids. Cannot exceed a maximum of 100 IDs.
+   * @param {string} languageCode the html language code.
    * @param {*} [options] Override http request option.
    * @throws {RequiredError}
    * @memberof GamesApi
    */
-  public v1GamesGet(universeIds: Array<number>, options?: any) {
-    return GamesApiFp(this.configuration).v1GamesGet(universeIds, options)(
-      this.axios,
-      this.basePath,
-    );
+  public v1GamesGet(universeIds: Array<number>, languageCode?: string, options?: any) {
+    return GamesApiFp(this.configuration).v1GamesGet(
+      universeIds,
+      languageCode,
+      options,
+    )(this.axios, this.basePath);
   }
 
   /**

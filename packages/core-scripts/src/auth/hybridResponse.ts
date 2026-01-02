@@ -12,7 +12,7 @@ export enum FeatureTarget {
 }
 
 const resolveNullAfter = (timeoutMilliseconds: number) =>
-  new Promise(resolve => {
+  new Promise<null>(resolve => {
     setTimeout(() => {
       resolve(null);
     }, timeoutMilliseconds);
@@ -33,7 +33,7 @@ export const getNativeResponse = (
   feature: FeatureTarget,
   parameters: Record<string, unknown>,
   timeoutMilliseconds: number,
-): Promise<unknown> => {
+): Promise<string | null> => {
   nextCallId += 1;
   const currentCallId = nextCallId;
   nativePromises[currentCallId] = new Promise(resolve => {

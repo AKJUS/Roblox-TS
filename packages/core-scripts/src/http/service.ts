@@ -117,6 +117,7 @@ const buildBatchPromises = <T>(
   return Promise.all(promises);
 };
 
+// eslint-disable-next-line import-x/no-named-as-default-member
 const createCancelToken = (): CancelTokenSource => axios.CancelToken.source();
 
 const isCancelled = (error: unknown): boolean => axios.isCancel(error);
@@ -132,7 +133,7 @@ const getApiErrorCodes = (error: unknown): number[] => {
   }
 
   // TODO: old, migrated code
-  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
   const { errors } = error as Record<string, unknown>;
   if (!(errors instanceof Array)) {
     return [];
@@ -144,7 +145,7 @@ const getApiErrorCodes = (error: unknown): number[] => {
     }
 
     // TODO: old, migrated code
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
     const { code } = errorObject as Record<string, unknown>;
     if (typeof code === "number") {
       errorCodes.push(code);
@@ -162,7 +163,7 @@ const parseErrorCode = (error: unknown): number | null => {
   if (typeof error === "object") {
     // Sometimes the response returned by Axios hides the errors in `error.data`.
     // TODO: old, migrated code
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
     getApiErrorCodes((error as Record<string, unknown>).data).forEach(item =>
       errorCodes.push(item),
     );

@@ -1,9 +1,8 @@
-import { useEffect, useState } from 'react';
-import PropTypes from 'prop-types';
-import { Button } from '@rbx/core-ui/legacy/react-style-guide';
-import { useConsentTools } from '@rbx/cookie-banner-v3';
-import cookieConsentConstants from '../constants/cookieConsentConstants';
-import cookieBannerServices from '../services/cookieBannerServices';
+import { useEffect, useState } from "react";
+import PropTypes from "prop-types";
+import { useConsentTools } from "@rbx/cookie-banner-v3";
+import cookieConsentConstants from "../constants/cookieConsentConstants";
+import cookieBannerServices from "../services/cookieBannerServices";
 
 function CookieConsentLink({ translate }) {
   const [nonEssentialCookieList, updateNonEssentialCookieList] = useState([]);
@@ -22,20 +21,19 @@ function CookieConsentLink({ translate }) {
   const [consentTool, consentToolService] = useConsentTools({
     nonEssentialCookieList,
     essentialCookieList,
-    translate
+    translate,
   });
   if (essentialCookieList.length > 0) {
     return (
       <div>
-        <Button
+        <button
           onClick={consentToolService.open}
-          className="btn text-footer-nav cookie-consent-link"
-          variant={null}
-          size={null}
-          width={null}
+          className="btn text-footer-nav footer-button-link"
+          type="button"
+          data-testid="cookie-consent-link"
         >
           {translate(cookieConsentConstants.consentLinkText)}
-        </Button>
+        </button>
         {consentTool}
       </div>
     );

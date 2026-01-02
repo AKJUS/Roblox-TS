@@ -1,9 +1,9 @@
-import PropTypes from 'prop-types';
-import { authenticatedUser } from '@rbx/core-scripts/legacy/header-scripts';
-import { withTranslations } from '@rbx/core-scripts/react';
-import LanguageSelector from '../containers/LanguageSelector';
-import { translations } from '../../component.json';
-import dispatchHybridEventForLanguageChange from '../utils/dispatchHybridEventForLanguageChange';
+import PropTypes from "prop-types";
+import { authenticatedUser } from "@rbx/core-scripts/legacy/header-scripts";
+import { withTranslations } from "@rbx/core-scripts/react";
+import LanguageSelector from "../containers/LanguageSelector";
+import { translations } from "../../component.json";
+import dispatchHybridEventForLanguageChange from "../utils/dispatchHybridEventForLanguageChange";
 
 function AccountSettingsLanguageSelector({ translate }) {
   const isAuthenticatedUser = authenticatedUser?.isAuthenticated;
@@ -24,7 +24,6 @@ function AccountSettingsLanguageSelector({ translate }) {
       onLanguageChange={handleLanguageChange}
       translate={translate}
       isAuthenticatedUser={isAuthenticatedUser}
-      isNative
     />
   );
 }
@@ -32,7 +31,7 @@ function AccountSettingsLanguageSelector({ translate }) {
 window.Roblox.AccountSettingsLanguageSelector = AccountSettingsLanguageSelector;
 
 AccountSettingsLanguageSelector.propTypes = {
-  translate: PropTypes.func.isRequired
+  translate: PropTypes.func.isRequired,
 };
 
 export default withTranslations(AccountSettingsLanguageSelector, translations);

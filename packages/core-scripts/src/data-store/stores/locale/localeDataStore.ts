@@ -30,7 +30,7 @@ const requestDataFromCacheOrNetwork = <T>(
 ): Promise<T> =>
   new Promise((resolve, reject) => {
     // TODO: old, migrated code
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
     const localStorageData = localStorage.fetchNonExpiredCachedData(
       localeStorageKey,
       cacheDurationInMs,

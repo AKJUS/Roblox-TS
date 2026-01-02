@@ -40,6 +40,7 @@ export const hydrateOmniRecommendationGames = (
           const nativeAdData = recommendationContentMetadata?.EncryptedAdTrackingData;
           gameData.isSponsored = nativeAdData?.length > 0;
           gameData.nativeAdData = nativeAdData;
+          gameData.payerName = recommendationContentMetadata?.PayerName;
 
           return gameData;
         }

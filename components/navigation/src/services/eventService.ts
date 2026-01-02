@@ -1,5 +1,5 @@
-import { eventStreamService } from '@rbx/core-scripts/legacy/core-roblox-utilities';
-import EVENT_CONSTANTS from '../constants/eventsConstants';
+import { eventStreamService } from "@rbx/core-scripts/legacy/core-roblox-utilities";
+import EVENT_CONSTANTS from "../constants/eventsConstants";
 
 /**
  * Log event for logout button click
@@ -9,8 +9,8 @@ export const sendLogoutButtonClickEvent = (): void => {
     EVENT_CONSTANTS.schematizedEventTypes.authButtonClick,
     EVENT_CONSTANTS.context.homepage,
     {
-      btn: EVENT_CONSTANTS.btn.logout
-    }
+      btn: EVENT_CONSTANTS.btn.logout,
+    },
   );
 };
 
@@ -23,8 +23,32 @@ export const sendSwitchAccountButtonClickEvent = (url: string): void => {
     EVENT_CONSTANTS.context.homepage,
     {
       btn: EVENT_CONSTANTS.btn.switchAccount,
-      state: url.toString()
-    }
+      state: url,
+    },
+  );
+};
+
+/**
+ * Log event for 401 modal shown
+ */
+export const sendAuth401ModalShownEvent = (): void => {
+  eventStreamService.sendEventWithTarget(
+    EVENT_CONSTANTS.schematizedEventTypes.authPageLoad,
+    EVENT_CONSTANTS.context.auth401Modal,
+    {},
+  );
+};
+
+/**
+ * Log event for 401 modal sign in button click
+ */
+export const sendAuth401ModalButtonClickEvent = (): void => {
+  eventStreamService.sendEventWithTarget(
+    EVENT_CONSTANTS.schematizedEventTypes.authButtonClick,
+    EVENT_CONSTANTS.context.auth401Modal,
+    {
+      btn: EVENT_CONSTANTS.btn.signIn,
+    },
   );
 };
 
@@ -37,8 +61,8 @@ export const sendAccountSwitcherBlobPresentOnPageLoadEvent = (isBlobPresent: boo
     EVENT_CONSTANTS.schematizedEventTypes.authPageLoad,
     EVENT_CONSTANTS.context.accountSwitcherStatus,
     {
-      state: isBlobPresent.toString()
-    }
+      state: isBlobPresent.toString(),
+    },
   );
 };
 
@@ -47,14 +71,14 @@ export const sendAccountSwitcherBlobPresentOnPageLoadEvent = (isBlobPresent: boo
  */
 export const sendCacheUserChangedAuthClientErrorEvent = (
   previousUserId: string,
-  currentUrl: string
+  currentUrl: string,
 ): void => {
   eventStreamService.sendEventWithTarget(
     EVENT_CONSTANTS.schematizedEventTypes.authClientError,
     EVENT_CONSTANTS.context.cachedUserChanged,
     {
       state: previousUserId,
-      url: currentUrl
-    }
+      url: currentUrl,
+    },
   );
 };

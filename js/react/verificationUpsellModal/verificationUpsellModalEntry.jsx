@@ -26,7 +26,6 @@ const renderPhoneUpsell = ({
   onClose,
   origin,
   existingPhoneNumber,
-  addPhoneAlwaysShowLegalText,
   addPhoneRequireLegalTextCheckbox,
   addPhoneHeadingKey,
   addPhoneDescriptionKey,
@@ -47,7 +46,6 @@ const renderPhoneUpsell = ({
           onClose={onClose}
           origin={origin}
           existingPhoneNumber={existingPhoneNumber}
-          addPhoneAlwaysShowLegalText={addPhoneAlwaysShowLegalText}
           addPhoneRequireLegalTextCheckbox={addPhoneRequireLegalTextCheckbox}
           addPhoneHeadingKey={addPhoneHeadingKey}
           addPhoneDescriptionKey={addPhoneDescriptionKey}

@@ -1,22 +1,32 @@
-import { authenticatedUser } from "@rbx/core-scripts/legacy/header-scripts";
 import {
   init as sentryInit,
   setUser as sentrySetUser,
   setTag as setSentryTag,
   browserTracingIntegration,
 } from "@sentry/browser";
+import { authenticatedUser } from "@rbx/core-scripts/legacy/header-scripts";
+import { buildTracesSampler } from "./src/utils/tracesSampler";
+import { filterCdnSpans } from "./src/utils/filterCdnSpans";
 
 const metaTag = document.querySelector<HTMLMetaElement>('meta[name="sentry-meta"]');
 const { dsn, envName, sampleRate } = metaTag?.dataset ?? {};
+
+const parsedSampleRate = sampleRate == null ? 0.001 : parseFloat(sampleRate);
+const perfBase = Math.min(parsedSampleRate, 0.0005);
 
 sentryInit({
   dsn:
     dsn ?? "https://24df60727c94bd0aa14ab1269d104a21@o293668.ingest.us.sentry.io/4509158985826304",
   integrations: [browserTracingIntegration()],
   environment: envName ?? "staging",
-  tracesSampleRate: sampleRate == null ? 0.5 : parseFloat(sampleRate),
-  sampleRate: sampleRate == null ? 0.5 : parseFloat(sampleRate),
-  replaysOnErrorSampleRate: sampleRate == null ? 0.5 : parseFloat(sampleRate),
+  /// Keep a base perf rate visible (docs/telemetry). If tracesSampler is present,
+  // Sentry uses the sampler’s return value; we use this as the "default base".
+  tracesSampleRate: perfBase,
+  // Cut noise: only trace XHR/fetch calls to our own API and page loads.
+  tracesSampler: buildTracesSampler(perfBase),
+  sampleRate: parsedSampleRate,
+  replaysOnErrorSampleRate: parsedSampleRate,
+  beforeSendTransaction: filterCdnSpans,
 });
 
 document.addEventListener("DOMContentLoaded", () => {

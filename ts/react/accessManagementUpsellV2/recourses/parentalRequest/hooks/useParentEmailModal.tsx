@@ -12,7 +12,8 @@ import ExpNewChildModal from '../../../enums/ExpNewChildModal';
 import parentalRequestService from '../services/parentalRequestService';
 import {
   sendParentEmailSubmitEvent,
-  sendInteractParentEmailFormEvent
+  sendInteractParentEmailFormEvent,
+  sendParentEmailModalShownEvent
 } from '../services/eventService';
 import universalAppConfigurationService from '../services/universalAppConfigurationService';
 import ParentalRequestErrorReason from '../enums/ParentalRequestErrorReason';
@@ -27,7 +28,8 @@ const useParentEmailModal = (
   successCallBack: (sessionId: string, newParentEmail?: string, emailNotSent?: boolean) => void,
   onHidecallback: () => void,
   value?: Record<string, unknown> | null,
-  expChildModalType?: ExpNewChildModal
+  expChildModalType?: ExpNewChildModal,
+  source?: string
 ): [JSX.Element, IModalService] => {
   const {
     privacyPolicyUrl,
@@ -90,6 +92,14 @@ const useParentEmailModal = (
     }
   };
   useEffect(() => {
+    sendParentEmailModalShownEvent({
+      requestType: consentType,
+      details: value,
+      extraState: source
+    });
+  }, []);
+
+  useEffect(() => {
     // eslint-disable-next-line no-void
     void fetchIsChildSubjectToPC();
   }, []);
@@ -123,7 +133,8 @@ const useParentEmailModal = (
       sendParentEmailSubmitEvent({
         requestType: consentType,
         sessionId: response.sessionId,
-        details: value
+        details: value,
+        extraState: source
       });
       setSendEmailBtnLoadingStatus(false);
       modalService.close();
@@ -275,7 +286,8 @@ const useParentEmailModal = (
             onFocus={() =>
               sendInteractParentEmailFormEvent({
                 requestType: consentType,
-                details: value
+                details: value,
+                extraState: source
               })
             }
           />

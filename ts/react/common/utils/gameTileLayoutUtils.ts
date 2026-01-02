@@ -5,7 +5,8 @@ import {
   TGameTileTextFooter,
   TLayoutComponentType,
   TLayoutMetadata,
-  TTileBadge
+  TTileBadge,
+  TTileBadgesByPosition
 } from '../types/bedev1Types';
 
 export const getGameTilePillsIconClass = (icon: string): string | null => {
@@ -25,6 +26,12 @@ export const getGameTilePillsPositionClass = (position: TileBadgePositionEnum): 
   switch (position) {
     case TileBadgePositionEnum.IMAGE_TOP_LEFT:
       return 'game-card-pill-top-left';
+    case TileBadgePositionEnum.IMAGE_TOP_RIGHT:
+      return 'game-card-pill-top-right';
+    case TileBadgePositionEnum.IMAGE_BOTTOM_LEFT:
+      return 'game-card-pill-bottom-left';
+    case TileBadgePositionEnum.IMAGE_BOTTOM_RIGHT:
+      return 'game-card-pill-bottom-right';
     default:
       return '';
   }
@@ -32,35 +39,47 @@ export const getGameTilePillsPositionClass = (position: TileBadgePositionEnum): 
 
 export type TGameTilesPillsByPosition = Partial<Record<TileBadgePositionEnum, TGameTilePillData[]>>;
 
+const processBadges = (badges: TTileBadge[] | undefined): TGameTilePillData[] => {
+  if (!badges || !badges.length) {
+    return [];
+  }
+  return badges.map(tileBadge => {
+    const badgeData: TGameTilePillData = {
+      id: tileBadge.analyticsId
+    };
+    if (tileBadge.tileBadgeType === TGameTileBadgeType.Text && tileBadge.text) {
+      badgeData.text = tileBadge.text;
+      badgeData.animationClass = getGameTilePillsAnimationClass(tileBadge);
+    } else if (tileBadge.tileBadgeType === TGameTileBadgeType.Icon && tileBadge.icons) {
+      const icons = tileBadge.icons
+        .map(icon => getGameTilePillsIconClass(icon))
+        .filter(icon => !!icon) as string[];
+      badgeData.icons = icons;
+      badgeData.animationClass = getGameTilePillsAnimationClass(tileBadge);
+    }
+    badgeData.componentType = tileBadge.tileBadgeComponentType;
+    return badgeData;
+  });
+};
+
 export const getGameTilePillsData = (
   gameLayoutData: TLayoutMetadata | undefined
 ): TGameTilesPillsByPosition | null => {
-  let topLeftPillsData: TGameTilePillData[] = [];
-  const topLeftBadge = gameLayoutData?.tileBadgesByPosition?.ImageTopLeft;
-  if (topLeftBadge && topLeftBadge.length) {
-    topLeftPillsData = topLeftBadge.map(tileBadge => {
-      const badgeData: TGameTilePillData = {
-        id: tileBadge.analyticsId
-      };
-      if (tileBadge.tileBadgeType === TGameTileBadgeType.Text && tileBadge.text) {
-        badgeData.text = tileBadge.text;
-        badgeData.animationClass = getGameTilePillsAnimationClass(tileBadge);
-      } else if (tileBadge.tileBadgeType === TGameTileBadgeType.Icon && tileBadge.icons) {
-        const icons = tileBadge.icons
-          .map(icon => getGameTilePillsIconClass(icon))
-          .filter(icon => !!icon) as string[];
-        badgeData.icons = icons;
-        badgeData.animationClass = getGameTilePillsAnimationClass(tileBadge);
-      }
-      return badgeData;
-    });
-  }
-  if (topLeftPillsData.length) {
-    return {
-      [TileBadgePositionEnum.IMAGE_TOP_LEFT]: topLeftPillsData
-    };
-  }
-  return null;
+  const validPillPositions = Object.values(TileBadgePositionEnum).filter(
+    position => position !== TileBadgePositionEnum.INVALID
+  );
+
+  const pillsByPosition: TGameTilesPillsByPosition = {};
+
+  validPillPositions.forEach(position => {
+    const badges = gameLayoutData?.tileBadgesByPosition?.[position as keyof TTileBadgesByPosition];
+    const pillsData = processBadges(badges);
+    if (pillsData.length) {
+      pillsByPosition[position] = pillsData;
+    }
+  });
+
+  return Object.keys(pillsByPosition).length > 0 ? pillsByPosition : null;
 };
 
 export const getGameTileTextFooterData = (

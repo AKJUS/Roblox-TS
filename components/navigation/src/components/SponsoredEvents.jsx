@@ -1,15 +1,15 @@
-import { eventStreamService } from '@rbx/core-scripts/legacy/core-roblox-utilities';
-import React from 'react';
-import PropTypes from 'prop-types';
-import urlConstants from '../constants/urlConstants';
+import React from "react";
+import PropTypes from "prop-types";
+import { eventStreamService } from "@rbx/core-scripts/legacy/core-roblox-utilities";
+import urlConstants from "../constants/urlConstants";
 
 const { eventTypes } = eventStreamService;
 const { getSponsoredEventUrl } = urlConstants;
 
 const sponsoredEvent = {
-  name: 'sponsoredEventClicked',
+  name: "sponsoredEventClicked",
   type: eventTypes.pageLoad,
-  context: 'click'
+  context: "click",
 };
 
 function sendSponsoredEventClick(sponsoredPageName) {
@@ -42,7 +42,7 @@ function SponsoredEvent({ translate, sponsoredPagesData }) {
   return (
     <React.Fragment>
       {anySponsoredEventPages && (
-        <li className="font-bold small text-nav"> {translate('Label.sEvents')}</li>
+        <li className="font-bold small text-nav"> {translate("Label.sEvents")}</li>
       )}
       {sponsoredPages}
     </React.Fragment>
@@ -50,11 +50,11 @@ function SponsoredEvent({ translate, sponsoredPagesData }) {
 }
 
 SponsoredEvent.defaultProps = {
-  sponsoredPagesData: []
+  sponsoredPagesData: [],
 };
 SponsoredEvent.propTypes = {
   translate: PropTypes.func.isRequired,
-  sponsoredPagesData: PropTypes.instanceOf(Array)
+  sponsoredPagesData: PropTypes.instanceOf(Array),
 };
 
 export default SponsoredEvent;

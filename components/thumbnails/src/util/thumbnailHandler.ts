@@ -19,18 +19,18 @@ interface HttpError extends Error {
 }
 
 export class ThumbnailBatchHandler<BatchResponse, RequestQueueItem> {
-  private storeInstance: (
+  private readonly storeInstance: (
     items: QueueItem<RequestQueueItem>[],
     limit?: number,
   ) => Promise<ThumbnailDataData<BatchResponse>>;
 
-  private keySetter: (item: BatchResponse) => string;
+  private readonly keySetter: (item: BatchResponse) => string;
 
-  private keyGetter: (item: QueueItem<RequestQueueItem>) => string;
+  private readonly keyGetter: (item: QueueItem<RequestQueueItem>) => string;
 
-  private validator: (item: BatchResponse) => boolean;
+  private readonly validator: (item: BatchResponse) => boolean;
 
-  private resultSetter: (item: BatchResponse, limit?: number) => ThumbnailDataItem;
+  private readonly resultSetter: (item: BatchResponse, limit?: number) => ThumbnailDataItem;
 
   constructor(
     storeInstance: (
@@ -76,7 +76,7 @@ export class ThumbnailBatchHandler<BatchResponse, RequestQueueItem> {
                 results[itemKey] = this.resultSetter(result, limit);
               }
             } else {
-              let errorState = {};
+              let errorState;
               if (limit && limit > 1) {
                 errorState = { thumbnails: [] };
               } else {
@@ -88,6 +88,7 @@ export class ThumbnailBatchHandler<BatchResponse, RequestQueueItem> {
                 };
               }
 
+              // @ts-expect-error TODO: old, migrated code
               results[itemKey] = {
                 ...errorState,
                 errorcode: 3,
@@ -125,8 +126,6 @@ export const batchRequestHandler = new ThumbnailBatchHandler<Thumbnail, Thumbnai
         // @ts-expect-error TODO: old, migrated code
         // Assumes data is not undefined
         .then(resolve)
-        // TODO: old, migrated code
-        // eslint-disable-next-line @typescript-eslint/use-unknown-in-catch-callback-variable
         .catch(reject);
     });
   },
@@ -146,8 +145,8 @@ export const universeThumbnailHandler = new ThumbnailBatchHandler<
         .getAllUniverseThumbnails(
           items.map(({ data: { targetId } }) => targetId ?? 0),
           // @ts-expect-error TODO: old, migrated code
-          // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-          <ThumbnailUniverseThumbnailSize>items[0]?.data.size,
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+          items[0]?.data.size as ThumbnailUniverseThumbnailSize,
           items[0]?.data.format,
           items[0]?.data.isCircular,
           limit,
@@ -155,8 +154,6 @@ export const universeThumbnailHandler = new ThumbnailBatchHandler<
         // @ts-expect-error TODO: old, migrated code
         // Assumes data is not undefined
         .then(resolve)
-        // TODO: old, migrated code
-        // eslint-disable-next-line @typescript-eslint/use-unknown-in-catch-callback-variable
         .catch(reject);
     }),
 

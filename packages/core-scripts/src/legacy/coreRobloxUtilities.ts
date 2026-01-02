@@ -11,7 +11,6 @@ import * as eventStream from "../event-stream";
 import * as game from "../game";
 import hybrid from "../hybrid";
 import * as localStorageKeys from "../local-storage/keys";
-import * as metrics from "../metrics";
 import * as chat from "../util/chat";
 import * as elementVisibility from "../util/elementVisibility";
 import * as upsell from "../util/upsell";
@@ -41,8 +40,11 @@ export const elementVisibilityService = {
   observeVisibility: elementVisibility.observeVisibility,
 };
 export const entityUrl = {
+  // eslint-disable-next-line @typescript-eslint/no-deprecated
   game: entityUrls.game,
+  // eslint-disable-next-line @typescript-eslint/no-deprecated
   group: entityUrls.group,
+  // eslint-disable-next-line @typescript-eslint/no-deprecated
   user: entityUrls.user,
 };
 export const eventStreamService = {
@@ -79,7 +81,6 @@ export const hybridService = {
 export { initializeGenericChallengeInterceptor } from "../auth/internal/genericChallengeInterceptor";
 export const localStorageNames = { friendsDict: localStorageKeys.friendsDict };
 export { default as localStorageService } from "../local-storage";
-export const metricsService = { logMeasurement: metrics.logMeasurement };
 export { default as paymentFlowAnalyticsService } from "../payments-flow";
 export const playGameService = {
   buildPlayGameProperties: game.buildPlayGameProperties,
@@ -95,3 +96,4 @@ export const upsellUtil = {
 // TODO: remove this once there are no more usages
 // eslint-disable-next-line @typescript-eslint/no-deprecated
 export { default as userInfoService } from "../util/user";
+export type { TSecureAuthIntent } from "../auth/crypto";

@@ -2,8 +2,14 @@ import classNames from 'classnames';
 import React, { Ref, useCallback, useEffect, useMemo, useState } from 'react';
 import { Button, Link } from 'react-style-guide';
 import { TranslateFunction } from 'react-utilities';
+import { eventStreamService } from 'core-roblox-utilities';
 import configConstants from '../constants/configConstants';
 import { FeaturePlacesList } from '../constants/translationConstants';
+import eventStreamConstants, {
+  EventStreamMetadata,
+  TGameTileOverflowMenuAction,
+  GameTileOverflowMenuActionType
+} from '../constants/eventStreamConstants';
 import useFocused from '../hooks/useFocused';
 import bedev1Services from '../services/bedev1Services';
 import { TGameData, TGetFriendsResponse } from '../types/bedev1Types';
@@ -11,12 +17,19 @@ import {
   TComponentType,
   THoverStyle,
   TPlayButtonStyle,
-  TPlayerCountStyle
+  TPlayerCountStyle,
+  TWideTileComponentType
 } from '../types/bedev2Types';
+import { GameTileOverflowMenuItems } from '../types/gameTileOverflowMenuItems';
 import browserUtils from '../utils/browserUtils';
-import { getFriendVisits, getInGameFriends } from '../utils/parsingUtils';
+import {
+  getFriendVisits,
+  getInGameFriends,
+  getSessionInfoTypeFromPageContext
+} from '../utils/parsingUtils';
 import GameTileOverlayPill from './GameTileOverlayPill';
 import GameTilePlayButton from './GameTilePlayButton';
+import GameTileOverflowMenu from './GameTileOverflowMenu';
 import {
   GameTileIconWithTextFooter,
   GameTileRatingFooter,
@@ -29,6 +42,8 @@ import {
 import WideGameThumbnail from './WideGameThumbnail';
 import useGetGameLayoutData from '../hooks/useGetGameLayoutData';
 import { getGameTileTextFooterData } from '../utils/gameTileLayoutUtils';
+import { usePageSession } from '../utils/PageSessionContext';
+import { PageContext } from '../types/pageContext';
 
 const WideGameTileLinkWrapper = ({
   wrapperClassName,
@@ -57,6 +72,7 @@ const WideGameTileLinkWrapper = ({
 export type TWideGameTileProps = {
   gameData: TGameData;
   id: number;
+  page?: PageContext;
   buildEventProperties: TBuildEventProperties;
   friendData?: TGetFriendsResponse[];
   playerCountStyle?: TPlayerCountStyle;
@@ -64,12 +80,18 @@ export type TWideGameTileProps = {
   navigationRootPlaceId?: string;
   isSponsoredFooterAllowed?: boolean;
   hideTileMetadata?: boolean;
-  wideTileType: TComponentType.GridTile | TComponentType.EventTile | TComponentType.InterestTile;
+  wideTileType: TWideTileComponentType;
   hoverStyle?: THoverStyle;
   topicId?: string;
   isOnScreen?: boolean;
   isInterestedUniverse?: boolean;
+  enableExplicitFeedback?: boolean;
+  setIsHidden?: (isHidden: boolean) => void;
+  toggleIsHidden?: () => void;
   toggleInterest?: () => void;
+  enableSponsoredFeedback?: boolean;
+  sponsoredUserCohort?: string;
+  enableReportAd?: boolean;
   translate: TranslateFunction;
 };
 
@@ -78,6 +100,7 @@ const WideGameTile = React.forwardRef(
     {
       gameData,
       id,
+      page,
       buildEventProperties,
       friendData = [],
       playerCountStyle,
@@ -90,7 +113,13 @@ const WideGameTile = React.forwardRef(
       topicId,
       isOnScreen = true,
       isInterestedUniverse = undefined,
+      enableExplicitFeedback = false,
+      setIsHidden,
+      toggleIsHidden,
       toggleInterest = undefined,
+      enableSponsoredFeedback = false,
+      sponsoredUserCohort,
+      enableReportAd = false,
       translate
     }: TWideGameTileProps,
     ref: Ref<HTMLDivElement>
@@ -98,6 +127,7 @@ const WideGameTile = React.forwardRef(
     const isFirstTile = id === 0;
     const isLastTile = id === configConstants.homePage.maxWideGameTilesPerCarouselPage - 1;
     const [isFocused, onFocus, onFocusLost] = useFocused();
+    const pageSession = usePageSession();
 
     const [referralPlaceId, setReferralPlaceId] = useState<number>(gameData.placeId);
 
@@ -256,6 +286,56 @@ const WideGameTile = React.forwardRef(
       }
     }, [toggleInterest]);
 
+    const sendGameTileOverflowMenuAction = useCallback(
+      (
+        actionType: GameTileOverflowMenuActionType,
+        availableMenuItems: GameTileOverflowMenuItems[],
+        menuItem?: GameTileOverflowMenuItems
+      ) => {
+        const sessionInfoType = getSessionInfoTypeFromPageContext(page);
+
+        const params: TGameTileOverflowMenuAction = {
+          [EventStreamMetadata.UniverseId]: gameData.universeId.toString(),
+          [EventStreamMetadata.SortId]: topicId,
+          [EventStreamMetadata.ActionType]: actionType,
+          [EventStreamMetadata.MenuItem]: menuItem,
+          [EventStreamMetadata.AvailableMenuItems]: availableMenuItems,
+          ...(sessionInfoType && { [sessionInfoType]: pageSession })
+        };
+
+        const eventParams = eventStreamConstants.gameTileOverflowMenuAction(params, page);
+        eventStreamService.sendEvent(...eventParams);
+      },
+      [gameData.universeId, topicId, page, pageSession]
+    );
+
+    const [overflowMenuOpen, setOverflowMenuOpen] = useState(false);
+    const closeOverflowMenu = useCallback(
+      (availableMenuItems: GameTileOverflowMenuItems[]) => {
+        setOverflowMenuOpen(false);
+        sendGameTileOverflowMenuAction(
+          GameTileOverflowMenuActionType.GameTileOverflowMenuItemClosed,
+          availableMenuItems
+        );
+      },
+      [sendGameTileOverflowMenuAction]
+    );
+
+    const toggleOverflowMenu = useCallback(
+      (availableMenuItems: GameTileOverflowMenuItems[]) => {
+        setOverflowMenuOpen(prevOpen => {
+          sendGameTileOverflowMenuAction(
+            prevOpen
+              ? GameTileOverflowMenuActionType.GameTileOverflowMenuItemClosed
+              : GameTileOverflowMenuActionType.GameTileOverflowMenuItemOpened,
+            availableMenuItems
+          );
+          return !prevOpen;
+        });
+      },
+      [sendGameTileOverflowMenuAction]
+    );
+
     return (
       <li
         className={classNames(
@@ -295,6 +375,27 @@ const WideGameTile = React.forwardRef(
                   playerCount={gameData.playerCount}
                   isFocused={isFocused}
                 />
+                {(isFocused || overflowMenuOpen) && (
+                  <GameTileOverflowMenu
+                    open={overflowMenuOpen}
+                    closeMenu={closeOverflowMenu}
+                    toggleMenu={toggleOverflowMenu}
+                    sendActionEvent={sendGameTileOverflowMenuAction}
+                    universeId={gameData.universeId}
+                    topicId={topicId}
+                    page={page}
+                    enableExplicitFeedback={enableExplicitFeedback}
+                    setIsHidden={setIsHidden}
+                    toggleIsHidden={toggleIsHidden}
+                    enableSponsoredFeedback={enableSponsoredFeedback}
+                    isSponsored={gameData.isSponsored}
+                    encryptedAdTrackingData={gameData.nativeAdData}
+                    payerName={gameData.payerName}
+                    sponsoredUserCohort={sponsoredUserCohort}
+                    enableReportAd={enableReportAd}
+                    translate={translate}
+                  />
+                )}
               </div>
               <div className='info-container'>
                 <div className='info-metadata-container'>

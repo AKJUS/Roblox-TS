@@ -19,14 +19,17 @@ import { TBuildEventProperties } from '../../common/components/GameTileUtils';
 import useGameImpressionsIntersectionTracker, {
   TBuildCarouselGameImpressionsEventProperties
 } from '../../common/hooks/useGameImpressionsIntersectionTracker';
-import { getSponsoredAdImpressionsData } from '../../common/utils/parsingUtils';
+import {
+  getSponsoredAdImpressionsData,
+  isWideTileComponentType
+} from '../../common/utils/parsingUtils';
 import {
   getSortTargetIdMetadata,
   parseAppliedFilters,
   getSortAppliedFiltersMetadata
 } from '../../omniFeed/utils/gameSortUtils';
 import GameCarouselHorizontalScroll from './GameCarouselHorizontalScroll';
-import { buildSortDetailUrl } from '../../common/utils/browserUtils';
+import { buildSortDetailRelativeUrl } from '../../common/utils/browserUtils';
 import { PageContext } from '../../common/types/pageContext';
 import { usePageSession } from '../../common/utils/PageSessionContext';
 import GameCarouselContainerHeader from '../../common/components/GameCarouselContainerHeader';
@@ -134,8 +137,7 @@ export const GamesPageGameCarousel = ({
     };
 
     const filterUrlParams = parseAppliedFilters(sort);
-
-    return buildSortDetailUrl(
+    return buildSortDetailRelativeUrl(
       (sort as TExploreApiGameSort).sortId,
       page,
       sortDetailReferralParams,
@@ -146,8 +148,7 @@ export const GamesPageGameCarousel = ({
   return (
     <div
       className={classNames('games-list-container', {
-        'wide-game-tile-container':
-          componentType === TComponentType.GridTile || componentType === TComponentType.EventTile
+        'wide-game-tile-container': isWideTileComponentType(componentType)
       })}>
       <GameCarouselContainerHeader
         sortTitle={sort.topic}
@@ -160,6 +161,7 @@ export const GamesPageGameCarousel = ({
         tooltipInfoText={tooltipInfoText}
         titleContainerClassName='container-header games-filter-changer'
         hideSeeAll={hideSeeAll}
+        useRouterLink
         translate={translate}
       />
 

@@ -8,6 +8,12 @@ const getUpsellCardTypeUrlConfig = () => ({
   url: `${apiGatewayUrl}/upsellCard/type`
 });
 
+const getDismissUpsellCardUrlConfig = () => ({
+  retryable: false,
+  withCredentials: true,
+  url: `${apiGatewayUrl}/upsellCard/dismiss`
+});
+
 const optUserInToVoiceChatConfig = () => ({
   retryable: true,
   withCredentials: true,
@@ -15,4 +21,4 @@ const optUserInToVoiceChatConfig = () => ({
 });
 
 // eslint-disable-next-line import/prefer-default-export
-export { getUpsellCardTypeUrlConfig, optUserInToVoiceChatConfig };
+export { getUpsellCardTypeUrlConfig, optUserInToVoiceChatConfig, getDismissUpsellCardUrlConfig };

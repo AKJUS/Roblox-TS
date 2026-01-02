@@ -5,6 +5,7 @@ import {
   updateNotificationAction
 } from '../services/NotificationStreamService';
 import {
+  Action,
   ActionType,
   InteractibleVisualItem,
   NotificationContent,
@@ -14,6 +15,10 @@ import {
 } from '../types/NotificationTemplateTypes';
 import DeeplinkFailModal from './DeeplinkFailModal';
 import eventConstants from '../constants/eventConstants';
+import {
+  deepLinkNavigationPaths,
+  deepLinkNavigationPathPart
+} from '../constants/deepLinkConstants';
 
 import NotificationView from './NotificationView';
 
@@ -31,6 +36,27 @@ export const handleUpdateNotificationAction = async (
     },
     () => false
   );
+
+const getFirstDeepLinkNavigationPath = (path: string | undefined): string | undefined => {
+  if (!path) {
+    return undefined;
+  }
+  const parsedPath = DeepLinkService.parseDeeplink(path);
+  if (parsedPath.path[0] === deepLinkNavigationPathPart) {
+    return parsedPath.path[1];
+  }
+  return undefined;
+};
+
+const shouldRetryDeeplink = (action: Action): boolean => {
+  const firstDeepLinkNavigationPath = getFirstDeepLinkNavigationPath(action.path);
+  return firstDeepLinkNavigationPath !== deepLinkNavigationPaths.Fae;
+};
+
+const shouldDeeplinkFailShowModal = (action: Action): boolean => {
+  const firstDeepLinkNavigationPath = getFirstDeepLinkNavigationPath(action.path);
+  return firstDeepLinkNavigationPath !== deepLinkNavigationPaths.Fae;
+};
 
 export const SendrNotification = ({ notificationData }: SendrNotificationProps): JSX.Element => {
   const eventTime: string = notificationData.eventDate;
@@ -106,7 +132,7 @@ export const SendrNotification = ({ notificationData }: SendrNotificationProps):
           if (action.path) {
             DeepLinkService.navigateToDeepLink(action.path).then(
               success => {
-                if (!success) {
+                if (!success && shouldRetryDeeplink(action)) {
                   // Possibly a network failure on game join, retry once after a
                   // short delay
                   setTimeout(() => {
@@ -123,7 +149,11 @@ export const SendrNotification = ({ notificationData }: SendrNotificationProps):
                   }, 2000);
                 }
               },
-              () => setShowDeeplinkFailureModal(true)
+              () => {
+                if (shouldDeeplinkFailShowModal(action)) {
+                  setShowDeeplinkFailureModal(true);
+                }
+              }
             );
           }
           break;

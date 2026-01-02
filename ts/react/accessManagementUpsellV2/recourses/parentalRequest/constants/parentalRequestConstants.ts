@@ -88,6 +88,7 @@ const parentalRequestConstants = {
     },
     field: {
       email: 'email',
+      emailModal: 'emailModal',
       errorMessage: 'errorMessage',
       logoutPopup: 'logoutPopup',
       parentalEmailMismatch: 'parentalEmailMismatch'

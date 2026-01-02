@@ -20,6 +20,7 @@ export type AccessManagementUpsellEventParams = {
 
 export const PrologueConstants = {
   Action: {
+    Continue: 'Action.Continue',
     Cancel: 'Action.Cancel',
     EmailMyParent: 'Action.EmailMyParent',
     VerifyID: 'Action.VerifyID',
@@ -27,22 +28,43 @@ export const PrologueConstants = {
   },
   Title: {
     AskYourParent: 'Title.AskYourParent',
-    VerifyYourAge: 'Title.VerifyYourAge'
+    VerifyYourAge: 'Title.VerifyYourAge',
+    CheckYourAge: 'Title.CheckYourAge'
   },
   Description: {
     Vpc: 'Description.PrologueTextVpc',
-    VpcConnectingText: 'Description.PrologueConnectingTextVpc',
     Idv: 'Description.PrologueTextIdv',
+    Fae: 'Description.PrologueTextFae',
     IdvConnectingText: 'Description.PrologueConnectingTextIdv',
     IdvAndVpc: 'Description.PrologueTextIdvAndVpc',
-    IdvAndVpcConnectingText: 'Description.PrologueConnectingTextIdvAndVpc',
+    IdvAndVpcAgeCorrection: 'Description.PrologueIdvAndVpcAgeCorrection',
     VpcEnablePurchase: 'Description.PrologueEnablePurchase',
     VpcEnablePurchaseExpT1: 'Description.PrologueEnablePurchaseExpT1',
     VpcUnblockUser: 'Description.PrologueUnblockUser',
     VpcUnblockExperience: 'Description.PrologueUnblockExperience',
+    VpcAllowFacialAgeEstimation: 'Description.CommsAgeCheck.VPCForFAEModal',
+    VpcContentAgeRestriction: 'Description.PrologueJoinExperience',
+    VpcWhisperChatWithMeInExperiences: 'Description.CommsAgeCheck.VPCForExperienceDirectChatModal',
+    VpcExperienceChat: 'Description.CommsAgeCheck.VPCForExperienceChatModal',
+    VpcStudioCollaboration: 'Description.CommsAgeCheck.VPCForStudioCollaborationModal',
+    FaeExperienceChat: 'Description.CommsAgeCheck.FaeForExperienceChatModal',
+    FaeExperienceWhisperChat: 'Description.CommsAgeCheck.FaeForExperienceWhisperChatModal',
+    FaeStudioCollaboration: 'Description.CommsAgeCheck.FaeForStudioCollaborationModal',
     PrologueFetchParentExperiment: 'Description.PrologueFetchParentExperiment'
   },
   Error: {
     TryAgain: 'Response.ErrorTryAgain'
+  }
+};
+
+export const EpilogueConstants = {
+  Action: {
+    LearnMore: 'Action.LearnMore'
+  },
+  Title: {
+    VerifyYourAge: 'Title.VerifyYourAge'
+  },
+  Description: {
+    VpcNotEligible: 'Description.PrologueTextVpcNotEligible'
   }
 };

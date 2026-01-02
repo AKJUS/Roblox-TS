@@ -27,18 +27,26 @@ function chatClientStorageUtilityService(chatUtility, localStorageService, cooki
     },
 
     updateStorage(key, value, options) {
-      if (typeof window.Storage !== 'undefined') {
-        localStorageService.setLocalStorage(key, value);
-      } else {
-        cookieService.updateCookie(key, value, options);
+      try {
+        if (typeof window.Storage !== 'undefined') {
+          localStorageService.setLocalStorage(key, value);
+        } else {
+          cookieService.updateCookie(key, value, options);
+        }
+      } catch (error) {
+        console.error(error);
       }
     },
 
     removeFromStorage(key, options) {
-      if (typeof window.Storage !== 'undefined') {
-        localStorageService.removeLocalStorage(key);
-      } else {
-        cookieService.destroyCookie(key, options);
+      try {
+        if (typeof window.Storage !== 'undefined') {
+          localStorageService.removeLocalStorage(key);
+        } else {
+          cookieService.destroyCookie(key, options);
+        }
+      } catch (error) {
+        console.error(error);
       }
     },
 

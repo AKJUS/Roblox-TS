@@ -1,14 +1,14 @@
-import { getDeviceMeta } from "@rbx/core-scripts/meta/device";
 import * as boolean from "fp-ts/boolean";
 import * as Either from "fp-ts/Either";
 import * as TaskEither from "fp-ts/TaskEither";
 import * as Option from "fp-ts/Option";
+import { pipe } from "fp-ts/lib/function";
+import { getDeviceMeta } from "@rbx/core-scripts/meta/device";
 import {
   getWithDefaultHandlers,
   putWithDefaultHandlers,
   tryGetIndexedDBConnectionWithDefaults,
 } from "@rbx/buffered-telemetry";
-import { pipe } from "fp-ts/lib/function";
 import { hbaMeta } from "./hba";
 import { generateSigningKeyPairUnextractable, exportPublicKeyAsSpki, sign } from "./crypto";
 import { getServerNonce } from "./internal/hbaService";

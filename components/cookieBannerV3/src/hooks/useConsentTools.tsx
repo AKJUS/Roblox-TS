@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { TranslateFunction } from '@rbx/core-scripts/legacy/react-utilities';
-import { TEssentialCookie } from '../types/cookiePolicyTypes';
-import ConsentTool from '../containers/ConsentTool';
+import React, { useState } from "react";
+import { TranslateFunction } from "@rbx/core-scripts/legacy/react-utilities";
+import { TEssentialCookie } from "../types/cookiePolicyTypes";
+import ConsentTool from "../containers/ConsentTool";
 
 interface IConsentToolService {
   open: () => void;
@@ -11,7 +11,7 @@ const useConsentTools = ({
   nonEssentialCookieList,
   essentialCookieList,
   translate,
-  onCloseConsentTool
+  onCloseConsentTool,
 }: {
   nonEssentialCookieList: string[];
   essentialCookieList: TEssentialCookie[];
@@ -25,7 +25,7 @@ const useConsentTools = ({
     },
     close: () => {
       setConsentToolOpen(false);
-    }
+    },
   };
 
   const consentTool = consentToolOpen ? (

@@ -47,7 +47,10 @@ export const phoneUpsellStrings = {
   HeadingVoiceChatEnabled: 'Heading.VoiceChatEnabled',
   DescriptionCanNowTalk: 'Description.CanNowTalk',
   DescriptionTurnOnVoiceChat: 'Description.TurnOnVoiceChat',
-  DescriptionCanNowJoinVoice: 'Description.CanNowJoinVoice'
+  DescriptionCanNowJoinVoice: 'Description.CanNowJoinVoice',
+  DescriptionAddPhoneNumber: 'Description.AddPhoneNumber',
+  DescriptionAddPhoneBody: 'Description.AddPhoneBody',
+  DescriptionUpdatePhoneNumber: 'Description.UpdatePhoneNumber'
 };
 
 export const phoneUpsellStringLinkConstants = {

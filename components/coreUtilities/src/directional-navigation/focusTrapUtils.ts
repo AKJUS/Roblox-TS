@@ -30,7 +30,6 @@ export function detectActiveFocusTrap(): HTMLElement | null {
     const elements = Array.from(document.querySelectorAll(`${selector}:not([aria-hidden="true"])`));
     for (const element of elements) {
       if (isAncestorAriaHidden(element)) {
-        // eslint-disable-next-line no-continue
         continue;
       }
 

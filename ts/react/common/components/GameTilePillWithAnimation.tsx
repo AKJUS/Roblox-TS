@@ -1,6 +1,7 @@
 import React from 'react';
 import classNames from 'classnames';
-import { TGameTilePillData } from '../types/bedev1Types';
+import { TGameTilePillData, TGameTileBadgeComponentType } from '../types/bedev1Types';
+import { componentTypeClassMap } from '../constants/genericTileConstants';
 
 export interface GameTilePillWithAnimationProps extends TGameTilePillData {
   isFocused?: boolean;
@@ -10,11 +11,16 @@ const GameTilePillWithAnimation = ({
   animationClass,
   isFocused,
   icons,
-  text
+  text,
+  componentType
 }: GameTilePillWithAnimationProps): JSX.Element | null => {
   if (icons?.length || text) {
     return (
-      <div className='game-card-pill-with-animation'>
+      <div
+        className={classNames(
+          'game-card-pill-with-animation',
+          componentTypeClassMap[componentType ?? TGameTileBadgeComponentType.Pill]
+        )}>
         <div
           className={classNames('game-card-pill-animation-container', {
             [animationClass ?? '']: animationClass && isFocused

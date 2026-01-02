@@ -1,6 +1,6 @@
-import { Fragment, useEffect } from 'react';
-import PropTypes from 'prop-types';
-import layoutConstants from '../constants/layoutConstants';
+import { Fragment, useEffect } from "react";
+import PropTypes from "prop-types";
+import layoutConstants from "../constants/layoutConstants";
 
 function CreditIcon({ creditAmount, currencyCode, creditError }) {
   const icon = (
@@ -23,12 +23,12 @@ function CreditIcon({ creditAmount, currencyCode, creditError }) {
   useEffect(() => {
     // Render PriceTag component
     window.dispatchEvent(
-      new CustomEvent('price-tag:render', {
+      new CustomEvent("price-tag:render", {
         detail: {
-          targetSelector: '.credit-balance',
-          tagClassName: 'navbar-compact nav-credit-text'
-        }
-      })
+          targetSelector: ".credit-balance",
+          tagClassName: "navbar-compact nav-credit-text",
+        },
+      }),
     );
   }, [creditAmount, currencyCode]);
 
@@ -41,14 +41,14 @@ function CreditIcon({ creditAmount, currencyCode, creditError }) {
 
 CreditIcon.defaultProps = {
   creditAmount: 0,
-  creditError: '',
-  currencyCode: 'USD'
+  creditError: "",
+  currencyCode: "USD",
 };
 
 CreditIcon.propTypes = {
   creditAmount: PropTypes.number,
   creditError: PropTypes.string,
-  currencyCode: PropTypes.string
+  currencyCode: PropTypes.string,
 };
 
 export default CreditIcon;

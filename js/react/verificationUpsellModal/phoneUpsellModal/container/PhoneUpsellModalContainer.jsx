@@ -33,7 +33,6 @@ function PhoneUpsellModalContainer({
   onClose,
   origin,
   existingPhoneNumber,
-  addPhoneAlwaysShowLegalText,
   addPhoneRequireLegalTextCheckbox,
   addPhoneHeadingKey,
   addPhoneDescriptionKey,
@@ -77,7 +76,6 @@ function PhoneUpsellModalContainer({
             translate={translate}
             onHide={onHide}
             existingPhoneNumber={existingPhoneNumber}
-            alwaysShowLegalText={addPhoneAlwaysShowLegalText}
             requireLegalTextCheckbox={addPhoneRequireLegalTextCheckbox}
             headingKey={addPhoneHeadingKey}
             descriptionKey={addPhoneDescriptionKey}
@@ -165,7 +163,6 @@ PhoneUpsellModalContainer.propTypes = {
   onClose: PropTypes.func.isRequired,
   origin: PropTypes.string,
   existingPhoneNumber: PropTypes.string,
-  addPhoneAlwaysShowLegalText: PropTypes.bool,
   addPhoneRequireLegalTextCheckbox: PropTypes.bool,
   addPhoneHeadingKey: PropTypes.string,
   addPhoneDescriptionKey: PropTypes.string,
@@ -178,7 +175,6 @@ PhoneUpsellModalContainer.propTypes = {
 PhoneUpsellModalContainer.defaultProps = {
   origin: originValues.homepage, // homepage is default origin
   existingPhoneNumber: null, // default is user doesn't have phone number added yet
-  addPhoneAlwaysShowLegalText: undefined, // default is set in AddPhoneNumber.jsx
   addPhoneRequireLegalTextCheckbox: undefined,
   addPhoneHeadingKey: undefined,
   addPhoneDescriptionKey: undefined,

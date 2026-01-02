@@ -32,8 +32,6 @@ TextFormField.propTypes = {
   name: PropTypes.string,
   value: PropTypes.string,
   onChange: PropTypes.func,
-  // TODO: old, migrated code
-  // eslint-disable-next-line react/forbid-prop-types
   otherProps: PropTypes.objectOf(PropTypes.any),
 };
 

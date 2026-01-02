@@ -6,7 +6,8 @@ const {
   getPurchaseCollectibleItemUrl,
   getPurchaseCollectibleItemInstanceUrl,
   postBulkPurchaseUrl,
-  postPurchaseDeveloperProductUrl
+  postPurchaseDeveloperProductUrl,
+  postPurchaseGamePassUrl
 } = urlConstants;
 
 export default {
@@ -27,7 +28,18 @@ export default {
     return httpService.post(urlConfig, params);
   },
   purchaseDeveloperProduct: (productId, request) => {
-    const urlConfig = postPurchaseDeveloperProductUrl(productId.toString());
+    const urlConfig = {
+      url: postPurchaseDeveloperProductUrl(productId),
+      withCredentials: true
+    };
+    return httpService.post(urlConfig, request);
+  },
+  purchaseGamePass: (productId, request) => {
+    const urlConfig = {
+      url: postPurchaseGamePassUrl(productId),
+      retryable: true,
+      withCredentials: true
+    };
     return httpService.post(urlConfig, request);
   },
   purchaseItem: (productId, params) => {

@@ -1,4 +1,4 @@
-import { CurrentUser } from 'Roblox';
+import { CurrentUser, Endpoints } from 'Roblox';
 import { entityUrl } from 'core-roblox-utilities';
 import { urlService, seoName } from 'core-utilities';
 import { url } from '../constants/browserConstants';
@@ -93,6 +93,20 @@ export const buildSortDetailUrl = (
   return urlService.getUrlWithQueries(baseUrl, { ...eventProperties, ...additionalUrlParams });
 };
 
+export const buildSortDetailRelativeUrl = (
+  sortName: string,
+  pageContext: PageContext.HomePage | PageContext.GamesPage,
+  eventProperties: TSortDetailReferral = {},
+  additionalUrlParams: Record<string, string> = {}
+): string => {
+  return Endpoints.attachRelativeUrlLocale(
+    urlService.getRelativeUrlWithQueries(`/${getSortDetailBaseUrl(sortName, pageContext)}`, {
+      ...eventProperties,
+      ...additionalUrlParams
+    })
+  );
+};
+
 export const buildEventDetailsUrl = (eventId: string): string => {
   return urlService.getAbsoluteUrl(`/events/${eventId}`);
 };
@@ -114,6 +128,7 @@ export default {
   buildAddGamePassUrl,
   buildReportAbuseRevampUrl,
   buildSortDetailUrl,
+  buildSortDetailRelativeUrl,
   buildGameDetailUrl,
   isElementInWindow,
   buildEventDetailsUrl,

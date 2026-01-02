@@ -8,7 +8,6 @@ function imageLoad() {
     link: (scope, element) => {
       element.bind("load", () => {
         scope.$evalAsync(() => {
-          scope.$parent.$ctrl.updateImageLoadMetrics(new Date().getTime());
           // eslint-disable-next-line no-param-reassign
           scope.isLoaded = true;
         });

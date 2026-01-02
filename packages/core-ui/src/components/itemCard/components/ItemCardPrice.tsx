@@ -1,7 +1,7 @@
 import React, { JSX } from "react";
+import classNames from "classnames";
 import { authenticatedUser } from "@rbx/core-scripts/meta/user";
 import { formatNumber } from "@rbx/core-scripts/format/number";
-import classNames from "classnames";
 import itemCardConstants from "../constants/itemCardConstants";
 
 function ItemCardPrice({

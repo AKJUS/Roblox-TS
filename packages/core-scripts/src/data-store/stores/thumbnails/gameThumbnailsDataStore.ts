@@ -48,7 +48,7 @@ const getUniverseThumbnails = (
   isCircular?: boolean,
 ): AxiosPromise<ThumbnailsProvider.RobloxWebWebAPIModelsApiArrayResponseRobloxWebResponsesThumbnailsThumbnailResponse> =>
   // TODO: old, migrated code
-  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
   gameThumbnailsApiInstance
     .v1GamesMultigetThumbnailsGet(universeIds, 1, true, size, format, isCircular, {
       withCredentials: true,

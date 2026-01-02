@@ -25,7 +25,6 @@ const SduiButton = ({ size, variant, text, onActivated }: TSduiButtonProps): JSX
     return (
       <Button
         as='a'
-        altText={text}
         size={buttonSize}
         variant={buttonVariant}
         href={onActivated.linkPath}
@@ -36,12 +35,7 @@ const SduiButton = ({ size, variant, text, onActivated }: TSduiButtonProps): JSX
   }
 
   return (
-    <Button
-      as='button'
-      altText={text}
-      size={buttonSize}
-      variant={buttonVariant}
-      onClick={handleClick}>
+    <Button as='button' size={buttonSize} variant={buttonVariant} onClick={handleClick}>
       {text}
     </Button>
   );

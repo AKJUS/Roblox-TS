@@ -22,6 +22,7 @@ const FRIENDSHIP_EVENT_TYPE = 'FriendshipNotifications';
 const BADGING_EXPERIMENT_LAYER = 'Social.Friends';
 
 const FULFILLED_PROMISE_STATUS = 'fulfilled';
+const REJECTED_PROMISE_STATUS = 'rejected';
 
 const { userDataStore } = dataStores;
 
@@ -38,10 +39,17 @@ interface RealtimeClient {
 const allSettled = (promises: Promise<any>[]) => {
   return Promise.all(
     promises.map(p =>
-      p.then((value: TGetFriendsCountResponse): { status: string; value: any } => ({
-        status: FULFILLED_PROMISE_STATUS,
-        value
-      }))
+      p.then(
+        (value: TGetFriendsCountResponse): { status: string; value: any } => ({
+          status: FULFILLED_PROMISE_STATUS,
+          value
+        }),
+        (error: Error): { status: string; value: null; error: Error } => ({
+          status: REJECTED_PROMISE_STATUS,
+          value: null,
+          error
+        })
+      )
     )
   );
 };
@@ -117,6 +125,7 @@ const FriendsCarouselContainer = ({
     hideConnections: boolean,
     name: FriendCarouselNames,
     friendCount: number,
+    numberOfFriendsReturnedFromApi: number,
     requestCount: number,
     isAddFriendsTileEnabledWeb: boolean
   ): boolean => {
@@ -125,7 +134,11 @@ const FriendsCarouselContainer = ({
     if (name !== FriendCarouselNames.WebHomeFriendsCarousel) {
       return friendCount !== 0;
     }
-    return friendCount !== 0 || (isAddFriendsTileEnabledWeb && requestCount !== 0);
+    return (
+      friendCount !== 0 ||
+      numberOfFriendsReturnedFromApi !== 0 ||
+      (isAddFriendsTileEnabledWeb && requestCount !== 0)
+    );
   };
 
   // temporary here to clean up local storage from userDataStore
@@ -213,6 +226,7 @@ const FriendsCarouselContainer = ({
           mustHideConnections,
           carouselName,
           friendsCountValue,
+          friendsValue?.length ?? 0,
           newFriendRequestsCountValue,
           experimentationConfigValue.isAddFriendsTileEnabledWeb
         )

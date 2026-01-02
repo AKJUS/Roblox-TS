@@ -29,4 +29,11 @@ const getAmpUpsellWithParametersUrlConfig = (
   }`
 });
 
-export { getAmpFeatureCheckUrlConfig, getAmpUpsellUrlConfig, getAmpUpsellWithParametersUrlConfig };
+const LearnMoreAboutAge13Link = 'https://help.roblox.com/hc/articles/30428367965460';
+
+export {
+  getAmpFeatureCheckUrlConfig,
+  getAmpUpsellUrlConfig,
+  getAmpUpsellWithParametersUrlConfig,
+  LearnMoreAboutAge13Link
+};

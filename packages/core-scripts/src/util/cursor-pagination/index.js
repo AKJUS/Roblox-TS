@@ -1,5 +1,3 @@
-// TODO: old, migrated code
-/* eslint-disable no-underscore-dangle */
 import PaginationCache from "./PaginationCache";
 import cursorPaginationConstants from "./constants";
 

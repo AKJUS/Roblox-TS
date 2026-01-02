@@ -1,8 +1,9 @@
 import Persona from 'persona';
 import React, { useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
-import { TranslateFunction } from 'react-utilities';
-import { DeviceMeta } from 'Roblox';
+import { useTheme, TranslateFunction } from 'react-utilities';
+import { DeviceMeta, Intl } from 'Roblox';
+import openVerificationLink from '../../utils/verificationUtils';
 import {
   fetchFeatureAccess,
   selectAmpFeatureCheckData,
@@ -11,9 +12,8 @@ import {
 import LoadingPage from '../../accessManagement/components/LoadingPage';
 import { IDVPage } from '../../enums';
 import { useAppDispatch } from '../../store';
-import ChecklistPage from './components/ChecklistPage';
-import VendorlinkPage from './components/VendorlinkPage';
 import VerificationCompletePage from './components/VerificationCompletePage';
+import ChecklistPage from './components/ChecklistPage';
 import {
   fetchIDVerificationStatus,
   resetVerificationStore,
@@ -22,6 +22,12 @@ import {
   setLoading,
   startIDVerification
 } from './verificationSlice';
+
+const DEFAULT_THEME = 'dark';
+const EMBEDDED_FLOW_POLLING_INTERVAL = 5000; // 5 seconds
+const EMBEDDED_FLOW_POLLING_TIMEOUT = 30000; // 30 seconds
+const POLLING_INTERVAL = 10000; // 10 seconds (hosted watchdog)
+const POLLING_TIMEOUT = 1800000; // 30 minutes
 
 function IDVerification({
   translate,
@@ -32,10 +38,6 @@ function IDVerification({
   onHidecallback: () => void;
   ageEstimation: boolean;
 }): React.ReactElement {
-  const EMBEDDED_FLOW_POLLING_INTERVAL = 5000; // 5 seconds
-  const EMBEDDED_FLOW_POLLING_TIMEOUT = 30000; // 30 seconds
-  const POLLING_INTERVAL = 10000; // 10 seconds
-  const POLLING_TIMEOUT = 1800000; // 30 minutes
   const endTime = useRef(Number(new Date()) + POLLING_TIMEOUT);
 
   const dispatch = useAppDispatch();
@@ -46,12 +48,18 @@ function IDVerification({
   const { page } = useSelector(selectIDVState);
   const pageRef = useRef(page);
   const embeddedFlowPollingRef = useRef(false);
+  const hostedOpenedRef = useRef(false);
+  const hostedFlowTimeoutRef = useRef<NodeJS.Timeout | null>(null); // For hosted flow timeout ID
   const isWebview = (DeviceMeta && DeviceMeta().isInApp) ?? false;
 
   const { vendorVerificationData } = IDVState;
-  const { sessionIdentifier } = vendorVerificationData;
+  const { sessionIdentifier, verificationLink } = vendorVerificationData;
 
-  // methods shared by both webview and non-webview
+  const theme = useTheme();
+
+  // ===============================
+  // Initialize flow
+  // ===============================
   useEffect(() => {
     dispatch(setLoading(true));
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
@@ -59,19 +67,27 @@ function IDVerification({
     if (isWebview) {
       endTime.current = Number(new Date()) + POLLING_TIMEOUT;
     }
+    return () => {
+      if (hostedFlowTimeoutRef.current) {
+        clearTimeout(hostedFlowTimeoutRef.current);
+      }
+    };
   }, []);
 
   function onHide() {
     dispatch(resetVerificationStore());
+    clearTimeout(hostedFlowTimeoutRef.current);
     onHidecallback();
   }
 
-  // only for webview: use hosted flow
+  // ===============================
+  // Hosted flow (webview)
+  // ===============================
   let IDVComponent = null;
   if (isWebview || page === IDVPage.Complete) {
     switch (page) {
       case IDVPage.VendorLink:
-        IDVComponent = <VendorlinkPage translate={translate} onHide={onHide} />;
+        IDVComponent = <LoadingPage />;
         break;
       case IDVPage.Checklist:
         IDVComponent = <ChecklistPage translate={translate} onHide={onHide} />;
@@ -80,13 +96,20 @@ function IDVerification({
         IDVComponent = <VerificationCompletePage translate={translate} onHide={onHide} />;
         break;
       default:
-        IDVComponent = <VendorlinkPage translate={translate} onHide={onHide} />;
+        IDVComponent = <LoadingPage />;
         break;
     }
   }
 
   useEffect(() => {
-    // Dispatch IDVState is not loading && startIDVerification is successfully called && endScreen is NOT set && does NOT times out
+    if (!isWebview) return;
+    if (sessionIdentifier && verificationLink != null && !hostedOpenedRef.current) {
+      hostedOpenedRef.current = true;
+      openVerificationLink(verificationLink);
+    }
+  }, [isWebview, sessionIdentifier, verificationLink]);
+
+  useEffect(() => {
     if (
       isWebview &&
       !IDVState.loading &&
@@ -108,11 +131,18 @@ function IDVerification({
     }
   }, [page]);
 
-  // only for non-webview: use embedded flow
+  // ===============================
+  // Embedded flow (web)
+  // ===============================
   useEffect(() => {
     if (!isWebview && sessionIdentifier) {
+      // Get user locale for Persona
+      const userLocale = new Intl().getLocale();
+
       const personaClient = new Persona.Client({
         inquiryId: sessionIdentifier,
+        styleVariant: theme || DEFAULT_THEME,
+        ...(userLocale && { language: userLocale }),
         onReady: () => {
           personaClient.open();
           dispatch(setLoading(false));
@@ -127,7 +157,7 @@ function IDVerification({
               dispatch(fetchIDVerificationStatus(sessionIdentifier));
             }
           }, EMBEDDED_FLOW_POLLING_INTERVAL);
-          setTimeout(() => {
+          hostedFlowTimeoutRef.current = setTimeout(() => {
             clearInterval(intervalId);
             dispatch(setLoading(false));
           }, EMBEDDED_FLOW_POLLING_TIMEOUT);

@@ -99,6 +99,7 @@ export const sendClickRequestBroadcastConfirmEvent = ({
 };
 export const sendParentEmailSubmitEvent = ({
   requestType,
+  extraState,
   sessionId,
   details
 }: TEventParams): void => {
@@ -107,15 +108,32 @@ export const sendParentEmailSubmitEvent = ({
   sendEventWithSilentError(events.eventName.authButtonClick, context.parentalEntry, {
     btn: events.btn.submit,
     associatedText: events.text.sendEmail,
-    state: generateState(requestType, sessionId, undefined, details)
+    state: generateState(requestType, sessionId, extraState, details)
   });
 };
 
-export const sendInteractParentEmailFormEvent = ({ requestType, details }: TEventParams): void => {
+export const sendInteractParentEmailFormEvent = ({
+  requestType,
+  extraState,
+  details
+}: TEventParams): void => {
   const context = getContext(requestType, details);
   sendEventWithSilentError(events.eventName.authFormInteraction, context.parentalEntry, {
     field: events.field.email,
     associatedText: events.text.enterParentEmail,
-    state: generateState(requestType, undefined, undefined, details)
+    state: generateState(requestType, undefined, extraState, details)
+  });
+};
+
+export const sendParentEmailModalShownEvent = ({
+  requestType,
+  extraState,
+  details
+}: TEventParams): void => {
+  const context = getContext(requestType, details);
+  sendEventWithSilentError(events.eventName.authModalShown, context.parentalEntry, {
+    field: events.field.emailModal,
+    associatedText: events.text.enterParentEmail,
+    state: generateState(requestType, undefined, extraState, details)
   });
 };

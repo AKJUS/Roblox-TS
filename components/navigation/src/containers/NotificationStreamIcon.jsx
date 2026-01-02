@@ -1,14 +1,14 @@
 // Since the notification stream is angularjs code, the notification-stream-indicator below is for
 // notification stream code to engage with navigation component
 /* eslint-disable react/no-unknown-property */
-import React from 'react';
-import angular from 'angular';
+import React from "react";
+import angular from "angular";
 
 class NotificationStreamIcon extends React.Component {
   componentDidMount() {
     try {
-      angular.module('notificationStreamIcon');
-      angular.bootstrap(this.container, ['notificationStreamIcon']);
+      angular.module("notificationStreamIcon");
+      angular.bootstrap(this.container, ["notificationStreamIcon"]);
     } catch (err) {
       console.error(err);
     }

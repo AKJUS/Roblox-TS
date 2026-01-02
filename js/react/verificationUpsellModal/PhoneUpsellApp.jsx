@@ -10,7 +10,6 @@ function PhoneUpsellApp({
   onClose,
   origin,
   existingPhoneNumber,
-  addPhoneAlwaysShowLegalText,
   addPhoneRequireLegalTextCheckbox,
   addPhoneHeadingKey,
   addPhoneDescriptionKey,
@@ -26,7 +25,6 @@ function PhoneUpsellApp({
         onClose={onClose}
         origin={origin}
         existingPhoneNumber={existingPhoneNumber}
-        addPhoneAlwaysShowLegalText={addPhoneAlwaysShowLegalText}
         addPhoneRequireLegalTextCheckbox={addPhoneRequireLegalTextCheckbox}
         addPhoneHeadingKey={addPhoneHeadingKey}
         addPhoneDescriptionKey={addPhoneDescriptionKey}
@@ -44,7 +42,6 @@ PhoneUpsellApp.propTypes = {
   origin: PropTypes.string,
   onClose: PropTypes.func,
   existingPhoneNumber: PropTypes.string,
-  addPhoneAlwaysShowLegalText: PropTypes.bool,
   addPhoneRequireLegalTextCheckbox: PropTypes.bool,
   addPhoneHeadingKey: PropTypes.string,
   addPhoneDescriptionKey: PropTypes.string,
@@ -58,7 +55,6 @@ PhoneUpsellApp.defaultProps = {
   origin: undefined,
   onClose: () => null,
   existingPhoneNumber: null,
-  addPhoneAlwaysShowLegalText: undefined, // default is set in AddPhoneNumber.jsx
   addPhoneRequireLegalTextCheckbox: undefined,
   addPhoneHeadingKey: undefined,
   addPhoneDescriptionKey: undefined,

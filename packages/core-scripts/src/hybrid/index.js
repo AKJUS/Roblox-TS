@@ -2,7 +2,9 @@ const { Chat, Navigation, Overlay, Game, Localization } = window.Roblox?.Hybrid 
 
 const getCallback = callback => {
   if (typeof callback === "undefined") {
-    return () => {};
+    return () => {
+      // do nothing
+    };
   }
   return callback;
 };

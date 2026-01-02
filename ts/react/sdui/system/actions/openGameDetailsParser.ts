@@ -15,7 +15,7 @@ import {
 } from '../../utils/analyticsParsingUtils';
 import logSduiError, { SduiErrorNames } from '../../utils/logSduiError';
 import { TSduiActionConfig, TSduiParsedActionConfig } from '../SduiActionParserRegistry';
-import { TAnalyticsContext, TSduiContext, TSduiPageContextType } from '../SduiTypes';
+import { TAnalyticsContext, TSduiContext } from '../SduiTypes';
 import { getAppsFlyerReferralParams } from '../../../common/utils/appsFlyerReferralUtils';
 
 /**
@@ -31,6 +31,10 @@ export const buildCommonReferralParams = (
     sduiContext.pageContext
   );
   const adId = parseStringField(findAnalyticsFieldInAncestors('adId', analyticsContext, ''), '');
+  const heroUnitId = parseStringField(
+    findAnalyticsFieldInAncestors('heroUnitId', analyticsContext, ''),
+    ''
+  );
   const position = parseMaybeStringNumberField(
     findAnalyticsFieldInAncestors('itemPosition', analyticsContext, -1),
     -1
@@ -72,6 +76,9 @@ export const buildCommonReferralParams = (
     [EventStreamMetadata.IsAd]: isAd,
     ...(adId !== '' && {
       [EventStreamMetadata.NativeAdData]: adId
+    }),
+    ...(heroUnitId !== '' && {
+      [EventStreamMetadata.HeroUnitId]: heroUnitId
     }),
     [EventStreamMetadata.Position]: position,
     [EventStreamMetadata.SortPos]: sortPosition,

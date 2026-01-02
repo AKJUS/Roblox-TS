@@ -8,19 +8,23 @@ const AvatarHeadshot = ({
   id,
   userProfileUrl,
   handleImageClick,
-  translate
+  translate,
+  isTrustedConnection
 }: {
   id: number;
   userProfileUrl: string;
   handleImageClick?: () => void;
   translate: TranslateFunction;
+  isTrustedConnection: boolean;
 }): JSX.Element => {
+  const containerClass = isTrustedConnection ? 'trusted-connection-avatar-headshot' : '';
+
   const thumbnail = (
     <Thumbnail2d
       type={ThumbnailTypes.avatarHeadshot}
       size={DefaultThumbnailSize}
       targetId={id}
-      containerClass='avatar-card-image'
+      containerClass={`avatar-card-image ${containerClass}`}
     />
   );
   return (

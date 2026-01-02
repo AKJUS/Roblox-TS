@@ -23,10 +23,11 @@ import ItemType from '../../../../ts/react/enums/ItemType';
 import BatchBuyPurchaseResults from '../../../../ts/react/enums/BatchBuyPurchaseResults';
 import TwoStepVerificationModal from '../components/TwoStepVerificationModal';
 
+const { violationLabels } = itemPurchaseConstants;
+
 const {
   resources,
   batchBuyMaxThumbnails,
-  batchBuyPurchaseResults,
   purchaseMetadataKeys,
   floodcheckTime
 } = itemPurchaseConstants;
@@ -62,7 +63,31 @@ function ItemThumbnail({ itemsCount, item, index }) {
   );
 }
 
-export function handleResultFromPurchases(result, startTwoStepVerification) {
+const formatEconomicRestrictionErrorResult = (translate, message) => {
+  const [, , violation, expirationTimeInMinutes] = message.split('/');
+  const timeoutInHours = Math.ceil(expirationTimeInMinutes / 60);
+  if (timeoutInHours > 24) {
+    const timeoutInDays = Math.ceil(timeoutInHours / 24);
+    return {
+      success: false,
+      message: 'Text.EconomicRestrictionsDaysGeneral',
+      params: {
+        violation: translate(violationLabels[violation] ?? 'Label.Sublabel.FraudPaymentAbuse'),
+        day: timeoutInDays
+      }
+    };
+  }
+  return {
+    success: false,
+    message: 'Text.EconomicRestrictionsHoursGeneral',
+    params: {
+      violation: translate(violationLabels[violation] ?? 'Label.Sublabel.FraudPaymentAbuse'),
+      hour: timeoutInHours
+    }
+  };
+};
+
+export function handleResultFromPurchases(translate, result, startTwoStepVerification) {
   // Error handling using systemFeedbackService returns the errors for handling within the feature itself
   let successCount = 0;
   const errorResults = [];
@@ -72,6 +97,15 @@ export function handleResultFromPurchases(result, startTwoStepVerification) {
   }
 
   if (result.status === 200) {
+    if (
+      result.data &&
+      result.data.message &&
+      result.data.message.startsWith('Error/EconomicRestrictions')
+    ) {
+      const { message } = result.data;
+      return formatEconomicRestrictionErrorResult(translate, message);
+    }
+
     result.data.fulfillmentGroups[0].lineItems.forEach(itemResult => {
       if (itemResult.status === 'SUCCEEDED') {
         successCount += 1;
@@ -291,10 +325,9 @@ export default function createMultiItemPurchaseModal() {
     const purchaseCollectibleItem = async item => {
       const { collectibleItemDetails } = item;
       const purchaseFromCreator =
-        !item.itemRestrictions.includes('Collectible') ||
-        (collectibleItemDetails.unitsAvailableForConsumption > 0 &&
-          (!collectibleItemDetails.hasResellers ||
-            collectibleItemDetails.price < collectibleItemDetails.lowestResalePrice));
+        collectibleItemDetails.unitsAvailableForConsumption > 0 &&
+        (!collectibleItemDetails.hasResellers ||
+          collectibleItemDetails.price < collectibleItemDetails.lowestResalePrice);
       const price = collectibleItemDetails.lowestPrice;
       const params = {
         collectibleItemId: item.collectibleItemId,
@@ -357,7 +390,7 @@ export default function createMultiItemPurchaseModal() {
     };
 
     function handleResult(result) {
-      const resultFeedback = handleResultFromPurchases(result, startTwoStepVerification);
+      const resultFeedback = handleResultFromPurchases(translate, result, startTwoStepVerification);
       let resultMessage;
       if (resultFeedback.params) {
         resultMessage = translate(resultFeedback.message, resultFeedback.params);
@@ -385,11 +418,9 @@ export default function createMultiItemPurchaseModal() {
         if (item.collectibleItemId !== undefined) {
           const purchaseFromCreator =
             item.collectibleItemDetails.saleLocationType !== 'ExperiencesDevApiOnly' &&
-            (!item.itemRestrictions.includes('Collectible') ||
-              (item.collectibleItemDetails.unitsAvailableForConsumption > 0 &&
-                (!item.collectibleItemDetails.hasResellers ||
-                  item.collectibleItemDetails.price <
-                    item.collectibleItemDetails.lowestResalePrice)));
+            item.collectibleItemDetails.unitsAvailableForConsumption > 0 &&
+            (!item.collectibleItemDetails.hasResellers ||
+              item.collectibleItemDetails.price < item.collectibleItemDetails.lowestResalePrice);
           if (!purchaseFromCreator && item.collectibleItemDetails.lowestAvailableResaleProductId) {
             itemToPurchase.collectibleProductId =
               item.collectibleItemDetails.lowestAvailableResaleProductId;
@@ -435,8 +466,15 @@ export default function createMultiItemPurchaseModal() {
           idempotencyKey
         );
 
+        const { data } = result;
+        if (data.message && data.message.startsWith('Error/EconomicRestrictions')) {
+          handleResult(result);
+          onTransactionComplete(itemResults);
+          return;
+        }
+
         let count = 0;
-        result.data.fulfillmentGroups[0].lineItems.forEach(item => {
+        data.fulfillmentGroups[0].lineItems.forEach(item => {
           itemResults[count].data.reason =
             item.status === 'SUCCEEDED' ? 'Success' : item.errorReason;
           count += 1;

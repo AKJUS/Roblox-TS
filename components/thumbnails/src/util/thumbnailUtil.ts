@@ -84,16 +84,9 @@ function getThumbnailRequesterProperties(
   };
 }
 
-function shouldLogMetrics(metaData?: MetaData): boolean {
-  if (!metaData) return true;
-  const { thumbnailMetricsSampleSize } = metaData;
-  return Math.floor(Math.random() * 100) <= thumbnailMetricsSampleSize;
-}
-
 export {
   transformThumbnailType,
   getExpirationMsFromString,
   getThumbnailRequesterProperties,
   getCachePropertiesFromMetaData,
-  shouldLogMetrics,
 };

@@ -1,12 +1,21 @@
-/* eslint-disable jsx-a11y/anchor-is-valid */
-import PropTypes from 'prop-types';
-import { Link } from '@rbx/core-ui/legacy/react-style-guide';
-import { abbreviateNumber, numberFormat } from '@rbx/core-scripts/legacy/core-utilities';
-import { dataStores } from '@rbx/core-scripts/legacy/core-roblox-utilities';
-import links from '../constants/linkConstants';
+import PropTypes from "prop-types";
+import { Link } from "@rbx/core-ui/legacy/react-style-guide";
+import { abbreviateNumber, numberFormat } from "@rbx/core-scripts/legacy/core-utilities";
+import { dataStores } from "@rbx/core-scripts/legacy/core-roblox-utilities";
+import links from "../constants/linkConstants";
 
 const { maxFriendRequestNotificationCount } = dataStores.userDataStore;
 const { maxMessagesNotificationCount } = dataStores.userDataStore;
+
+function formatNotification(name, count) {
+  if (name === links.scrollListItems.friends.name && count >= maxFriendRequestNotificationCount) {
+    return `${maxFriendRequestNotificationCount}+`;
+  }
+  if (name === links.scrollListItems.messages.name && count >= maxMessagesNotificationCount) {
+    return `${maxMessagesNotificationCount}+`;
+  }
+  return abbreviateNumber.getTruncValue(count, 1000);
+}
 
 function LeftNavItem({
   translate,
@@ -21,19 +30,19 @@ function LeftNavItem({
   friendsData,
   messagesData,
   tradeData,
-  blankTarget
+  blankTarget,
 }) {
   const notificationItems = {
     [links.scrollListItems.friends.name]: friendsData,
     [links.scrollListItems.messages.name]: messagesData,
-    [links.scrollListItems.trade.name]: tradeData
+    [links.scrollListItems.trade.name]: tradeData,
   };
 
   const notificationItem = notificationItems[name];
 
   const hrefUrl = notificationItem?.count ? urlForNotification : url;
 
-  const target = blankTarget ? '_blank' : '_self';
+  const target = blankTarget ? "_blank" : "_self";
 
   if (isModal)
     return (
@@ -88,31 +97,21 @@ function LeftNavItem({
   );
 }
 
-function formatNotification(name, count) {
-  if (name === links.scrollListItems.friends.name && count >= maxFriendRequestNotificationCount) {
-    return `${maxFriendRequestNotificationCount}+`;
-  }
-  if (name === links.scrollListItems.messages.name && count >= maxMessagesNotificationCount) {
-    return `${maxMessagesNotificationCount}+`;
-  }
-  return abbreviateNumber.getTruncValue(count, 1000);
-}
-
 LeftNavItem.defaultProps = {
-  idSelector: '',
-  url: '',
-  urlForNotification: '',
+  idSelector: "",
+  url: "",
+  urlForNotification: "",
   isModal: false,
   blankTarget: false,
   friendsData: {
-    count: 0
+    count: 0,
   },
   messagesData: {
-    count: 0
+    count: 0,
   },
   tradeData: {
-    count: 0
-  }
+    count: 0,
+  },
 };
 
 LeftNavItem.propTypes = {
@@ -127,14 +126,14 @@ LeftNavItem.propTypes = {
   onClickShopLink: PropTypes.func.isRequired,
   blankTarget: PropTypes.bool,
   friendsData: PropTypes.shape({
-    count: PropTypes.number
+    count: PropTypes.number,
   }),
   messagesData: PropTypes.shape({
-    count: PropTypes.number
+    count: PropTypes.number,
   }),
   tradeData: PropTypes.shape({
-    count: PropTypes.number
-  })
+    count: PropTypes.number,
+  }),
 };
 
 export default LeftNavItem;

@@ -52,7 +52,7 @@ const FriendTile = ({
 
   const userPresence =
     userPresenceFull != null && userPresenceFull.length > 15
-      ? `${userPresenceFull.slice(0, 15)}...`
+      ? `${Array.from(userPresenceFull).slice(0, 15).join('')}...`
       : userPresenceFull;
 
   const gameUrl = isInGame ? `${EnvironmentUrls.websiteUrl}/games/${presence.placeId ?? ''}` : '';
@@ -87,6 +87,7 @@ const FriendTile = ({
               translate={translate}
               hasVerifiedBadge={friend.hasVerifiedBadge}
               sendClickEvent={sendClickEvent}
+              isTrustedConnection={friend.isTrustedConnection}
             />
           </button>
         }

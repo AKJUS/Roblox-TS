@@ -16,8 +16,10 @@ import createInsufficientFundsModal from './createInsufficientFundsModal';
 import createTransactionFailureModal from './createTransactionFailureModal';
 import createPriceChangedModal from './createPriceChangedModal';
 import TwoStepVerificationModal from '../components/TwoStepVerificationModal';
+import createUnifiedPurchaseVerificationModal from './createUnifiedPurchaseVerificationModal';
+import { getIsUserEligibleForUnifiedPurchaseFlow } from '../../../../ts/react/utils/featureEligibilityUtils';
 
-const { resources, errorTypeIds, errorStatusText, events } = itemPurchaseConstants;
+const { resources, errorTypeIds, errorStatusText, events, violationLabels } = itemPurchaseConstants;
 
 export default function createItemPurchase({
   customPurchaseVerificationModal,
@@ -33,6 +35,10 @@ export default function createItemPurchase({
     PurchaseVerificationModal,
     purchaseVerificationModalService
   ] = createPurchaseVerificationModal();
+  const [
+    UnifiedPurchaseVerificationModal,
+    unifiedPurchaseVerificationModalService
+  ] = createUnifiedPurchaseVerificationModal();
   const [InsufficientFundsModal, insufficientFundsModalService] = createInsufficientFundsModal();
   const [
     PurchaseConfirmationModal,
@@ -61,7 +67,11 @@ export default function createItemPurchase({
     );
     insufficientFundsModalService.open();
   };
-  const insufficientFundsModalServiceWrapper = (shortfallPrice, targetData) => () => {
+  const insufficientFundsModalServiceWrapper = (
+    shortfallPrice,
+    targetData,
+    shouldShowUnifiedPurchaseModal
+  ) => () => {
     if (
       ItemPurchaseUpsellService &&
       ItemPurchaseUpsellService.showExceedLargestInsufficientRobuxModal
@@ -69,7 +79,9 @@ export default function createItemPurchase({
       ItemPurchaseUpsellService.showExceedLargestInsufficientRobuxModal(
         shortfallPrice,
         targetData,
-        startOriginalFlowWhenNewFlowFailed
+        startOriginalFlowWhenNewFlowFailed,
+        undefined,
+        shouldShowUnifiedPurchaseModal
       );
     } else {
       startOriginalFlowWhenNewFlowFailed();
@@ -85,7 +97,9 @@ export default function createItemPurchase({
         ItemPurchaseUpsellService.startItemUpsellProcess(
           itemUpsellProcessParams.errorObject,
           itemUpsellProcessParams.itemDetail,
-          itemUpsellProcessParams.startOriginalFlowCallback
+          itemUpsellProcessParams.startOriginalFlowCallback,
+          undefined,
+          itemUpsellProcessParams.shouldShowUnifiedPurchaseModal
         );
         window.EventTracker.fireEvent(events.NEW_UPSELL_FROM_REACT_BUY_BUTTON);
       } catch (e) {
@@ -96,6 +110,20 @@ export default function createItemPurchase({
       window.EventTracker.fireEvent(events.NEW_UPSELL_FAILED_DUE_TO_LOADING);
       startOriginalFlowWhenNewFlowFailed();
     }
+  };
+  const getEconomicRestrictionErrorMsg = (translate, violation, timeoutDurationInMinutes) => {
+    const timeoutInHours = Math.ceil(timeoutDurationInMinutes / 60);
+    if (timeoutInHours > 24) {
+      const timeoutInDays = Math.ceil(timeoutInHours / 24);
+      return translate('Text.EconomicRestrictionsDaysGeneral', {
+        violation: translate(violationLabels[violation] ?? 'Label.Sublabel.FraudPaymentAbuse'),
+        day: timeoutInDays
+      });
+    }
+    return translate('Text.EconomicRestrictionsHoursGeneral', {
+      violation: translate(violationLabels[violation] ?? 'Label.Sublabel.FraudPaymentAbuse'),
+      hour: timeoutInHours
+    });
   };
 
   function ItemPurchase({
@@ -136,6 +164,7 @@ export default function createItemPurchase({
     const startTwoStepVerification = () => setIsTwoStepVerificationActive(true);
     const stopTwoStepVerification = () => setIsTwoStepVerificationActive(false);
     const [enableTwoStepVerificationBanner, setEnableTwoStepVerificationBanner] = useState(false);
+    const [shouldShowUnifiedPurchaseModal, setShouldShowUnifiedPurchaseModal] = useState(false);
 
     const getCurrentUserBalance = () => {
       itemDetailsService
@@ -163,9 +192,24 @@ export default function createItemPurchase({
       }
     }, [isTwoStepVerificationActive]);
 
+    useEffect(() => {
+      if (!CurrentUser.isAuthenticated) {
+        return;
+      }
+      getIsUserEligibleForUnifiedPurchaseFlow()
+        .then(isUserEligibleForUnifiedPurchaseFlow => {
+          setShouldShowUnifiedPurchaseModal(isUserEligibleForUnifiedPurchaseFlow);
+        })
+        .catch(() => {
+          setShouldShowUnifiedPurchaseModal(false);
+        });
+    }, []);
+
     const closeAll = () => {
       if (customPurchaseVerificationModalService) {
         customPurchaseVerificationModalService.close();
+      } else if (shouldShowUnifiedPurchaseModal) {
+        unifiedPurchaseVerificationModalService.close();
       } else {
         purchaseVerificationModalService.close();
       }
@@ -202,7 +246,12 @@ export default function createItemPurchase({
           isLimited,
           buyButtonElementDataset: targetData
         },
-        startOriginalFlowCallback: insufficientFundsModalServiceWrapper(shortfallPrice, targetData)
+        startOriginalFlowCallback: insufficientFundsModalServiceWrapper(
+          shortfallPrice,
+          targetData,
+          shouldShowUnifiedPurchaseModal
+        ),
+        shouldShowUnifiedPurchaseModal
       };
     };
 
@@ -232,6 +281,7 @@ export default function createItemPurchase({
       purchaseConfirmationModalService.open();
     };
 
+    /** @param {number} price expected price displayed to the user */
     const purchaseDeveloperProduct = price => {
       const request = {
         expectedPrice: price,
@@ -243,6 +293,24 @@ export default function createItemPurchase({
         .purchaseDeveloperProduct(productId, request)
         .then(response => {
           const { data } = response;
+          if (data.FailureReason !== undefined && data.ExpirationTimeInMinutes !== undefined) {
+            // Economic Restrictions
+            setLoading(false);
+            closeAll();
+            handleError({
+              title: translate(resources.economicRestrictionsErrorHeading),
+              errorMsg: getEconomicRestrictionErrorMsg(
+                translate,
+                data.FailureReason,
+                data.ExpirationTimeInMinutes
+              ),
+              showDivId: errorTypeIds.transactionFailure
+            });
+            return;
+          }
+
+          setLoading(false);
+          closeAll();
           if (!data.purchased && data.reason === 'TwoStepVerificationRequired') {
             startTwoStepVerification();
           } else if (!data.purchased) {
@@ -306,6 +374,86 @@ export default function createItemPurchase({
         });
     };
 
+    /** @param {number} price expected price displayed to the user */
+    const purchaseGamePass = price => {
+      const request = { expectedPrice: price };
+
+      setLoading(true);
+      itemPurchaseService
+        .purchaseGamePass(productId, request)
+        .then(response => {
+          const { data } = response;
+          if (data.failureReason !== undefined && data.expirationTimeInMinutes !== undefined) {
+            // Economic Restrictions
+            setLoading(false);
+            closeAll();
+            handleError({
+              title: translate(resources.economicRestrictionsErrorHeading),
+              errorMsg: getEconomicRestrictionErrorMsg(
+                translate,
+                data.failureReason,
+                data.expirationTimeInMinutes
+              ),
+              showDivId: errorTypeIds.transactionFailure
+            });
+            return;
+          }
+
+          setLoading(false);
+          closeAll();
+          if (!data.purchased && data.reason === 'TwoStepVerificationRequired') {
+            startTwoStepVerification();
+          } else if (!data.purchased) {
+            handleError({
+              title: translate(resources.errorOccuredHeading),
+              errorMsg: translate(resources.generalPurchaseErrorMessage),
+              showDivId: errorTypeIds.transactionFailure
+            });
+          } else {
+            onPurchaseSuccess();
+            if (showSuccessBanner) {
+              systemFeedbackService.success(translate(resources.purchaseCompleteHeading));
+              return;
+            }
+            openConfirmation({
+              assetIsWearable: false,
+              transactionVerb: data.transactionVerb,
+              onDecline: () => {
+                window.location.reload();
+              }
+            });
+          }
+        })
+        .catch(errorRes => {
+          console.debug(errorRes);
+          setLoading(false);
+          closeAll();
+          if (!errorRes || errorRes?.status === 400) {
+            // bad request
+            handleError({
+              title: translate(resources.errorOccuredHeading),
+              errorMsg: translate(resources.purchasingUnavailableMessage),
+              showDivId: errorTypeIds.transactionFailure
+            });
+          } else if (errorRes.status === 429) {
+            handleError({
+              title: translate(resources.errorOccuredHeading),
+              errorMsg: translate(resources.floodcheckFailureMessage, { throttleTime: 1 }),
+              showDivId: errorTypeIds.transactionFailure
+              // We dont reload here since it's already rate limited
+            });
+          } else {
+            // generic error
+            handleError({
+              title: translate(resources.errorOccuredHeading),
+              errorMsg: translate(resources.generalPurchaseErrorMessage),
+              showDivId: errorTypeIds.transactionFailure
+            });
+          }
+        });
+    };
+
+    /** @param {number} price expected price displayed to the user */
     const purchaseRegularItem = price => {
       const params = {
         expectedCurrency,
@@ -328,6 +476,21 @@ export default function createItemPurchase({
       itemPurchaseService
         .purchaseItem(productId, params)
         .then(({ data }) => {
+          if (data.FailureReason !== undefined && data.ExpirationTimeInMinutes !== undefined) {
+            // Economic Restrictions
+            setLoading(false);
+            closeAll();
+            handleError({
+              title: translate(resources.economicRestrictionsErrorHeading),
+              errorMsg: getEconomicRestrictionErrorMsg(
+                translate,
+                data.FailureReason,
+                data.ExpirationTimeInMinutes
+              ),
+              showDivId: errorTypeIds.transactionFailure
+            });
+            return;
+          }
           console.debug(data);
           const { statusCode, assetIsWearable, transactionVerb } = data;
 
@@ -379,6 +542,8 @@ export default function createItemPurchase({
           }
         });
     };
+
+    /** @param {number} price expected price displayed to the user */
     const purchaseCollectibleItem = async price => {
       const params = {
         collectibleItemId,
@@ -409,6 +574,22 @@ export default function createItemPurchase({
       try {
         const response = await serviceHandler(collectibleItemId, params);
         const { data } = response;
+        if (data.failureReason !== undefined && data.expirationTimeInMinutes !== undefined) {
+          // Economic Restrictions
+          setLoading(false);
+          closeAll();
+          handleError({
+            title: translate(resources.economicRestrictionsErrorHeading),
+            errorMsg: getEconomicRestrictionErrorMsg(
+              translate,
+              data.failureReason,
+              data.expirationTimeInMinutes
+            ),
+            showDivId: errorTypeIds.transactionFailure
+          });
+          return;
+        }
+
         const { transactionVerb } = data;
         setLoading(false);
         closeAll();
@@ -488,18 +669,22 @@ export default function createItemPurchase({
       }
     };
 
+    /** @param {number} price expected price displayed to the user */
     const purchaseItem = price => {
       if (collectibleItemId) {
         purchaseCollectibleItem(price);
       } else if (assetType === 'Product') {
         purchaseDeveloperProduct(price);
+      } else if (assetType === 'Game Pass') {
+        purchaseGamePass(price);
       } else {
         purchaseRegularItem(price);
       }
     };
 
-    const purchaseVerificationModal = customPurchaseVerificationModal ? (
-      React.createElement(customPurchaseVerificationModal, {
+    let purchaseVerificationModal;
+    if (customPurchaseVerificationModal) {
+      purchaseVerificationModal = React.createElement(customPurchaseVerificationModal, {
         ...{
           assetName,
           assetType,
@@ -510,28 +695,50 @@ export default function createItemPurchase({
           onAction: () => purchaseItem(expectedPrice),
           ...customProps
         }
-      })
-    ) : (
-      <PurchaseVerificationModal
-        {...{
-          expectedPrice,
-          thumbnail,
-          assetName,
-          assetType,
-          assetTypeDisplayName,
-          sellerName,
-          isPlace,
-          loading,
-          collectibleItemId,
-          collectibleItemInstanceId,
-          currentRobuxBalance,
-          onAction: () => {
-            purchaseItem(expectedPrice);
-            return false;
-          }
-        }}
-      />
-    );
+      });
+    } else if (shouldShowUnifiedPurchaseModal) {
+      purchaseVerificationModal = (
+        <UnifiedPurchaseVerificationModal
+          {...{
+            expectedPrice,
+            thumbnail,
+            assetName,
+            assetType,
+            assetTypeDisplayName,
+            sellerName,
+            isPlace,
+            loading,
+            currentRobuxBalance,
+            onAction: () => {
+              purchaseItem(expectedPrice);
+              return false;
+            }
+          }}
+        />
+      );
+    } else {
+      purchaseVerificationModal = (
+        <PurchaseVerificationModal
+          {...{
+            expectedPrice,
+            thumbnail,
+            assetName,
+            assetType,
+            assetTypeDisplayName,
+            sellerName,
+            isPlace,
+            loading,
+            collectibleItemId,
+            collectibleItemInstanceId,
+            currentRobuxBalance,
+            onAction: () => {
+              purchaseItem(expectedPrice);
+              return false;
+            }
+          }}
+        />
+      );
+    }
 
     if (robuxNeeded > 0 && ItemPurchaseUpsellService) {
       generateNewItemUpsellProcessParams(robuxNeeded, newPrice ?? expectedPrice);
@@ -649,12 +856,43 @@ export default function createItemPurchase({
       start: () => {
         // try open verification view or insufficient funds
         // modal depending if user has enough robux
-        if (customPurchaseVerificationModalService) {
-          customPurchaseVerificationModalService.open();
-        } else {
-          purchaseVerificationModalService.open();
-        }
-        openInsufficientRobuxModal();
+        const startNewFlow = () => {
+          if (customPurchaseVerificationModalService) {
+            customPurchaseVerificationModalService.open();
+          } else {
+            unifiedPurchaseVerificationModalService.open();
+          }
+        };
+
+        const startOldFlow = () => {
+          if (customPurchaseVerificationModalService) {
+            customPurchaseVerificationModalService.open();
+          } else {
+            purchaseVerificationModalService.open();
+          }
+        };
+
+        (async () => {
+          let isEligible = false;
+          try {
+            isEligible = await getIsUserEligibleForUnifiedPurchaseFlow();
+          } catch {
+            // Fallback to old flow if any error occurs
+            startOldFlow();
+            openInsufficientRobuxModal();
+            return;
+          }
+
+          try {
+            if (isEligible) {
+              startNewFlow();
+            } else {
+              startOldFlow();
+            }
+          } finally {
+            openInsufficientRobuxModal();
+          }
+        })();
       }
     }
   ];

@@ -24,6 +24,7 @@ export const batchRequestFactory = new BatchRequest(); // deprecated remove afte
 export const concatTexts = { connectors: fmtString.connectors, concat: fmtString.concat };
 export { CursorPager as CoreCursorPager, PagerError, regex, SortOrder } from "@rbx/core";
 export { PaginationCache, CursorPager, cursorPaginationConstants } from "../util/cursor-pagination";
+export type { PageResponse, PagingParameters } from "../util/cursor-pagination";
 export const dateService = {
   addDays: date.addDays,
   addMonths: date.addMonths,
@@ -74,6 +75,7 @@ export const urlService = {
   getQueryParam: url.getQueryParam,
   getUrlWithLocale: url.getUrlWithLocale,
   getUrlWithQueries: url.getUrlWithQueries,
+  getRelativeUrlWithQueries: url.getRelativeUrlWithQueries,
   isValidHttpUrl: url.isValidHttpUrl,
   isValidStripeCheckoutUrl: url.isValidStripeCheckoutUrl,
   parseQueryString: url.parseQueryString,
@@ -87,4 +89,8 @@ export const urlService = {
 export const uuidService = {
   generateRandomUuid: coreUuidService.generateRandomUuid,
 };
+export type { TValidHttpUrl, ValidStripeCheckoutUrl } from "../util/url";
+// Backward compatibility alias
+export type { ValidStripeCheckoutUrl as TValidStripeCheckoutUrl } from "../util/url";
 export type { AxiosPromise } from "axios";
+export type { UrlConfig } from "../http/types";

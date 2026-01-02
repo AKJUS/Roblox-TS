@@ -8,7 +8,8 @@ const {
   getResellerDataUrl,
   getMetaDataUrl,
   getCollectibleItemDetailsUrl,
-  getCurrentUserBalance
+  getCurrentUserBalance,
+  getSubscriptionsMetadataUrl
 } = urlConstants;
 
 export default {
@@ -70,6 +71,14 @@ export default {
   getCurrentUserBalance: userId => {
     const urlConfig = {
       url: getCurrentUserBalance(userId),
+      retryable: true,
+      withCredentials: true
+    };
+    return httpService.get(urlConfig);
+  },
+  getSubscriptionsMetadata: () => {
+    const urlConfig = {
+      url: getSubscriptionsMetadataUrl(),
       retryable: true,
       withCredentials: true
     };

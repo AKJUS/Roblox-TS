@@ -21,7 +21,7 @@ export const getCryptoKeyPair = async (
       const request = indexedDB.open(databaseName, 1);
       request.onsuccess = (event: Event) => {
         // TODO: old, migrated code
-        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
         const db = (event.target as IDBOpenDBRequest).result;
         try {
           const transaction = db.transaction(databaseObjectStoreName, "readonly");
@@ -29,14 +29,14 @@ export const getCryptoKeyPair = async (
           const getRequest = objectStore.get(key);
           getRequest.onsuccess = (e: Event) => {
             // TODO: old, migrated code
-            // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
             const keyPair = (e.target as IDBRequest).result as CryptoKeyPair;
             resolve(keyPair);
           };
 
           getRequest.onerror = () => {
             // TODO: old, migrated code
-            // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors, @typescript-eslint/consistent-type-assertions
+            // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors, @typescript-eslint/no-unsafe-type-assertion
             reject((event.target as IDBRequest).error);
           };
           transaction.oncomplete = () => {
@@ -50,7 +50,7 @@ export const getCryptoKeyPair = async (
       };
       request.onerror = (event: Event) => {
         // TODO: old, migrated code
-        // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors, @typescript-eslint/consistent-type-assertions
+        // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors, @typescript-eslint/no-unsafe-type-assertion
         reject((event.target as IDBRequest).error);
       };
       // This is to handle the case when objectStore is manually deleted by a user.
@@ -69,8 +69,8 @@ export const getCryptoKeyPair = async (
     });
   } catch (e) {
     console.warn("get value from indexedDB error: ", e);
-    // TODO: old, migrated code
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+    // TODO: old, migrated code, this is definitely broken FIXME
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
     return {} as Promise<CryptoKeyPair>;
   }
 };
@@ -87,7 +87,6 @@ export const putCryptoKeyPair = async (
   objStoreName: string,
   key: string,
   value: CryptoKeyPair,
-  // eslint-disable-next-line consistent-return
 ): Promise<void> => {
   try {
     databaseName = dbName;
@@ -100,7 +99,7 @@ export const putCryptoKeyPair = async (
       request.onerror = () => {
         console.error(`indexeddb request error`);
         // TODO: old, migrated code
-        // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors, prefer-promise-reject-errors
+        // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
         reject();
       };
       // only handle create objectStore within onupgradeneed
@@ -117,7 +116,7 @@ export const putCryptoKeyPair = async (
       request.onsuccess = event => {
         try {
           // TODO: old, migrated code
-          // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
           const db = (event.target as IDBOpenDBRequest).result;
           const transaction = db.transaction(databaseObjectStoreName, "readwrite");
           const objectStore = transaction.objectStore(databaseObjectStoreName);
@@ -128,7 +127,7 @@ export const putCryptoKeyPair = async (
         } catch {
           console.error(`indexeddb transaction error`);
           // TODO: old, migrated code
-          // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors, prefer-promise-reject-errors
+          // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
           reject();
         }
       };
@@ -158,7 +157,7 @@ export const deleteCryptoKeyPair = async (
       const request = indexedDB.open(databaseName, 1);
       request.onsuccess = (event: Event) => {
         // TODO: old, migrated code
-        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
         const db = (event.target as IDBOpenDBRequest).result;
 
         if (!db.objectStoreNames.contains(databaseObjectStoreName)) {
@@ -176,7 +175,7 @@ export const deleteCryptoKeyPair = async (
 
           deleteRequest.onerror = () => {
             // TODO: old, migrated code
-            // eslint-disable-next-line @typescript-eslint/consistent-type-assertions, @typescript-eslint/prefer-promise-reject-errors
+            // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors, @typescript-eslint/no-unsafe-type-assertion
             reject((event.target as IDBRequest).error);
           };
 
@@ -188,14 +187,14 @@ export const deleteCryptoKeyPair = async (
 
       request.onerror = (event: Event) => {
         // TODO: old, migrated code
-        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions, @typescript-eslint/prefer-promise-reject-errors
+        // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors, @typescript-eslint/no-unsafe-type-assertion
         reject((event.target as IDBRequest).error);
       };
     });
   } catch (e) {
     console.warn("delete crypto record error: ", e);
     // TODO: old, migrated code
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
     return {} as Promise<void>;
   }
 };
@@ -221,7 +220,7 @@ export const deleteCryptoDB = async (): Promise<void> => {
   } catch (e) {
     console.warn("delete crypto db error: ", e);
     // TODO: old, migrated code
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
     return {} as Promise<void>;
   }
 };

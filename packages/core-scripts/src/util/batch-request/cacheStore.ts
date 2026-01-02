@@ -6,13 +6,13 @@ import {
 } from "./batchRequestConstants";
 
 export default class CacheStore {
-  private store = new Map<string, unknown>();
+  private readonly store = new Map<string, unknown>();
 
-  private useCache: boolean;
+  private readonly useCache: boolean;
 
-  private expirationWindowMS: number;
+  private readonly expirationWindowMS: number;
 
-  private storeKeyPrefix: string;
+  private readonly storeKeyPrefix: string;
 
   constructor(useCache?: boolean, expirationWindowMS?: number) {
     this.useCache = useCache ?? false;
@@ -29,9 +29,11 @@ export default class CacheStore {
     // TODO: old, migrated code
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if ((cacheProperties?.useCache ?? this.useCache) && localStorage) {
-      return !!localStorageService.fetchNonExpiredCachedData(
-        storeKey,
-        cacheProperties?.expirationWindowMS ?? this.expirationWindowMS,
+      return Boolean(
+        localStorageService.fetchNonExpiredCachedData(
+          storeKey,
+          cacheProperties?.expirationWindowMS ?? this.expirationWindowMS,
+        ),
       );
     }
     return this.store.has(storeKey);

@@ -33,8 +33,8 @@ const useEmailInputModal = (
   const [errorTranslationKey, setErrorTranslationKey] = useState('');
 
   const regex = new RegExp(emailRegex);
-  const getEmailErrorMessage = () => {
-    if (!regex.test(userEmailInput)) {
+  const getEmailErrorMessage = (email: string) => {
+    if (!regex.test(email)) {
       return translate(addEmailToAccountKeys.MessageInvalidEmailAddress);
     }
 
@@ -60,7 +60,7 @@ const useEmailInputModal = (
     setUserEmailInput(inputValue);
     setErrorTranslationKey('');
 
-    const errorMessage = getEmailErrorMessage();
+    const errorMessage = getEmailErrorMessage(inputValue);
     setErrorMsg(errorMessage);
     setDisableSubmit(
       sendEmailBtnLoadingStatus || inputValue.length <= 0 || errorMessage.length > 0
@@ -76,7 +76,9 @@ const useEmailInputModal = (
         })}
       </p>
       <input
+        id='email-upsell-modal-input'
         type='email'
+        autoComplete='email'
         className={`${
           errorMsg ? 'input-field-error' : ''
         } form-control input-field email-upsell-modal-input`}

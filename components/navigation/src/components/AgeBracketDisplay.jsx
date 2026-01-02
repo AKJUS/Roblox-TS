@@ -1,15 +1,14 @@
-/* eslint-disable jsx-a11y/anchor-is-valid */
-import { useRef } from 'react';
-import { authenticatedUser } from '@rbx/core-scripts/legacy/header-scripts';
-import { Link } from '@rbx/core-ui/legacy/react-style-guide';
-import { Thumbnail2d, ThumbnailTypes } from '@rbx/thumbnails';
+import { useRef } from "react";
+import { authenticatedUser } from "@rbx/core-scripts/legacy/header-scripts";
+import { Link } from "@rbx/core-ui/legacy/react-style-guide";
+import { Thumbnail2d, ThumbnailTypes } from "@rbx/thumbnails";
 import {
   BadgeSizes,
   VerifiedBadgeIconContainer,
-  currentUserHasVerifiedBadge
-} from '@rbx/roblox-badges';
-import links from '../constants/linkConstants';
-import userUtil from '../util/userUtil';
+  currentUserHasVerifiedBadge,
+} from "@rbx/roblox-badges";
+import links from "../constants/linkConstants";
+import userUtil from "../util/userUtil";
 
 function AgeBracketDisplay() {
   const renderEl = useRef(null);
@@ -50,7 +49,7 @@ function AgeBracketDisplay() {
         {badgeToRender}
       </Link>
       <span className="xsmall age-bracket-label-age text-secondary">
-        {isUnder13 ? '<13' : '13+'}
+        {isUnder13 ? "<13" : "13+"}
       </span>
     </div>
   );

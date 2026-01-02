@@ -136,7 +136,7 @@ const InterestCatcherGameGrid = ({
       emphasis={false}
       translate={translate}
       isHomeGameGrid
-      isExpandHomeContentEnabled
+      isDynamicLayoutSizingEnabled
       buildEventProperties={
         /* Function is never called, since we don't support clicks on the tile */
         () => ({})

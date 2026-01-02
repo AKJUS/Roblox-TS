@@ -1,6 +1,7 @@
 export const GET_UPSELL_PRODUCT_API_URL = '/payments-gateway/v1/products/get-upsell-product';
 export const UPGRADES_PAYMENT_METHODS_URL = '/upgrades/paymentmethods';
 export const ROBLOX_TERMS_OF_USE_URL = '/info/terms';
+export const ROBLOX_TERMS_OF_USE_ANCHOR_FOR_DMCCA = '#robux-and-premium-membership';
 export const ITEM_PURCHASE_AJAX_DATA_HTML_ELEMENT_ID = 'ItemPurchaseAjaxData';
 export const GAMES_PAGE_PREFIX = '/games/';
 export const CATALOG_ITEM_PAGE_PREFIX = '/catalog/';
@@ -55,6 +56,7 @@ export const LANG_KEYS = {
   backToShopAction: 'Action.BackToShop',
   buyRobuxAndItemAction: 'Action.BuyRobuxAndItem',
   buyRobux: 'Action.BuyRobux',
+  buy: 'Action.Buy',
   cancelAction: 'Action.Cancel',
   equipMyAvatarAction: 'Action.EquipMyAvatar',
   goToRobuxStoreAction: 'Action.GoToRobuxStore',
@@ -84,7 +86,8 @@ export const LANG_KEYS = {
   featurePremiumScaryModalBodyNewDescription: 'Description.ScaryModalBodyNew',
   featurePremiumScaryModalBody13To17Description: 'Description.ScaryModalBody13To17',
   featurePremiumScaryModalThreshold1BodyDescription: 'Description.ScaryModalThreshold1Body',
-  featurePremiumScaryModalThreshold2BodyDescription: 'Description.ScaryModalThreshold2Body'
+  featurePremiumScaryModalThreshold2BodyDescription: 'Description.ScaryModalThreshold2Body',
+  termsOfUseText: 'Message.TermsOfUse'
 };
 
 export const PURCHASE_WARNING_ACTION_TYPES = {

@@ -1,12 +1,12 @@
 import {
   getAnalogStickDirection,
   getDpadDirection,
+  handleActionPressed,
   handleCancelPressed,
   isActionPressed,
   isCancelPressed,
 } from "./gamepadUtils";
 import { navigate } from "./navigate";
-import { getCurrentOverlayedElement } from "./navigationState";
 import { Direction } from "./types";
 
 const GAMEPAD_POLL_INTERVAL = 50; // ms
@@ -31,18 +31,13 @@ function handleGamepadInput(): void {
   const activeGamepads = Array.from(gamepadsSnapshot).filter(g => g !== null);
 
   let newDirection: Direction | null = null;
-  const overlayedElement = getCurrentOverlayedElement();
 
   for (const gp of activeGamepads) {
     const previousGp = previousActiveGamepads.find(g => g.index === gp.index);
 
     // Handle Action pressed.
     if (isActionPressed(gp, previousGp)) {
-      if (overlayedElement) {
-        // Focus the element first, then simulate clicking on it.
-        overlayedElement.focus();
-        overlayedElement.click();
-      }
+      handleActionPressed();
     }
 
     // Handle Cancel pressed.

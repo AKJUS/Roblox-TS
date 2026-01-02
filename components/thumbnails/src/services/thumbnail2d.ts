@@ -31,8 +31,6 @@ const loadThumbnailImage = (
     | ThumbnailGroupIconSize
     | ThumbnailBadgeIconSize
     | ThumbnailDeveloperProductIconSize,
-  // TOOD: old, migrated code
-  // eslint-disable-next-line default-param-last
   format: ThumbnailFormat = ThumbnailFormat.webp,
   targetId?: number,
   token?: string,
@@ -40,26 +38,22 @@ const loadThumbnailImage = (
   version?: number,
 ) => {
   if (!targetId && !token) {
-    return new Promise((resolve, reject) => {
+    return new Promise((_resolve, reject) => {
       reject(new Error("TargetId or token can not be empty."));
     });
   }
 
-  // TOOD: old, migrated code
+  // TODO: old, migrated code
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   if (!thumbnailType) {
-    return new Promise((resolve, reject) => {
+    return new Promise((_resolve, reject) => {
       reject(new Error("ThumbnailType can not be empty."));
     });
   }
 
-  // TOOD: old, migrated code
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-  if (format == null) {
-    // TOOD: old, migrated code
-    // eslint-disable-next-line no-param-reassign
-    format = ThumbnailFormat.webp;
-  }
+  // TODO: old, migrated code
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, no-param-reassign
+  format ??= ThumbnailFormat.webp;
 
   // Temp solution to override game icon request format for security purpose
   let formatOverride = format;
@@ -117,8 +111,6 @@ const getThumbnailImage = (
     | ThumbnailGroupIconSize
     | ThumbnailBadgeIconSize
     | ThumbnailDeveloperProductIconSize,
-  // TOOD: old, migrated code
-  // eslint-disable-next-line default-param-last
   format: ThumbnailFormat = ThumbnailFormat.webp,
   targetId?: number,
   token?: string,
@@ -138,8 +130,6 @@ const reloadThumbnailImage = (
     | ThumbnailGroupIconSize
     | ThumbnailBadgeIconSize
     | ThumbnailDeveloperProductIconSize,
-  // TOOD: old, migrated code
-  // eslint-disable-next-line default-param-last
   format: ThumbnailFormat = ThumbnailFormat.webp,
   targetId?: number,
   token?: string,

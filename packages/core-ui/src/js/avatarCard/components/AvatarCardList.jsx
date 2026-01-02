@@ -12,8 +12,6 @@ function AvatarCardList({ data, children }) {
 
 AvatarCardList.propTypes = {
   children: PropTypes.func.isRequired,
-  // TODO: old, migrated code
-  // eslint-disable-next-line react/forbid-prop-types
   data: PropTypes.arrayOf(PropTypes.any).isRequired,
 };
 

@@ -1,8 +1,7 @@
 import React, { useMemo } from 'react';
 import { WithTranslationsProps } from 'react-utilities';
 import HomePageCarouselDiscoveryApi from '../homePage/discoveryApi/HomePageCarouselDiscoveryApi';
-import useFriendsPresence from '../common/hooks/useFriendsPresence';
-import { TGameData } from '../common/types/bedev1Types';
+import { TGameData, TGetFriendsResponse } from '../common/types/bedev1Types';
 import { TComponentType, TGameSort } from '../common/types/bedev2Types';
 import { useContentMetadata } from './utils/contentMetadataContextProvider';
 import { getNumCarouselTiles } from '../common/components/GameTileUtils';
@@ -19,9 +18,10 @@ type THomePageDiscoveryApiProps = {
   page: PageContext.HomePage | PageContext.GamesPage | PageContext.SearchLandingPage;
   itemsPerRow: number | undefined;
   startingRow: number | undefined;
+  friendsPresenceData: TGetFriendsResponse[];
   loadMoreGames?: () => void;
   isLoadingMoreGames?: boolean;
-  isExpandHomeContentEnabled?: boolean;
+  isDynamicLayoutSizingEnabled?: boolean;
   isCarouselHorizontalScrollEnabled?: boolean;
   isNewScrollArrowsEnabled?: boolean;
   isNewSortHeaderEnabled?: boolean;
@@ -34,15 +34,14 @@ export const GameCarouselFeedItem = ({
   page,
   itemsPerRow,
   startingRow,
+  friendsPresenceData,
   loadMoreGames,
   isLoadingMoreGames,
-  isExpandHomeContentEnabled,
+  isDynamicLayoutSizingEnabled,
   isCarouselHorizontalScrollEnabled,
   isNewScrollArrowsEnabled,
   isNewSortHeaderEnabled
 }: THomePageDiscoveryApiProps): JSX.Element | null => {
-  const friendsPresence = useFriendsPresence();
-
   const { contentMetadata } = useContentMetadata();
 
   // Enable carousel horizontal scroll and arrows on Home Event Tile carousels for all users
@@ -62,7 +61,7 @@ export const GameCarouselFeedItem = ({
       return getHydratedGameData(sort, contentMetadata);
     }
 
-    if (isExpandHomeContentEnabled) {
+    if (isDynamicLayoutSizingEnabled) {
       return getHydratedGameData(sort, contentMetadata).slice(0, itemsPerRow);
     }
 
@@ -75,7 +74,7 @@ export const GameCarouselFeedItem = ({
     contentMetadata,
     page,
     itemsPerRow,
-    isExpandHomeContentEnabled,
+    isDynamicLayoutSizingEnabled,
     isCarouselScrollEnabled
   ]);
 
@@ -114,6 +113,7 @@ export const GameCarouselFeedItem = ({
         translate={translate}
         positionId={positionId}
         itemsPerRow={searchLandingPage.numberOfTilesPerCarousel}
+        friendsPresenceData={friendsPresenceData}
       />
     );
   }
@@ -125,7 +125,7 @@ export const GameCarouselFeedItem = ({
       translate={translate}
       positionId={positionId}
       gameData={carouselData}
-      friendsPresence={friendsPresence}
+      friendsPresence={friendsPresenceData}
       itemsPerRow={itemsPerRow}
       startingRow={startingRow}
       componentType={sort.topicLayoutData?.componentType}
@@ -141,7 +141,7 @@ export const GameCarouselFeedItem = ({
       endTimestamp={sort.topicLayoutData?.endTimestamp}
       countdownString={sort.topicLayoutData?.countdownString}
       hideTileMetadata={sort.topicLayoutData?.hideTileMetadata === 'true'}
-      isExpandHomeContentEnabled={isExpandHomeContentEnabled}
+      isDynamicLayoutSizingEnabled={isDynamicLayoutSizingEnabled}
       isCarouselHorizontalScrollEnabled={isCarouselScrollEnabled}
       isNewScrollArrowsEnabled={isNewArrowsEnabled}
       isNewSortHeaderEnabled={isNewSortHeaderEnabled}
@@ -152,7 +152,7 @@ export const GameCarouselFeedItem = ({
 GameCarouselFeedItem.defaultProps = {
   loadMoreGames: undefined,
   isLoadingMoreGames: undefined,
-  isExpandHomeContentEnabled: undefined,
+  isDynamicLayoutSizingEnabled: undefined,
   isCarouselHorizontalScrollEnabled: undefined,
   isNewScrollArrowsEnabled: undefined,
   isNewSortHeaderEnabled: undefined

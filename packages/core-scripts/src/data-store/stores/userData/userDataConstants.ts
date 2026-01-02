@@ -15,7 +15,7 @@ export type UserDataRequest = {
 export type UserPresence = { userId: number };
 export type PresenceObject = { userPresences: UserPresence[] };
 export type FriendObject = { id: number; profileUrl: string; presence: object };
-export type UserObject = { id: number };
+export type UserObject = { id: number; name: string; displayName: string };
 
 export type FriendsRes = {
   data: FriendObject[];

@@ -13,37 +13,37 @@ import {
 import CacheStore from "./cacheStore";
 
 export default class BatchRequestProcessor<T, V> {
-  private completeItems: CacheStore;
+  private readonly completeItems: CacheStore;
 
-  private requestQueue: QueueItem<T>[] = [];
+  private readonly requestQueue: QueueItem<T>[] = [];
 
   private concurrentRequestCount = 1;
 
   private isQueueActive = false;
 
-  private debug = false;
+  private readonly debug: boolean = false;
 
-  private processorId: number;
+  private readonly processorId: number;
 
   private processStartTime?: number;
 
   private processEndTime?: number;
 
-  private maxRetryAttempts?: number;
+  private readonly maxRetryAttempts?: number;
 
-  private getItemExpiration?: ItemExpirationProcessor;
+  private readonly getItemExpiration?: ItemExpirationProcessor;
 
-  private batchSize: number;
+  private readonly batchSize: number;
 
-  private processBatchWaitTime?: number;
+  private readonly processBatchWaitTime?: number;
 
-  private getFailureCooldown?: FailureCooldownProcessor;
+  private readonly getFailureCooldown?: FailureCooldownProcessor;
 
-  private cacheProperties?: CacheProperties;
+  private readonly cacheProperties?: CacheProperties;
 
-  private itemsProcessor: BatchItemProcessor<T>;
+  private readonly itemsProcessor: BatchItemProcessor<T>;
 
-  private itemsSerializer: BatchIdSerializer<T>;
+  private readonly itemsSerializer: BatchIdSerializer<T>;
 
   constructor(
     itemsProcessor: BatchItemProcessor<T>,
@@ -102,8 +102,10 @@ export default class BatchRequestProcessor<T, V> {
           minimumCooldown = itemCooldown;
         }
 
-        // eslint-disable-next-line no-plusplus
+        // TODO: old, migrated code
+        // eslint-disable-next-line no-plusplus, no-param-reassign
         if (++request.retryAttempts <= this.maxRetryAttempts) {
+          // eslint-disable-next-line no-param-reassign
           request.queueAfter = currentDate + itemCooldown;
           // Put in front of the queue to make sure duplicate items
           // don't get processed without the cooldown time.
@@ -211,7 +213,7 @@ export default class BatchRequestProcessor<T, V> {
       },
       (error: unknown) => {
         // TODO: old, migrated code
-        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
         this.handleBatchResult(batch, error as BatchRequestError);
       },
     );

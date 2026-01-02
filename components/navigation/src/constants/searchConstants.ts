@@ -1,7 +1,7 @@
-import environmentUrls from '@rbx/environment-urls';
-import linkConstants from './linkConstants';
+import environmentUrls from "@rbx/environment-urls";
+import linkConstants from "./linkConstants";
 
-export const getNavigationContainer = () => document.getElementById('navigation-container');
+export const getNavigationContainer = () => document.getElementById("navigation-container");
 export default {
   debounceTimeout: 100,
   debouncedSearchInputMaxLength: 35,
@@ -11,25 +11,25 @@ export default {
   avatarAutocompleteQueryPaddingAmount: 10,
   requestSuggestionUrl: {
     url: `${environmentUrls.apiGatewayUrl}/games-autocomplete/v1/request-suggestion`,
-    withCredentials: true
+    withCredentials: true,
   },
   getSuggestionUrl: {
     url: `${environmentUrls.apiGatewayUrl}/games-autocomplete/v1/get-suggestion/`,
-    withCredentials: true
+    withCredentials: true,
   },
   avatarRequestSuggestionUrl: {
     url: `${environmentUrls.apiGatewayUrl}/autocomplete-avatar/v2/suggest`,
-    withCredentials: true
+    withCredentials: true,
   },
   avatarRequestSuggestionCdnUrl: {
     url: `${environmentUrls.apiGatewayCdnUrl}/autocomplete-avatar/v2/suggest`,
-    withCredentials: true
+    withCredentials: true,
   },
-  englishLanguageCode: 'en',
-  avatarAutocompleteUrlLocations: ['Catalog', 'Trades', 'Inventory', 'Avatar', 'CatalogItem'],
+  englishLanguageCode: "en",
+  avatarAutocompleteUrlLocations: ["Catalog", "Trades", "Inventory", "Avatar", "CatalogItem"],
   avatarAutocompleteSuggestionLimit: 5,
   isSpecialTreatmentAutocompleteRestricted: (): boolean =>
-    parseInt(getNavigationContainer()?.dataset.numberOfAutocompleteSuggestions ?? '', 10) === 7 &&
+    parseInt(getNavigationContainer()?.dataset.numberOfAutocompleteSuggestions ?? "", 10) === 7 &&
     linkConstants.miscSearchLink
       .reduce<string[]>((acc, link) => {
         acc.push(...link.pageSort);
@@ -37,10 +37,10 @@ export default {
       }, [])
       .reduce((r, keyword) => r || window.location.pathname.includes(keyword), false),
   isSpecialTreatment: (): boolean =>
-    parseInt(getNavigationContainer()?.dataset.numberOfAutocompleteSuggestions ?? '', 10) === 7,
+    parseInt(getNavigationContainer()?.dataset.numberOfAutocompleteSuggestions ?? "", 10) === 7,
   numberOfSpecialTreatmentAutocompleteSuggestions: 3,
   isAutocompleteSuggestionsIXPTestEnabled: (): boolean =>
-    parseInt(getNavigationContainer()?.dataset.numberOfAutocompleteSuggestions ?? '', 10) > 0,
+    parseInt(getNavigationContainer()?.dataset.numberOfAutocompleteSuggestions ?? "", 10) > 0,
   numberOfAutocompleteSuggestions: (): number =>
-    parseInt(getNavigationContainer()?.dataset.numberOfAutocompleteSuggestions ?? '', 10) || 0
+    parseInt(getNavigationContainer()?.dataset.numberOfAutocompleteSuggestions ?? "", 10) || 0,
 };

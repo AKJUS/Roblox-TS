@@ -25,6 +25,7 @@ export default {
     buyAccessAction: 'Action.BuyAccess',
     buyItemHeading: 'Heading.BuyItem',
     buyNowAction: 'Action.BuyNow',
+    buyExperience: 'Title.BuyExperience',
     getItemHeading: 'Heading.GetItem',
     getNowAction: 'Action.GetNow',
     priceChangedHeading: 'Heading.PriceChanged',
@@ -96,7 +97,8 @@ export default {
     leavingRobloxHeading: 'Heading.LeavingRoblox',
     pendingDeveloperProductLimitReachedMessage: 'Message.PendingDeveloperProductLimitReached',
     pendingDeveloperProductLimitReachedHeading: 'Heading.PendingDeveloperProductLimitReached',
-    additionalRobuxNeeded: 'Message.AdditionalRobux'
+    additionalRobuxNeeded: 'Message.AdditionalRobux',
+    economicRestrictionsErrorHeading: 'Heading.EconomicRestrictionsError'
   },
   assetTypes: {
     // library catagory type
@@ -125,6 +127,24 @@ export default {
     notForSale: 'NotForSale',
     unauthorizedMessage: 'Unauthorized',
     twoStepVerificationRequired: 'TwoStepVerificationRequired'
+  },
+  violationLabels: {
+    FraudPaymentAuthorizationAttempt: 'Label.Sublabel.FraudPaymentAbuse',
+    FraudVirtualEconomyAbuse: 'Label.Sublabel.FraudVirtualEconomyAbuse',
+    FraudAbuseOfAffiliateSystem: 'Label.Sublabel.FraudAbuseOfTheAffiliateSystem',
+    FraudAttemptedUnauthorizedPaymentMethodUse:
+      'Label.Sublabel.FraudAttemptedUnauthorizedPaymentMethodUse',
+    FraudRepeatedRefundRequests: 'Label.Sublabel.FraudRepeatedRefundRequests',
+    FraudSuspiciousRefundRequests: 'Label.Sublabel.FraudSuspiciousRefundRequests',
+    FraudUnauthorizedPurchase: 'Label.Sublabel.FraudUnauthorizedPurchase',
+    FraudUseOfUnauthorizedOffPlatformTransactions:
+      'Label.Sublabel.FraudUseOfUnauthorizedOffPlatformTransactions',
+    FraudUseOfUnauthorizedPaymentMethod: 'Label.Sublabel.FraudUseOfUnauthorizedPaymentMethod',
+    FraudSuspiciousAccountPatterns: 'Label.Sublabel.FraudSuspiciousAccountPatterns',
+    FraudChargeback: 'Label.AbuseType.Chargeback'
+  },
+  CacheKey: {
+    shouldShowUnifiedPurchaseModal: 'shouldShowUnifiedPurchaseModal'
   },
   batchBuyMaxThumbnails: 3,
   maxBatchLoadRetries: 5,

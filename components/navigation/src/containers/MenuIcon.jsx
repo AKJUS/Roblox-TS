@@ -1,10 +1,10 @@
-import { Fragment } from 'react';
-import { authenticatedUser } from '@rbx/core-scripts/legacy/header-scripts';
-import { IconButton } from '@rbx/core-ui/legacy/react-style-guide';
-import { withTranslations } from '@rbx/core-scripts/react';
-import { translations } from '../../component.json';
-import layoutConstant from '../constants/layoutConstants';
-import SkipToMainContent from '../components/SkipToMainContent';
+import { Fragment } from "react";
+import { authenticatedUser } from "@rbx/core-scripts/legacy/header-scripts";
+import { IconButton } from "@rbx/core-ui/legacy/react-style-guide";
+import { withTranslations } from "@rbx/core-scripts/react";
+import { translations } from "../../component.json";
+import layoutConstant from "../constants/layoutConstants";
+import SkipToMainContent from "../components/SkipToMainContent";
 
 const { headerMenuIconClickEvent } = layoutConstant;
 const { isAuthenticated } = authenticatedUser;

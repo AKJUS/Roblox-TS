@@ -37,13 +37,12 @@ const IdvAndVpcPrologue = ({
   const recourseResponses = featureAccess.data.recourses;
 
   const defaultBodyText = PrologueConstants.Description.IdvAndVpc;
-  const connectingBodyText = PrologueConstants.Description.IdvAndVpcConnectingText;
 
   const translatedBodyText = getPrologueTranslatedBodyText(
     featureName,
     defaultBodyText,
-    connectingBodyText,
-    translate
+    translate,
+    [Recourse.GovernmentId, Recourse.ParentConsentRequest]
   );
 
   const changeAgeBody = (
@@ -90,7 +89,6 @@ const IdvAndVpcPrologue = ({
     }
   });
 
-  // Trigger the opening of the error modal in response to a user action or effect
   useEffect(() => {
     IdvAndVpcSelectionModalService.open();
     sendInitialUpsellPageLoadEvent(featureName, 'IdvOrVpc');

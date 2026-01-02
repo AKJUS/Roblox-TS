@@ -13,7 +13,6 @@ export default class TranslationResource {
     let translatedText = this.resourceMap[key] || "";
     // if the key is not found, throw error on dev environments
     if (!translatedText) {
-      // eslint-disable-next-line no-console
       console.warn(
         `The translation key '${key}' not found. Please check for a missing string or a typo.`,
       );

@@ -1,22 +1,21 @@
-/* eslint-disable jsx-a11y/anchor-is-valid */
-import { useState } from 'react';
-import PropTypes from 'prop-types';
-import ClassNames from 'classnames';
-import { Link } from '@rbx/core-ui/legacy/react-style-guide';
+import { useState } from "react";
+import PropTypes from "prop-types";
+import ClassNames from "classnames";
+import { Link } from "@rbx/core-ui/legacy/react-style-guide";
 import {
   Thumbnail2d,
   ThumbnailTypes,
   DefaultThumbnailSize,
-  ThumbnailFormat
-} from '@rbx/thumbnails';
-import { GamesAutocompleteSuggestionEntryType } from '../services/searchService';
-import links from '../constants/linkConstants';
+  ThumbnailFormat,
+} from "@rbx/thumbnails";
+import { GamesAutocompleteSuggestionEntryType } from "../services/searchService";
+import links from "../constants/linkConstants";
 
 const { gameSearchLink, avatarSearchLink, creatorStoreUrl } = links;
 
 export function AutocompleteSearchLink({ translate, selected, suggestion, onClick }) {
-  const listClass = ClassNames('navbar-search-option rbx-clickable-li', {
-    'new-selected': selected
+  const listClass = ClassNames("navbar-search-option rbx-clickable-li", {
+    "new-selected": selected,
   });
   const { type, universeId, searchQuery } = suggestion;
   const [isThumbnailVisible, setIsThumbnailVisible] = useState(false);
@@ -29,16 +28,16 @@ export function AutocompleteSearchLink({ translate, selected, suggestion, onClic
           url={gameSearchLink.url + encodeURIComponent(searchQuery)}
           onClick={onClick}
         >
-          <span className={ClassNames(gameSearchLink.icon, 'navbar-list-option-icon')} />
+          <span className={ClassNames(gameSearchLink.icon, "navbar-list-option-icon")} />
           <span className="navbar-list-option-text">{searchQuery}</span>
           <span className="navbar-list-option-suffix">
-            {translate('Label.sSearchPhraseV2', {
-              location: translate(gameSearchLink.label)
+            {translate("Label.sSearchPhraseV2", {
+              location: translate(gameSearchLink.label),
             })}
           </span>
           <span
-            className={ClassNames('navbar-list-option-thumbnail', {
-              'navbar-list-option-thumbnail-visible': isThumbnailVisible
+            className={ClassNames("navbar-list-option-thumbnail", {
+              "navbar-list-option-thumbnail-visible": isThumbnailVisible,
             })}
           >
             <span className="background-icon" />
@@ -65,11 +64,11 @@ export function AutocompleteSearchLink({ translate, selected, suggestion, onClic
         url={gameSearchLink.url + encodeURIComponent(searchQuery)}
         onClick={onClick}
       >
-        <span className={ClassNames(gameSearchLink.icon, 'navbar-list-option-icon')} />
+        <span className={ClassNames(gameSearchLink.icon, "navbar-list-option-icon")} />
         <span className="navbar-list-option-text">{searchQuery}</span>
         <span className="navbar-list-option-suffix">
-          {translate('Label.sSearchPhraseV2', {
-            location: translate(gameSearchLink.label)
+          {translate("Label.sSearchPhraseV2", {
+            location: translate(gameSearchLink.label),
           })}
         </span>
       </Link>
@@ -87,14 +86,14 @@ AutocompleteSearchLink.propTypes = {
     canonicalTitle: PropTypes.string,
     thumbnailUrl: PropTypes.string,
     searchQuery: PropTypes.string.isRequired,
-    trendingSearchStartDateTime: PropTypes.string
+    trendingSearchStartDateTime: PropTypes.string,
   }).isRequired,
-  onClick: PropTypes.func.isRequired
+  onClick: PropTypes.func.isRequired,
 };
 
 export function AvatarAutocompleteSearchLink({ translate, selected, suggestion, onClick }) {
-  const listClass = ClassNames('navbar-search-option rbx-clickable-li', {
-    'new-selected': selected
+  const listClass = ClassNames("navbar-search-option rbx-clickable-li", {
+    "new-selected": selected,
   });
   const query = suggestion.Query;
 
@@ -105,11 +104,11 @@ export function AvatarAutocompleteSearchLink({ translate, selected, suggestion, 
         url={avatarSearchLink.url + encodeURIComponent(query)}
         onClick={onClick}
       >
-        <span className={ClassNames(avatarSearchLink.icon, 'navbar-list-option-icon')} />
+        <span className={ClassNames(avatarSearchLink.icon, "navbar-list-option-icon")} />
         <span className="navbar-list-option-text">{query}</span>
         <span className="navbar-list-option-suffix">
-          {translate('Label.sSearchPhraseV2', {
-            location: translate(avatarSearchLink.label)
+          {translate("Label.sSearchPhraseV2", {
+            location: translate(avatarSearchLink.label),
           })}
         </span>
       </Link>
@@ -121,17 +120,17 @@ AvatarAutocompleteSearchLink.propTypes = {
   translate: PropTypes.func.isRequired,
   selected: PropTypes.bool.isRequired,
   suggestion: PropTypes.shape({
-    Query: PropTypes.string
+    Query: PropTypes.string,
   }).isRequired,
-  onClick: PropTypes.func.isRequired
+  onClick: PropTypes.func.isRequired,
 };
 
 export function SearchLink({ translate, selected, searchInput, suggestion, onClick }) {
   const { url, label, icon } = suggestion;
-  const flaggedUrl = label === 'Label.CreatorStore' ? creatorStoreUrl : url;
+  const flaggedUrl = label === "Label.CreatorStore" ? creatorStoreUrl : url;
 
-  const listClass = ClassNames('navbar-search-option rbx-clickable-li', {
-    'new-selected': selected
+  const listClass = ClassNames("navbar-search-option rbx-clickable-li", {
+    "new-selected": selected,
   });
   return (
     <li className={listClass}>
@@ -140,11 +139,11 @@ export function SearchLink({ translate, selected, searchInput, suggestion, onCli
         url={flaggedUrl + encodeURIComponent(searchInput)}
         onClick={onClick}
       >
-        <span className={ClassNames(icon, 'navbar-list-option-icon')} />
+        <span className={ClassNames(icon, "navbar-list-option-icon")} />
         <span className="navbar-list-option-text">{searchInput.toLowerCase()}</span>
         <span className="navbar-list-option-suffix">
-          {translate('Label.sSearchPhraseV2', {
-            location: translate(label)
+          {translate("Label.sSearchPhraseV2", {
+            location: translate(label),
           })}
         </span>
       </Link>
@@ -160,7 +159,7 @@ SearchLink.propTypes = {
     url: PropTypes.string.isRequired,
     label: PropTypes.string.isRequired,
     pageSort: PropTypes.arrayOf(PropTypes.string).isRequired,
-    icon: PropTypes.string.isRequired
+    icon: PropTypes.string.isRequired,
   }).isRequired,
-  onClick: PropTypes.func.isRequired
+  onClick: PropTypes.func.isRequired,
 };

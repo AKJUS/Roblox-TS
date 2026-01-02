@@ -26,13 +26,6 @@ function chatUtility(
       : inputHeight;
   }
 
-  function linkify(content) {
-    if (angular.isDefined(Linkify) && typeof Linkify.String === 'function') {
-      return Linkify.String(content.escapeHTML());
-    }
-    return content;
-  }
-
   function htmlEntities(str) {
     return String(str)
       .replace(/&/g, '&amp;')
@@ -203,7 +196,7 @@ function chatUtility(
     getAssetDetails,
 
     buildLinkCard(value) {
-      const linkContent = linkify(value);
+      const linkContent = this.linkify(value);
       let pieceOfMsg = {
         content: linkContent,
         isCard: false
@@ -291,7 +284,7 @@ function chatUtility(
             pieceOfMsg = this.buildLinkCard(value);
           } else if (value && value.length > 0 && !value.match(messageHelper.onlyNewLineRegex)) {
             value = value.replace(messageHelper.removeNewLineRegex, '');
-            value = linkify(value);
+            value = this.linkify(value);
             pieceOfMsg = {
               content: value,
               isCard: false
@@ -360,6 +353,13 @@ function chatUtility(
       }
     },
 
+    linkify(content) {
+      if (angular.isDefined(Linkify) && typeof Linkify.String === 'function') {
+        return Linkify.String(content.escapeHTML());
+      }
+      return content;
+    },
+
     hasLinkifyContent(text) {
       return (
         angular.isString(text) &&
@@ -372,11 +372,12 @@ function chatUtility(
     sanitizeMessage(message) {
       if (message && message.content && !message.isSanitized) {
         const rawContent = message.content;
-        const beforeLinkifyMessage = message.content;
-        message.content = linkify(message.content);
-
-        if (beforeLinkifyMessage !== message.content) {
-          message.parsedContent = rawContent;
+        const escapedContent = message.content.escapeHTML();
+        message.content = this.linkify(message.content);
+        // Parsed content is used for preview messages (which are sanitized via string interpolation)
+        // and link cards (which are sanitized later). So it's ok to set parsedContent = rawContent
+        message.parsedContent = rawContent;
+        if (message.content !== escapedContent) {
           message.hasLinkCard = true;
           message.hasLinkifyMessage = this.hasLinkifyContent(message.content);
           this.buildLinkCardMessages(message);

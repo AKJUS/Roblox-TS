@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 import { Link } from 'react-style-guide';
+import { Link as RouterLink } from 'react-router-dom';
 import { TranslateFunction } from 'react-utilities';
 import { eventStreamService } from 'core-roblox-utilities';
 import GamesInfoTooltip from './GamesInfoTooltip';
@@ -30,6 +31,7 @@ type TGameCarouselContainerHeaderProps = {
   countdownString?: string;
   backgroundImageAssetId?: number;
   isNewSortHeaderEnabled?: boolean;
+  useRouterLink?: boolean;
   translate: TranslateFunction;
 };
 
@@ -49,6 +51,7 @@ const GameCarouselContainerHeader = ({
   countdownString,
   backgroundImageAssetId,
   isNewSortHeaderEnabled,
+  useRouterLink,
   translate
 }: TGameCarouselContainerHeaderProps): JSX.Element => {
   const tooltipText = useMemo(() => {
@@ -82,6 +85,37 @@ const GameCarouselContainerHeader = ({
     }
   }, [isSortLinkOverrideEnabled, buildNavigateToSortLinkEventProperties]);
 
+  const sortTitleComponent = useMemo(() => {
+    if (hideSeeAll || !seeAllLink) {
+      return <span>{sortTitle}</span>;
+    }
+    if (useRouterLink) {
+      return <RouterLink to={seeAllLink}>{sortTitle}</RouterLink>;
+    }
+    return <Link url={seeAllLink}>{sortTitle}</Link>;
+  }, [hideSeeAll, seeAllLink, useRouterLink, sortTitle]);
+
+  const seeAllLinkComponent = useMemo(() => {
+    if (hideSeeAll || !seeAllLink) {
+      return null;
+    }
+    return useRouterLink ? (
+      <RouterLink
+        to={seeAllLink}
+        onClick={handleSeeAllLinkClick}
+        className='btn-secondary-xs see-all-link-icon btn-more'>
+        {seeAllButtonText}
+      </RouterLink>
+    ) : (
+      <Link
+        url={seeAllLink}
+        onClick={handleSeeAllLinkClick}
+        className='btn-secondary-xs see-all-link-icon btn-more'>
+        {seeAllButtonText}
+      </Link>
+    );
+  }, [hideSeeAll, seeAllLink, useRouterLink, seeAllButtonText, handleSeeAllLinkClick]);
+
   if (isNewSortHeaderEnabled) {
     return (
       <HomeSortHeader
@@ -103,17 +137,10 @@ const GameCarouselContainerHeader = ({
     <div className='game-sort-header-container'>
       <div className={titleContainerClassName}>
         <h2 className='sort-header'>
-          {hideSeeAll ? <span>{sortTitle}</span> : <Link url={seeAllLink}>{sortTitle}</Link>}
+          {sortTitleComponent}
           {tooltipText && <GamesInfoTooltip tooltipText={tooltipText} placement='right' />}
         </h2>
-        {!hideSeeAll && (
-          <Link
-            url={seeAllLink}
-            onClick={handleSeeAllLinkClick}
-            className='btn-secondary-xs see-all-link-icon btn-more'>
-            {seeAllButtonText}
-          </Link>
-        )}
+        {seeAllLinkComponent}
       </div>
       <GameCarouselSubtitle
         defaultSubtitle={sortSubtitle}
@@ -136,7 +163,8 @@ GameCarouselContainerHeader.defaultProps = {
   countdownString: undefined,
   buildNavigateToSortLinkEventProperties: undefined,
   backgroundImageAssetId: undefined,
-  isNewSortHeaderEnabled: undefined
+  isNewSortHeaderEnabled: undefined,
+  useRouterLink: false
 };
 
 export default GameCarouselContainerHeader;

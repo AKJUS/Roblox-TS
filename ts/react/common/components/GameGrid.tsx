@@ -1,15 +1,17 @@
-import React, { forwardRef, MutableRefObject } from 'react';
+import React, { forwardRef, MutableRefObject, useCallback } from 'react';
 import { WithTranslationsProps } from 'react-utilities';
 import classNames from 'classnames';
 import { TGameData, TGetFriendsResponse } from '../types/bedev1Types';
 import { SentinelTile } from './SentinelTile';
 import { TBuildEventProperties } from './GameTileUtils';
+import { isWideTileComponentType } from '../utils/parsingUtils';
 import {
   TComponentType,
   TPlayButtonStyle,
   TPlayerCountStyle,
   THoverStyle
 } from '../types/bedev2Types';
+import { PageContext } from '../types/pageContext';
 import '../../../../css/common/_gameGrid.scss';
 import GameGridTile from './GameGridTile';
 
@@ -27,12 +29,20 @@ export type TGameGridProps = {
   playButtonStyle?: TPlayButtonStyle;
   topicId?: string;
   isHomeGameGrid?: boolean;
+  isSearchGameGrid?: boolean;
   isSponsoredFooterAllowed?: boolean;
   hideTileMetadata?: boolean;
   hoverStyle?: THoverStyle;
-  isExpandHomeContentEnabled?: boolean;
+  isDynamicLayoutSizingEnabled?: boolean;
+  enableExplicitFeedback?: boolean;
+  hiddenUniverses?: Set<number>;
+  setHiddenUniverses?: React.Dispatch<React.SetStateAction<Set<number>>>;
   interestedUniverses?: Set<number>;
   toggleInterest?: (universeId: number) => void;
+  page?: PageContext;
+  enableSponsoredFeedback?: boolean;
+  sponsoredUserCohort?: string;
+  enableReportAd?: boolean;
 };
 
 export const GameGrid = forwardRef<HTMLDivElement, TGameGridProps>(
@@ -50,13 +60,21 @@ export const GameGrid = forwardRef<HTMLDivElement, TGameGridProps>(
       playerCountStyle,
       playButtonStyle,
       isHomeGameGrid,
+      isSearchGameGrid,
       isSponsoredFooterAllowed,
       hideTileMetadata,
       hoverStyle,
       topicId,
-      isExpandHomeContentEnabled,
+      isDynamicLayoutSizingEnabled,
       interestedUniverses,
-      toggleInterest
+      enableExplicitFeedback,
+      hiddenUniverses,
+      setHiddenUniverses,
+      toggleInterest,
+      page,
+      enableSponsoredFeedback,
+      sponsoredUserCohort,
+      enableReportAd
     }: TGameGridProps,
     forwardedRef
   ) => {
@@ -66,20 +84,53 @@ export const GameGrid = forwardRef<HTMLDivElement, TGameGridProps>(
         'home-game-grid': isHomeGameGrid
       },
       {
-        'wide-game-tile-game-grid':
-          componentType === TComponentType.GridTile ||
-          componentType === TComponentType.EventTile ||
-          componentType === TComponentType.InterestTile
+        'search-game-grid': isSearchGameGrid
+      },
+      {
+        'wide-game-tile-game-grid': isWideTileComponentType(componentType)
       },
       {
         'interest-tile-game-grid': componentType === TComponentType.InterestTile
       },
       {
-        'expand-home-content': isExpandHomeContentEnabled
+        'dynamic-layout-sizing': isDynamicLayoutSizingEnabled
       },
       {
-        'expand-home-content-disabled': !isExpandHomeContentEnabled
+        'dynamic-layout-sizing-disabled': !isDynamicLayoutSizingEnabled
       }
+    );
+
+    const setIsHidden = useCallback(
+      universeId => {
+        return (isHidden: boolean) => {
+          setHiddenUniverses?.(prev => {
+            const updatedHiddenUniverseIds = new Set(prev);
+            if (isHidden) {
+              updatedHiddenUniverseIds.add(universeId);
+            } else {
+              updatedHiddenUniverseIds.delete(universeId);
+            }
+            return updatedHiddenUniverseIds;
+          });
+        };
+      },
+      [setHiddenUniverses]
+    );
+    const toggleIsHidden = useCallback(
+      universeId => {
+        return () => {
+          setHiddenUniverses?.(prev => {
+            const updatedHiddenUniverseIds = new Set(prev);
+            if (updatedHiddenUniverseIds.has(universeId)) {
+              updatedHiddenUniverseIds.delete(universeId);
+            } else {
+              updatedHiddenUniverseIds.add(universeId);
+            }
+            return updatedHiddenUniverseIds;
+          });
+        };
+      },
+      [setHiddenUniverses]
     );
 
     return (
@@ -112,7 +163,15 @@ export const GameGrid = forwardRef<HTMLDivElement, TGameGridProps>(
             hoverStyle={hoverStyle}
             topicId={topicId}
             isInterestedUniverse={interestedUniverses?.has(data.universeId)}
+            enableExplicitFeedback={enableExplicitFeedback}
+            isHidden={hiddenUniverses?.has(data.universeId) ?? undefined}
+            setIsHidden={setIsHidden(data.universeId)}
+            toggleIsHidden={toggleIsHidden(data.universeId)}
             toggleInterest={toggleInterest ? () => toggleInterest(data.universeId) : undefined}
+            page={page}
+            enableSponsoredFeedback={enableSponsoredFeedback}
+            sponsoredUserCohort={sponsoredUserCohort}
+            enableReportAd={enableReportAd}
           />
         ))}
         {shouldUseSentinelTile && <SentinelTile loadData={loadData} />}
@@ -132,7 +191,7 @@ GameGrid.defaultProps = {
   hideTileMetadata: undefined,
   hoverStyle: undefined,
   topicId: undefined,
-  isExpandHomeContentEnabled: undefined,
+  isDynamicLayoutSizingEnabled: undefined,
   interestedUniverses: undefined,
   toggleInterest: undefined
 };

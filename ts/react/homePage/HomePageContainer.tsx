@@ -1,5 +1,6 @@
 import React from 'react';
 import { withTranslations, WithTranslationsProps } from 'react-utilities';
+import { SystemFeedbackProvider } from 'react-style-guide';
 import ReminderOfNormsDialogContainer from '../../../../../Roblox.ReminderOfNorms.WebApp/Roblox.ReminderOfNorms.WebApp/ts/react/reminderOfNorms/containers/ReminderOfNormsContainer';
 import HomePage from './HomePageOmniFeed';
 import { CommonUIFeatures } from '../common/constants/translationConstants';
@@ -16,7 +17,9 @@ const HomePageContainer = ({ translate }: WithTranslationsProps): JSX.Element =>
         <ReminderOfNormsDialogContainer />
       </div>
       <div className='place-list-container'>
-        <HomePage />
+        <SystemFeedbackProvider>
+          <HomePage />
+        </SystemFeedbackProvider>
       </div>
     </div>
   );

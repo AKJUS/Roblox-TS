@@ -1,13 +1,32 @@
 import PropTypes from 'prop-types';
-import React, { useEffect, useState } from 'react';
-import { HomePageUpsellCardService, UpsellService } from 'Roblox';
+import React, { useEffect, useState, useCallback } from 'react';
+import {
+  HomePageUpsellCardService,
+  UpsellService,
+  AccessManagementUpsellV2Service,
+  RealTime
+} from 'Roblox';
+import UpsellBanner from '../../../../ts/react/homePageUpsellCard/components/UpsellBanner';
 import HomePageUpsellCard from '../components/HomePageUpsellCard';
-import { UpsellCardType } from '../constants/upsellCardConstants';
+import {
+  UpsellCardType,
+  UpsellCardComponentType,
+  UpsellCardActionType
+} from '../constants/upsellCardConstants';
 import {
   contactMethodPromptOrigins,
   contactMethodPromptSections
 } from '../constants/upsellCardEventStreamConstants';
-import isCardTypeSupported from '../utils/upsellCardUtils';
+import getCardComponentType from '../utils/upsellCardUtils';
+import useUpsellBannerConfig from '../hooks/useUpsellBannerConfig';
+import { recordDismiss } from '../services/accountInfoService';
+import { AmpFeatureName, AmpNamespace, FaeRealtimeNamespace } from '../constants/faeConstants';
+import {
+  UpsellEntrySurface,
+  UpsellComponent
+} from '../../../../ts/react/homePageUpsellCard/constants/upsellAnalyticsConstants';
+
+const defaultUpsellCardV2Config = {};
 
 function HomePageUpsellCardContainer({ translate }) {
   const { ContactMethodMandatoryEmailPhone } = UpsellCardType;
@@ -15,24 +34,37 @@ function HomePageUpsellCardContainer({ translate }) {
   const [titleTextOverride, setTitleTextOverride] = useState('');
   const [bodyTextOverride, setBodyTextOverride] = useState('');
   const [requireExplicitVoiceConsent, setRequireExplicitVoiceConsent] = useState(false);
-  const [ageEstimationModalVisible, setAgeEstimationModalVisible] = useState(false);
+  const [upsellCardV2Config, setUpsellCardV2Config] = useState(defaultUpsellCardV2Config);
+  const [upsellDismissed, setUpsellDismissed] = useState(false);
+
+  const clearUpsellCardConfig = useCallback(() => {
+    setUpsellCardContext(null);
+    setUpsellCardV2Config(defaultUpsellCardV2Config);
+    setTitleTextOverride('');
+    setBodyTextOverride('');
+  }, []);
+
+  const updateUpsellCardContext = useCallback(async () => {
+    try {
+      const context = await HomePageUpsellCardService.getHomePageUpsellCardVariation();
+      const upsellCardType = context?.upsellCardType;
+      if (upsellCardType === UpsellCardType.AgeVerificationModal) {
+        setUpsellCardContext(context?.upsellCardType);
+        setUpsellCardV2Config(context?.upsellCardV2Config);
+      } else if (upsellCardType) {
+        setUpsellCardContext(context?.upsellCardType);
+        setTitleTextOverride(context?.localizedTitleTextOverride);
+        setBodyTextOverride(context?.localizedBodyTextOverride);
+      } else {
+        clearUpsellCardConfig();
+      }
+    } catch (error) {
+      console.error(`Error getting the upsell card variation ${error}`);
+      clearUpsellCardConfig();
+    }
+  }, [clearUpsellCardConfig]);
 
   useEffect(() => {
-    const updateUpsellCardContext = async () => {
-      try {
-        const context = await HomePageUpsellCardService.getHomePageUpsellCardVariation();
-        const upsellCardType = context?.upsellCardType;
-        if (upsellCardType) {
-          setUpsellCardContext(context?.upsellCardType);
-          setTitleTextOverride(context?.localizedTitleTextOverride);
-          setBodyTextOverride(context?.localizedBodyTextOverride);
-        }
-      } catch (error) {
-        console.error(`Error getting the upsell card variation ${error}`);
-        setUpsellCardContext(null);
-      }
-    };
-
     const updateRequireExplicitVoiceConsent = async () => {
       try {
         const voicePolicy = await HomePageUpsellCardService.getVoicePolicy();
@@ -48,7 +80,24 @@ function HomePageUpsellCardContainer({ translate }) {
 
     updateUpsellCardContext();
     updateRequireExplicitVoiceConsent();
+    // this effect should only run on mount, even if updateUpsellCardContext changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // only returns a cleanup function if there's something to cleanup (realtime subscription)
+  // eslint-disable-next-line consistent-return
+  useEffect(() => {
+    if (RealTime) {
+      const realTimeClient = RealTime.Factory.GetClient();
+      const realtimeHandler = () => {
+        updateUpsellCardContext();
+      };
+      realTimeClient.Subscribe(FaeRealtimeNamespace, realtimeHandler);
+      return () => {
+        realTimeClient.Unsubscribe(FaeRealtimeNamespace, realtimeHandler);
+      };
+    }
+  }, [updateUpsellCardContext]);
 
   useEffect(() => {
     if (upsellCardContext === ContactMethodMandatoryEmailPhone) {
@@ -59,7 +108,67 @@ function HomePageUpsellCardContainer({ translate }) {
     }
   }, [upsellCardContext]);
 
-  if (isCardTypeSupported(upsellCardContext)) {
+  const openFAEUpsell = useCallback(() => {
+    if (AccessManagementUpsellV2Service) {
+      AccessManagementUpsellV2Service.startAccessManagementUpsell({
+        featureName: AmpFeatureName,
+        namespace: AmpNamespace
+      })
+        .then(success => {
+          if (success) {
+            updateUpsellCardContext();
+          }
+        })
+        .catch(error => {
+          console.error('Error in homePageUpsellCardContainer FAE upsell', error);
+        });
+    }
+  }, [updateUpsellCardContext]);
+
+  // if both values are truthy, we should convert this to a boolean so it's stable across renders
+  const shouldRecordDismissal = !!(upsellCardContext && upsellCardV2Config);
+  const onDismiss = useCallback(() => {
+    if (shouldRecordDismissal) {
+      recordDismiss(upsellCardContext).catch(error => {
+        console.error(`Error recording dismissal for ${upsellCardContext} ${error}`);
+      });
+    }
+    setUpsellDismissed(true);
+  }, [upsellCardContext, shouldRecordDismissal]);
+
+  const actionTypeToCallback = {
+    [UpsellCardActionType.OpenFAEUpsell]: openFAEUpsell,
+    [UpsellCardActionType.Dismiss]: onDismiss
+  };
+  const upsellBannerConfig = useUpsellBannerConfig(
+    upsellCardContext,
+    upsellCardV2Config,
+    actionTypeToCallback
+  );
+
+  const cardComponentType = getCardComponentType(upsellCardContext);
+  if (upsellDismissed) {
+    return null;
+  }
+  if (cardComponentType === UpsellCardComponentType.UpsellBanner) {
+    return (
+      <UpsellBanner
+        badgePropsArray={upsellBannerConfig.badgePropsArray}
+        titleText={upsellBannerConfig.titleText}
+        bodyText={upsellBannerConfig.bodyText}
+        buttonPropsArray={upsellBannerConfig.buttonPropsArray}
+        dismissible={upsellBannerConfig.dismissible}
+        iconClassName={upsellBannerConfig.iconClassName}
+        onDismiss={onDismiss}
+        analyticsConfig={{
+          ...upsellBannerConfig.cardTypeAnalyticsFields,
+          upsellEntrySurface: UpsellEntrySurface.Homepage,
+          upsellComponent: UpsellComponent.Banner
+        }}
+      />
+    );
+  }
+  if (cardComponentType === UpsellCardComponentType.HomePageUpsellCard) {
     return (
       <HomePageUpsellCard
         translate={translate}
@@ -67,6 +176,7 @@ function HomePageUpsellCardContainer({ translate }) {
         titleTextOverride={titleTextOverride}
         bodyTextOverride={bodyTextOverride}
         requireExplicitVoiceConsent={requireExplicitVoiceConsent}
+        onDismiss={onDismiss}
       />
     );
   }

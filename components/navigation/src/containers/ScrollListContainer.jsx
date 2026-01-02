@@ -1,8 +1,8 @@
-import { authenticatedUser } from '@rbx/core-scripts/legacy/header-scripts';
-import { useState, useEffect } from 'react';
-import navigationService from '../services/navigationService';
-import ScrollList from '../components/ScrollList';
-import navigationUtil from '../util/navigationUtil';
+import { useState, useEffect } from "react";
+import { authenticatedUser } from "@rbx/core-scripts/legacy/header-scripts";
+import navigationService from "../services/navigationService";
+import ScrollList from "../components/ScrollList";
+import navigationUtil from "../util/navigationUtil";
 
 function ScrollListContainer(props) {
   const { isAuthenticated } = authenticatedUser;
@@ -18,7 +18,7 @@ function ScrollListContainer(props) {
         },
         error => {
           console.error(error);
-        }
+        },
       );
     };
     const handleMessagesEvent = () => {
@@ -28,8 +28,12 @@ function ScrollListContainer(props) {
           setMessagesData(unreadPrivateMessageData);
         });
     };
-    let unsubscribeToFriendsNotifications = () => {};
-    let unsubscribeToMessagessNotifications = () => {};
+    let unsubscribeToFriendsNotifications = () => {
+      // do nothing
+    };
+    let unsubscribeToMessagessNotifications = () => {
+      // do nothing
+    };
     if (isAuthenticated) {
       unsubscribeToFriendsNotifications =
         navigationUtil.subscribeToFriendsNotifications(handleFriendsEvent);
@@ -41,7 +45,7 @@ function ScrollListContainer(props) {
         },
         error => {
           console.error(error);
-        }
+        },
       );
       navigationService.getUnreadPrivateMessagesCount().then(
         ({ data: unreadPrivateMessageData }) => {
@@ -49,7 +53,7 @@ function ScrollListContainer(props) {
         },
         error => {
           console.error(error);
-        }
+        },
       );
       navigationService.getTradeStatusCount().then(
         ({ data: tradeCountData }) => {
@@ -57,7 +61,7 @@ function ScrollListContainer(props) {
         },
         error => {
           console.error(error);
-        }
+        },
       );
     }
     return () => {

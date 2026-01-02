@@ -15,10 +15,9 @@ import {
   getTileBadgeContextsImpressionsData
 } from '../common/utils/parsingUtils';
 import SearchLandingPageSessionContext from './SearchLandingPageSessionContext';
-import useFriendsPresence from '../common/hooks/useFriendsPresence';
 import { getSortTargetIdMetadata } from '../omniFeed/utils/gameSortUtils';
 import { TGameSort } from '../common/types/bedev2Types';
-import { TGameData } from '../common/types/bedev1Types';
+import { TGameData, TGetFriendsResponse } from '../common/types/bedev1Types';
 import { searchLandingPage } from '../common/constants/configConstants';
 
 type SearchLandingPageGamesCarouselProps = {
@@ -27,6 +26,7 @@ type SearchLandingPageGamesCarouselProps = {
   translate: WithTranslationsProps['translate'];
   itemsPerRow?: number;
   gameData: TGameData[];
+  friendsPresenceData: TGetFriendsResponse[];
 };
 
 const SearchLandingPageGamesCarousel = ({
@@ -34,12 +34,12 @@ const SearchLandingPageGamesCarousel = ({
   sort,
   positionId,
   itemsPerRow,
-  gameData
+  gameData,
+  friendsPresenceData
 }: SearchLandingPageGamesCarouselProps): JSX.Element => {
   const sessionInfo = useContext(SearchLandingPageSessionContext);
   // Type union will be cleaned up with isCarouselHorizontalScrollEnabled
   const carouselRef = useRef<HTMLDivElement | HTMLUListElement>(null);
-  const friendsPresence = useFriendsPresence();
 
   const sortId = useMemo(() => {
     // TODO CLIGROW-2294 Update this to be int sort id provided by BE
@@ -119,9 +119,9 @@ const SearchLandingPageGamesCarousel = ({
         buildEventProperties={buildEventProperties}
         isLoadingMoreGames={false}
         itemsPerRow={itemsPerRow}
-        friendData={friendsPresence}
+        friendData={friendsPresenceData}
         topicId={sort.topicId?.toString()}
-        isExpandHomeContentEnabled={false}
+        isDynamicLayoutSizingEnabled={false}
         isCarouselHorizontalScrollEnabled
         isNewScrollArrowsEnabled={false}
         translate={translate}

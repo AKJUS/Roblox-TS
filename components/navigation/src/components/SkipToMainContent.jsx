@@ -1,6 +1,6 @@
-import PropTypes from 'prop-types';
-import { Button } from '@rbx/core-ui/legacy/react-style-guide';
-import layoutConstants from '../constants/layoutConstants';
+import PropTypes from "prop-types";
+import { Button } from "@rbx/core-ui/legacy/react-style-guide";
+import layoutConstants from "../constants/layoutConstants";
 
 const { mainContentId } = layoutConstants;
 
@@ -13,13 +13,13 @@ function SkipToMainContent({ translate }) {
       variant={Button.variants.primary}
       onClick={() => mainContentElement.focus()}
     >
-      {translate('Action.SkipToMainContent') || 'Skip to main content'}
+      {translate("Action.SkipToMainContent") || "Skip to main content"}
     </Button>
   );
 }
 
 SkipToMainContent.propTypes = {
-  translate: PropTypes.func.isRequired
+  translate: PropTypes.func.isRequired,
 };
 
 export default SkipToMainContent;

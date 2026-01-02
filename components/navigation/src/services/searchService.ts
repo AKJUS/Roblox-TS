@@ -1,12 +1,12 @@
-import { httpService } from '@rbx/core-scripts/legacy/core-utilities';
-import searchConstants from '../constants/searchConstants';
+import { httpService } from "@rbx/core-scripts/legacy/core-utilities";
+import searchConstants from "../constants/searchConstants";
 
 let cancelToken = httpService.createCancelToken();
 
 export enum GamesAutocompleteSuggestionEntryType {
   GameSuggestion = 0,
   QuerySuggestion = 1,
-  TrendingQuerySuggestion = 2
+  TrendingQuerySuggestion = 2,
 }
 
 export type TGamesAutocompleteSuggestionEntry = {
@@ -26,7 +26,7 @@ export type TGamesAutocompleteSuggestion = {
 };
 
 export const getSearchSuggestion = async (
-  search: string
+  search: string,
 ): Promise<TGamesAutocompleteSuggestion> => {
   // Cancels any previous requests that are stil dangling
   cancelToken.cancel();
@@ -35,19 +35,19 @@ export const getSearchSuggestion = async (
   const { data } = await httpService.get<TGamesAutocompleteSuggestion>({
     ...searchConstants.getSuggestionUrl,
     url: searchConstants.getSuggestionUrl.url + encodeURIComponent(search.toLowerCase()),
-    cancelToken: cancelToken.token
+    cancelToken: cancelToken.token,
   });
 
   return data;
 };
 
 export const postRequestSuggestion = async (
-  search: string
+  search: string,
 ): Promise<TGamesAutocompleteSuggestion> => {
   const params = {
     prefix: search.toLowerCase(),
     variationId: searchConstants.variationId,
-    trendingSearchId: searchConstants.trendingVariationId
+    trendingSearchId: searchConstants.trendingVariationId,
   };
 
   // Cancels any previous requests that are stil dangling
@@ -59,9 +59,9 @@ export const postRequestSuggestion = async (
       ...searchConstants.requestSuggestionUrl,
       timeout: searchConstants.expiryTimeout,
       cancelToken: cancelToken.token,
-      fullError: true
+      fullError: true,
     },
-    params
+    params,
   );
 
   return data;
@@ -82,9 +82,11 @@ export const getAvatarRequestSuggestion = async (
   languageCode: string,
   limit: number,
   previousQuery: string,
-  useFallback = false
+  useFallback = false,
 ): Promise<TAvatarAutocompleteSuggestion> => {
   let lang = languageCode;
+  // TODO: old, migrated code
+  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing, @typescript-eslint/no-unnecessary-condition
   if (lang === null) {
     lang = searchConstants.englishLanguageCode;
   }
@@ -92,7 +94,7 @@ export const getAvatarRequestSuggestion = async (
     prefix: search.toLowerCase(),
     limit,
     lang,
-    q: previousQuery
+    q: previousQuery,
   };
 
   // Cancels any previous requests that are stil dangling
@@ -105,9 +107,9 @@ export const getAvatarRequestSuggestion = async (
         ...searchConstants.avatarRequestSuggestionUrl,
         timeout: searchConstants.expiryTimeout,
         cancelToken: cancelToken.token,
-        fullError: true
+        fullError: true,
       },
-      params
+      params,
     );
 
     return data;
@@ -118,9 +120,9 @@ export const getAvatarRequestSuggestion = async (
       ...searchConstants.avatarRequestSuggestionCdnUrl,
       timeout: searchConstants.expiryTimeout,
       cancelToken: cancelToken.token,
-      fullError: true
+      fullError: true,
     },
-    params
+    params,
   );
 
   return data;
@@ -129,5 +131,5 @@ export const getAvatarRequestSuggestion = async (
 export default {
   getSearchSuggestion,
   postRequestSuggestion,
-  getAvatarRequestSuggestion
+  getAvatarRequestSuggestion,
 };

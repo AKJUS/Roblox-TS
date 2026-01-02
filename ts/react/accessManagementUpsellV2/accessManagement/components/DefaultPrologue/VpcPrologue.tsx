@@ -3,7 +3,7 @@ import { TranslateFunction } from 'react-utilities';
 import { IModalService } from 'react-style-guide';
 import { useSelector } from 'react-redux';
 import useModal from '../../../hooks/useModal';
-import { UpsellStage } from '../../../enums';
+import { Recourse, UpsellStage } from '../../../enums';
 import ExpNewChildModal from '../../../enums/ExpNewChildModal';
 import {
   setVerificationStageRecourse,
@@ -27,12 +27,14 @@ const VpcPrologue = ({
   translate,
   onHide,
   recourseParameters,
-  expChildModalType
+  expChildModalType,
+  source
 }: {
   translate: TranslateFunction;
   onHide: () => void;
   recourseParameters: Record<string, string> | null;
   expChildModalType?: ExpNewChildModal;
+  source?: string;
 }): [JSX.Element, IModalService] => {
   const dispatch = useAppDispatch();
   const featureName = useSelector(selectFeatureName);
@@ -42,13 +44,12 @@ const VpcPrologue = ({
   const settingName = recourseParameters ? Object.keys(recourseParameters)[0] : undefined;
 
   const defaultBodyText = PrologueConstants.Description.Vpc;
-  const connectingBodyText = PrologueConstants.Description.VpcConnectingText;
 
   const translatedBodyText = getPrologueTranslatedBodyText(
     featureName,
     defaultBodyText,
-    connectingBodyText,
     translate,
+    [Recourse.ParentConsentRequest],
     recourseParameters,
     expChildModalType
   );
@@ -82,19 +83,18 @@ const VpcPrologue = ({
     },
     size: 'sm',
     onHide: () => {
-      sendVerifyCancelClickEvent(featureName, 'Vpc', settingName, recourseParameters);
+      sendVerifyCancelClickEvent(featureName, 'Vpc', settingName, recourseParameters, source);
       onHide();
     },
     onNeutral: () => {
-      sendVerifyCancelClickEvent(featureName, 'Vpc', settingName, recourseParameters);
+      sendVerifyCancelClickEvent(featureName, 'Vpc', settingName, recourseParameters, source);
       onHide();
     }
   });
 
-  // Trigger the opening of the error modal in response to a user action or effect
   useEffect(() => {
     requireVpcModalService.open();
-    sendInitialUpsellPageLoadEvent(featureName, 'Vpc', settingName, recourseParameters);
+    sendInitialUpsellPageLoadEvent(featureName, 'Vpc', settingName, recourseParameters, source);
   }, []);
 
   return [requireVpcModal, requireVpcModalService];

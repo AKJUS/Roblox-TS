@@ -4,6 +4,7 @@ import {
   DetailsPageHeader as DetailsPageHeaderComponent
 } from '@rbx/discovery-sdui-components';
 import HeroUnitComponent from '../components/HeroUnit';
+import SduiHeroUnitBottomRow from '../components/SduiHeroUnitBottomRow';
 import SduiCollectionCarousel from '../components/SduiCollectionCarousel';
 import SduiCollectionGrid from '../components/SduiCollectionGrid';
 import GameTileComponent from '../components/SduiGameTile';
@@ -22,10 +23,13 @@ import SduiButton from '../components/SduiButton';
 import SduiVerticalFeed from '../components/SduiVerticalFeed';
 import SduiAttributionRow from '../components/SduiAttributionRow';
 import SduiTextPill from '../components/SduiTextPill';
+import SduiText from '../components/SduiText';
+import SduiWebText from '../components/SduiWebText';
 
 export enum SduiRegisteredComponents {
   SingleItemCollection = 'SingleItemCollection',
   HeroUnit = 'HeroUnit',
+  HeroUnitBottomRow = 'HeroUnitBottomRow',
   PlayButton = 'PlayButton',
   TextIconRow = 'TextIconRow',
   TileFooter = 'TileFooter',
@@ -42,7 +46,9 @@ export enum SduiRegisteredComponents {
   Page = 'Page',
   DetailsPageHeader = 'DetailsPageHeader',
   AttributionRow = 'AttributionRow',
-  TextPill = 'TextPill'
+  TextPill = 'TextPill',
+  Text = 'Text',
+  WebText = 'WebText'
 }
 
 type TSduiComponentInfo = {
@@ -77,6 +83,17 @@ export const SduiComponentMapping: Record<
       foregroundImage: SduiParsers.parseAssetUrlIntoComponent,
       backgroundImage: SduiParsers.parseAssetUrlIntoComponent,
       titleImage: SduiParsers.parseAssetUrlIntoComponent
+    }
+  },
+  [SduiRegisteredComponents.HeroUnitBottomRow]: {
+    component: wrapComponentForSdui(SduiHeroUnitBottomRow),
+    propParsers: {
+      ctaButton: SduiParsers.parseUiComponent,
+      rightLabelContent: SduiParsers.parseUiComponent,
+      anchorPoint: SduiParsers.parseVector2,
+      automaticSize: SduiParsers.parseAutomaticSize,
+      size: SduiParsers.parseUDim2,
+      position: SduiParsers.parseUDim2
     }
   },
   [SduiRegisteredComponents.TextIconRow]: {
@@ -282,6 +299,20 @@ export const SduiComponentMapping: Record<
       textColor: SduiParsers.parseColorValue,
       fontStyle: SduiParsers.parseFoundationTypographyToken,
       backgroundColor: SduiParsers.parseColorValue
+    }
+  },
+  [SduiRegisteredComponents.Text]: {
+    component: wrapComponentForSdui(SduiText),
+    propParsers: {
+      textFontStyle: SduiParsers.parseFoundationTypographyToken,
+      textColor: SduiParsers.parseColorValue
+    }
+  },
+  [SduiRegisteredComponents.WebText]: {
+    component: wrapComponentForSdui(SduiWebText),
+    propParsers: {
+      textFontStyle: SduiParsers.parseFoundationTypographyToken,
+      textColor: SduiParsers.parseColorValue
     }
   }
 };

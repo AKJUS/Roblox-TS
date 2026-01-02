@@ -1,18 +1,18 @@
-import { useRef, useState } from 'react';
-import classNames from 'classnames';
-import PropTypes from 'prop-types';
-import { Popover } from '@rbx/core-ui/legacy/react-style-guide';
-import { paymentFlowAnalyticsService as analytics } from '@rbx/core-scripts/legacy/core-roblox-utilities';
-import BuyRobuxIcon from './BuyRobuxIcon';
-import RobuxMenu from './RobuxMenu';
-import navigationUtil from '../../util/navigationUtil';
-import CreditIcon from '../CreditIcon';
-import links from '../../constants/linkConstants';
-import layoutConstants from '../../constants/layoutConstants';
-import PopupDisclaimer from './PopupDisclaimer';
-import LeaveRobloxPopupDisclaimer from './LeaveRobloxPopupDisclaimer';
-import navigationService from '../../services/navigationService';
-import RobuxBadgeType from '../../constants/robuxBadgeConstants';
+import { useRef, useState } from "react";
+import classNames from "classnames";
+import PropTypes from "prop-types";
+import { Popover } from "@rbx/core-ui/legacy/react-style-guide";
+import { paymentFlowAnalyticsService as analytics } from "@rbx/core-scripts/legacy/core-roblox-utilities";
+import BuyRobuxIcon from "./BuyRobuxIcon";
+import RobuxMenu from "./RobuxMenu";
+import navigationUtil from "../../util/navigationUtil";
+import CreditIcon from "../CreditIcon";
+import links from "../../constants/linkConstants";
+import layoutConstants from "../../constants/layoutConstants";
+import PopupDisclaimer from "./PopupDisclaimer";
+import LeaveRobloxPopupDisclaimer from "./LeaveRobloxPopupDisclaimer";
+import navigationService from "../../services/navigationService";
+import RobuxBadgeType from "../../constants/robuxBadgeConstants";
 
 function BuyRobuxPopover({
   creditAmount,
@@ -25,7 +25,7 @@ function BuyRobuxPopover({
   robuxBadgeType,
   robuxAmount,
   robuxError,
-  translate
+  translate,
 }) {
   const { buyGiftCardUrl, buyRobuxUrl } = links;
   const { buyRobuxOnVng } = buyRobuxUrl;
@@ -44,7 +44,7 @@ function BuyRobuxPopover({
       false,
       ENUM_VIEW_NAME.NAVIGATION_DROPDOWN_MENU,
       ENUM_PURCHASE_EVENT_TYPE.USER_INPUT,
-      viewMessage
+      viewMessage,
     );
   };
 
@@ -62,7 +62,7 @@ function BuyRobuxPopover({
     sendAnalyticsEvent(ENUM_VIEW_MESSAGE.CONTINUE_TO_CASHSTAR);
 
     const decodedUrl = decodeURIComponent(buyGiftCardUrl.url);
-    window.open(decodedUrl, '_blank');
+    window.open(decodedUrl, "_blank");
   };
 
   const onBuyRobuxExternalClick = () => {
@@ -80,11 +80,11 @@ function BuyRobuxPopover({
 
     navigationService.getVngShopSignedRedirectionUrl().then(
       ({ data: { vngShopRedirectUrl } }) => {
-        window.open(vngShopRedirectUrl || buyRobuxOnVng.url, '_blank').focus();
+        window.open(vngShopRedirectUrl || buyRobuxOnVng.url, "_blank").focus();
       },
       () => {
-        window.open(buyRobuxOnVng.url, '_blank').focus();
-      }
+        window.open(buyRobuxOnVng.url, "_blank").focus();
+      },
     );
 
     setIsLeaveRobloxDisclaimerModalOpen(false);
@@ -95,9 +95,9 @@ function BuyRobuxPopover({
     <li
       id="navbar-robux"
       ref={containerRef}
-      className={classNames('navbar-icon-item', {
-        'robux-popover-margins':
-          creditDisplayConfig === layoutConstants.creditDisplayConfigVariants.hideCreditAndRobux
+      className={classNames("navbar-icon-item", {
+        "robux-popover-margins":
+          creditDisplayConfig === layoutConstants.creditDisplayConfigVariants.hideCreditAndRobux,
       })}
     >
       <PopupDisclaimer
@@ -126,15 +126,17 @@ function BuyRobuxPopover({
                 creditDisplayConfig={creditDisplayConfig}
                 robuxBadgeType={robuxBadgeType}
               />
-              {/* Wallet credit balance only shown on showCreditAndRobux variant */}
-              {creditDisplayConfig ===
-                layoutConstants.creditDisplayConfigVariants.showCreditAndRobux && (
-                <CreditIcon
-                  creditAmount={creditAmount}
-                  currencyCode={currencyCode}
-                  creditError={creditError}
-                />
-              )}
+              {
+                // Wallet credit balance only shown on showCreditAndRobux variant
+                creditDisplayConfig ===
+                  layoutConstants.creditDisplayConfigVariants.showCreditAndRobux && (
+                  <CreditIcon
+                    creditAmount={creditAmount}
+                    currencyCode={currencyCode}
+                    creditError={creditError}
+                  />
+                )
+              }
             </button>
           }
           role="menu"
@@ -165,14 +167,14 @@ function BuyRobuxPopover({
 
 BuyRobuxPopover.defaultProps = {
   robuxAmount: 0,
-  robuxError: '',
+  robuxError: "",
   creditAmount: 0,
-  creditError: '',
-  currencyCode: 'USD',
+  creditError: "",
+  currencyCode: "USD",
   creditDisplayConfig: layoutConstants.creditDisplayConfigVariants.control,
   isExperimentCallDone: false,
   isEligibleForVng: false,
-  robuxBadgeType: null
+  robuxBadgeType: null,
 };
 
 BuyRobuxPopover.propTypes = {
@@ -186,7 +188,7 @@ BuyRobuxPopover.propTypes = {
   creditDisplayConfig: PropTypes.string,
   isExperimentCallDone: PropTypes.bool,
   isEligibleForVng: PropTypes.bool,
-  robuxBadgeType: PropTypes.oneOf(Object.values(RobuxBadgeType))
+  robuxBadgeType: PropTypes.oneOf(Object.values(RobuxBadgeType)),
 };
 
 export default BuyRobuxPopover;

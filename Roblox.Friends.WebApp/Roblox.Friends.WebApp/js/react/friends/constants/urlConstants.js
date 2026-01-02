@@ -116,6 +116,14 @@ export default {
     return `${friendsApi}/v1/users/${targetUserId}/followers/count`;
   },
 
+  getTrustedConnectionStatusUrl: targetUserId => {
+    return {
+      retryable: true,
+      withCredentials: true,
+      url: `${friendsApi}/v1/my/trusted-friends/${targetUserId}/status`
+    };
+  },
+
   getAvatarHeadshotsUrl: () => {
     return `${thumbnailsApi}/v1/users/avatar-headshot?size=150x150&format=png`;
   },

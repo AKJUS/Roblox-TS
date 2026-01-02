@@ -23,7 +23,7 @@ const RETURNURL = "returnUrl";
 // local functions
 const getAuthIntentData = (): AuthIntent =>
   // TODO: old, migrated code
-  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
   (localStorage.getLocalStorage(AUTHINTENTKEY) as AuthIntent | undefined) ?? {};
 
 const setAuthIntentData = (authIntent: AuthIntent): void => {
@@ -54,7 +54,7 @@ const addGameIdToUnClaimedAuthIntent = (gameId: string): void => {
 
 const saveGameIntentFromReturnUrl = (): void => {
   // `RETURNURL` is a single param constant
-  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
   const url = getQueryParam(RETURNURL) as string;
   const regex = /\/games\/(\d+)\//;
   const match = regex.exec(url);
@@ -74,7 +74,6 @@ const saveGameIntentFromCurrentUrl = (): void => {
 const hasUnclaimedAuthIntent = (): boolean => getAuthIntentData()[UNCLAIMEDUSERID] != null;
 
 // @ts-expect-error TODO: old, migrated code
-// eslint-disable-next-line consistent-return
 const retrieveAuthIntentDataForUser = (): UserAuthIntent => {
   if (CurrentUser?.userId) {
     // @ts-expect-error TODO: old, migrated code

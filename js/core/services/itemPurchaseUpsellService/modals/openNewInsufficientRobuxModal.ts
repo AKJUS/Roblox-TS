@@ -24,6 +24,8 @@ import {
 import generateCookieForAutoPurchase from '../utils/startItemUpsell/generateCookieForAutoPurchase';
 import checkOrStartPurchaseWarning from '../utils/startItemUpsell/checkOrStartPurchaseWarning';
 import reportCounter from '../utils/common/reportCounter';
+import openUnifiedRobuxUpsellModal from './openUnifiedRobuxUpsellModal';
+import ItemPreviewThumbnail from '../../../../../ts/react/components/ItemPreviewThumbnail';
 
 function prepareAndStartAutoPurchaseFlow(
   upsellProduct: UpsellProduct,
@@ -77,7 +79,8 @@ function autoPurchaseFlow(
   upsellProduct: UpsellProduct,
   intl: RobloxIntlInstance,
   translationResource: RobloxTranslationResource,
-  intlProvider: RobloxTranslationResourceProviderInstance
+  intlProvider: RobloxTranslationResourceProviderInstance,
+  shouldShowUnifiedPurchaseModal = false
 ) {
   const modalStartTime = Date.now();
   const termsOfUseTag = `<a class='text-link-secondary terms-of-use-link' target='_blank' href='${urlService.getUrlWithLocale(
@@ -106,7 +109,71 @@ function autoPurchaseFlow(
       divTagFooterEnd: '</div>'
     });
   const titleText = translationResource.get(LANG_KEYS.insufficientRobuxHeadingNew, {});
+  function onAccept() {
+    insufficientRobuxModalSendPurchaseFlowEvent(
+      paymentFlowAnalyticsService.ENUM_VIEW_MESSAGE.BUY_ROBUX_AND_ITEM,
+      modalStartTime,
+      itemPurchaseAjaxData,
+      itemDetail
+    );
+    checkOrStartPurchaseWarning(
+      // no await here, so that this modal field validation will be valid, and the current modal won't disappear until the next modal show up
+      upsellProduct,
+      // this isUnder13 logic is only works for the web/desktop.
+      // it will only show for under 13 modals, no 13-17 modal, because we have a line of text on the payment method page for them
+      // but for mobile, we will should pass in true all the time. but this openNewInsufficientRobuxModal file will only be called on web
+      CurrentUser.isUnder13,
+      () =>
+        prepareAndStartAutoPurchaseFlow(
+          upsellProduct,
+          itemPurchaseAjaxData,
+          itemDetail.buyButtonElementDataset
+        ),
+      intlProvider,
+      itemDetail.buyButtonElementDataset
+    ).catch(() => {
+      reportCounter(
+        UPSELL_COUNTER_NAMES.U13PaymentModalFailedToShow,
+        itemDetail.buyButtonElementDataset?.assetType
+      );
+      prepareAndStartAutoPurchaseFlow(
+        upsellProduct,
+        itemPurchaseAjaxData,
+        itemDetail.buyButtonElementDataset
+      ); // failed purchase warning request, but we want to continue
+    });
+    return false;
+  }
+  function onCancel() {
+    insufficientRobuxModalSendPurchaseFlowEvent(
+      paymentFlowAnalyticsService.ENUM_VIEW_MESSAGE.CANCEL,
+      modalStartTime,
+      itemPurchaseAjaxData,
+      itemDetail
+    );
+    reportCounter(
+      UPSELL_COUNTER_NAMES.UpsellCancelled,
+      itemDetail.buyButtonElementDataset?.assetType
+    );
+  }
 
+  if (shouldShowUnifiedPurchaseModal) {
+    openUnifiedRobuxUpsellModal({
+      variant: 'standard',
+      expectedPrice: itemDetail.expectedItemPrice,
+      upsellProduct,
+      assetName: itemDetail.assetName,
+      assetType: itemDetail.buyButtonElementDataset?.assetType || '',
+      thumbnail: ItemPreviewThumbnail({
+        thumbnailImageUrl: itemPurchaseAjaxData.thumbnailImageUrl ?? ''
+      }),
+      currentRobuxBalance: Number(itemPurchaseAjaxData.userBalanceRobux),
+      onAccept,
+      onCancel,
+      intl
+    });
+    return;
+  }
   Dialog.open({
     titleText,
     bodyContent: dialogBodyNew,
@@ -114,41 +181,7 @@ function autoPurchaseFlow(
     declineText: translationResource.get(LANG_KEYS.cancelAction, {}),
     acceptText: translationResource.get(LANG_KEYS.buyRobuxAndItemAction, {}),
     acceptColor: 'btn-primary-md',
-    onAccept: () => {
-      insufficientRobuxModalSendPurchaseFlowEvent(
-        paymentFlowAnalyticsService.ENUM_VIEW_MESSAGE.BUY_ROBUX_AND_ITEM,
-        modalStartTime,
-        itemPurchaseAjaxData,
-        itemDetail
-      );
-      checkOrStartPurchaseWarning(
-        // no await here, so that this modal field validation will be valid, and the current modal won't disappear until the next modal show up
-        upsellProduct,
-        // this isUnder13 logic is only works for the web/desktop.
-        // it will only show for under 13 modals, no 13-17 modal, because we have a line of text on the payment method page for them
-        // but for mobile, we will should pass in true all the time. but this openNewInsufficientRobuxModal file will only be called on web
-        CurrentUser.isUnder13,
-        () =>
-          prepareAndStartAutoPurchaseFlow(
-            upsellProduct,
-            itemPurchaseAjaxData,
-            itemDetail.buyButtonElementDataset
-          ),
-        intlProvider,
-        itemDetail.buyButtonElementDataset
-      ).catch(() => {
-        reportCounter(
-          UPSELL_COUNTER_NAMES.U13PaymentModalFailedToShow,
-          itemDetail.buyButtonElementDataset?.assetType
-        );
-        prepareAndStartAutoPurchaseFlow(
-          upsellProduct,
-          itemPurchaseAjaxData,
-          itemDetail.buyButtonElementDataset
-        ); // failed purchase warning request, but we want to continue
-      });
-      return false;
-    },
+    onAccept,
     onDecline: () => {
       insufficientRobuxModalSendPurchaseFlowEvent(
         paymentFlowAnalyticsService.ENUM_VIEW_MESSAGE.CANCEL,
@@ -161,18 +194,7 @@ function autoPurchaseFlow(
         itemDetail.buyButtonElementDataset?.assetType
       );
     },
-    onCancel: () => {
-      insufficientRobuxModalSendPurchaseFlowEvent(
-        paymentFlowAnalyticsService.ENUM_VIEW_MESSAGE.CANCEL,
-        modalStartTime,
-        itemPurchaseAjaxData,
-        itemDetail
-      );
-      reportCounter(
-        UPSELL_COUNTER_NAMES.UpsellCancelled,
-        itemDetail.buyButtonElementDataset?.assetType
-      );
-    },
+    onCancel,
     allowHtmlContentInBody: true,
     allowHtmlContentInFooter: false,
     fieldValidationRequired: true,
@@ -188,7 +210,8 @@ export default function openNewInsufficientRobuxModal(
   upsellProduct: UpsellProduct,
   intl: RobloxIntlInstance,
   translationResource: RobloxTranslationResource,
-  intlProvider: RobloxTranslationResourceProviderInstance
+  intlProvider: RobloxTranslationResourceProviderInstance,
+  shouldShowUnifiedPurchaseModal = false
 ): void {
   const robuxItemPrice = formattingRobux(itemDetail.expectedItemPrice);
   const avatarPreview = `<div class='item-card-container item-preview'>
@@ -216,6 +239,7 @@ export default function openNewInsufficientRobuxModal(
     upsellProduct,
     intl,
     translationResource,
-    intlProvider
+    intlProvider,
+    shouldShowUnifiedPurchaseModal
   );
 }

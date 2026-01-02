@@ -18,9 +18,9 @@ function HomePageUpsellCard({
   origin,
   titleTextOverride,
   bodyTextOverride,
-  requireExplicitVoiceConsent
+  requireExplicitVoiceConsent,
+  onDismiss
 }) {
-  const [upsellHidden, setUpsellHidden] = useState(false);
   const eventLogSection = UpsellCardEventSection[cardType];
 
   useEffect(() => {
@@ -43,7 +43,9 @@ function HomePageUpsellCard({
           primaryButtonConfig.buttonClickBtnLog
         );
         primaryButtonConfig.onClick(shouldHide => {
-          setUpsellHidden(shouldHide);
+          if (shouldHide) {
+            onDismiss();
+          }
         });
       }}>
       {translate(primaryButtonConfig.text)}
@@ -64,7 +66,9 @@ function HomePageUpsellCard({
           secondaryButtonConfig.buttonClickBtnLog
         );
         secondaryButtonConfig.onClick(shouldHide => {
-          setUpsellHidden(shouldHide);
+          if (shouldHide) {
+            onDismiss();
+          }
         });
       }}>
       {translate(secondaryButtonConfig.text)}
@@ -103,7 +107,7 @@ function HomePageUpsellCard({
     <div className={`home-page-upsell-card-image ${UpsellCardImageClass[cardType]}`} />
   ) : null;
 
-  return upsellHidden ? null : (
+  return (
     <div className='home-page-upsell-card-banner-container'>
       <div className='banner-contents'>
         <div className='icon-and-text'>
@@ -134,7 +138,8 @@ HomePageUpsellCard.propTypes = {
   titleTextOverride: PropTypes.string,
   bodyTextOverride: PropTypes.string,
   origin: PropTypes.string,
-  requireExplicitVoiceConsent: PropTypes.bool
+  requireExplicitVoiceConsent: PropTypes.bool,
+  onDismiss: PropTypes.func.isRequired
 };
 
 export default HomePageUpsellCard;

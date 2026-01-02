@@ -1,17 +1,17 @@
-import React, { useEffect, useState } from 'react';
-import classNames from 'classnames';
-import { TranslateFunction } from '@rbx/core-scripts/legacy/react-utilities';
-import Intl from '@rbx/core-scripts/intl';
-import { createModal, Toggle } from '@rbx/core-ui/legacy/react-style-guide';
-import { urlService } from '@rbx/core-scripts/legacy/core-utilities';
-import consentToolConstants from '../constants/consentToolConstants';
-import urlConstants from '../constants/urlConstants';
-import CookieItem from '../components/CookieItem';
-import AnalyticsSection from '../components/AnalyticsSection';
-import { TEssentialCookie } from '../types/cookiePolicyTypes';
-import cookieConstants from '../constants/cookieConstants';
-import consentCookieHandler from '../utils/consentCookieHandler';
-import bannerConstants from '../constants/bannerConstants';
+import React, { useEffect, useState } from "react";
+import classNames from "classnames";
+import { TranslateFunction } from "@rbx/core-scripts/legacy/react-utilities";
+import Intl from "@rbx/core-scripts/intl";
+import { createModal, Toggle } from "@rbx/core-ui/legacy/react-style-guide";
+import { urlService } from "@rbx/core-scripts/legacy/core-utilities";
+import consentToolConstants from "../constants/consentToolConstants";
+import urlConstants from "../constants/urlConstants";
+import CookieItem from "../components/CookieItem";
+import AnalyticsSection from "../components/AnalyticsSection";
+import { TEssentialCookie } from "../types/cookiePolicyTypes";
+import cookieConstants from "../constants/cookieConstants";
+import consentCookieHandler from "../utils/consentCookieHandler";
+import bannerConstants from "../constants/bannerConstants";
 
 const { cookieModule } = bannerConstants;
 const [Modal, modalService] = createModal();
@@ -19,7 +19,7 @@ const ConsentTool = ({
   nonEssentialCookieList,
   essentialCookieList,
   translate,
-  closeConsentTool
+  closeConsentTool,
 }: {
   nonEssentialCookieList: string[];
   essentialCookieList: TEssentialCookie[];
@@ -38,20 +38,20 @@ const ConsentTool = ({
   }, []);
 
   const essentialCookieSectionCssClass = classNames({ hidden: !isEssentialCookieListVisible });
-  const GASectionCollapsible = classNames('cookie-consent-tool-collaps', {
-    on: isNonEssentialCookieListVisible
+  const GASectionCollapsible = classNames("cookie-consent-tool-collaps", {
+    on: isNonEssentialCookieListVisible,
   });
   const essentialCookieSectionCollapsibleIcon = classNames(
-    'cookie-consent-tool-collaps font-header-2 text-emphasis ',
+    "cookie-consent-tool-collaps font-header-2 text-emphasis ",
     {
-      on: isEssentialCookieListVisible
-    }
+      on: isEssentialCookieListVisible,
+    },
   );
 
   const locale = new Intl().getRobloxLocale();
   const privacyPolicyUrl = urlService.getUrlWithLocale(
-    typeof urlConstants.privacyPolicyUrl === 'string' ? urlConstants.privacyPolicyUrl : '',
-    locale
+    typeof urlConstants.privacyPolicyUrl === "string" ? urlConstants.privacyPolicyUrl : "",
+    locale,
   );
 
   const privacyPolicyLink = (
@@ -62,7 +62,7 @@ const ConsentTool = ({
       </a>
     </div>
   );
-  const supportUrl = typeof urlConstants.supportUrl === 'string' ? urlConstants.supportUrl : '';
+  const supportUrl = typeof urlConstants.supportUrl === "string" ? urlConstants.supportUrl : "";
   const requestDataLink = (
     <div className="cookie-consent-tool-info-link">
       <a className="text-link" target="_blank" href={supportUrl} rel="noreferrer">
@@ -109,7 +109,7 @@ const ConsentTool = ({
           updateNonEssentialCookieListVisibility(!isNonEssentialCookieListVisible);
         }}
       >
-        <span className="font-header-2 text-emphasis">{translate('Heading.AnalyticsCookies')}</span>
+        <span className="font-header-2 text-emphasis">{translate("Heading.AnalyticsCookies")}</span>
       </button>
       <Toggle
         className="cookie-toggle"

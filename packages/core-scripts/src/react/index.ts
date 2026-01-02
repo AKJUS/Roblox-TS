@@ -30,6 +30,7 @@ export const queryClient = new QueryClient({
       retry: false,
       refetchOnMount: false,
       refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
     },
   },
 });

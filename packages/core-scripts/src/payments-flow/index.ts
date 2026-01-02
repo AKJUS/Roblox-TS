@@ -15,7 +15,7 @@ import {
   VIEW_NAME,
 } from "./constants";
 // TODO: old, migrated code
-// eslint-disable-next-line import/no-cycle
+// eslint-disable-next-line import-x/no-cycle
 import setupExternalEventListeners from "./externalEventListenerHelper";
 import { sendEventWithTarget, targetTypes } from "../event-stream";
 
@@ -75,6 +75,15 @@ export class PaymentFlowAnalyticsService {
    */
   public getPaymentFlowUuid(): string {
     return this.purchaseFlowUuid;
+  }
+
+  /**
+   * Allows setting the payment flow uuid
+   * Also persists the uuid and trigger context to local storage / cookie
+   */
+  public setPaymentFlowUuid(id: string): void {
+    this.purchaseFlowUuid = id;
+    this.writePaymentFlowContextIntoCookie();
   }
 
   /**
@@ -364,6 +373,10 @@ export class PaymentFlowAnalyticsService {
         return isInApp
           ? TRIGGERING_CONTEXT.WEBVIEW_PREMIUM_PURCHASE
           : TRIGGERING_CONTEXT.WEB_PREMIUM_PURCHASE;
+      case TRIGGERING_CONTEXT.MOBILE_WEB_PREMIUM_PURCHASE:
+        return isInApp
+          ? TRIGGERING_CONTEXT.WEBVIEW_PREMIUM_PURCHASE
+          : TRIGGERING_CONTEXT.MOBILE_WEB_PREMIUM_PURCHASE;
       case TRIGGERING_CONTEXT.WEB_CATALOG_ROBUX_UPSELL:
       case TRIGGERING_CONTEXT.WEB_CATALOG_PREMIUM_UPSELL:
       case TRIGGERING_CONTEXT.WEB_CATALOG_COLLECTIVE_ITEM_ROBUX_UPSELL:
@@ -376,6 +389,8 @@ export class PaymentFlowAnalyticsService {
       case TRIGGERING_CONTEXT.WEB_ROBUX_GIFT_PURCHASE:
       case TRIGGERING_CONTEXT.WEB_ROBUX_GIFT_POST_CHECKOUT:
       case TRIGGERING_CONTEXT.WEB_GIFT_CARD_PURCHASE:
+      case TRIGGERING_CONTEXT.WEB_REDEEM_PAGE:
+      case TRIGGERING_CONTEXT.WEB_PAYMENT_METHODS_SETTING:
       default:
         return triggerContext;
     }
@@ -391,7 +406,7 @@ export class PaymentFlowAnalyticsService {
    * @param eventName
    */
   // TODO: old, migrated code
-  // eslint-disable-next-line class-methods-use-this
+  // eslint-disable-next-line @typescript-eslint/class-methods-use-this
   public dispatchCustomEvent(eventName: CUSTOM_EVENT): void {
     window.dispatchEvent(new CustomEvent(eventName));
   }

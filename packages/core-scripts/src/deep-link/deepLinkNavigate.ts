@@ -9,6 +9,8 @@ import {
   ItemTypePathMap,
   UrlPart,
   DeepLinkParams,
+  AmpFeatureName,
+  AmpNamespace,
 } from "./deepLinkConstants";
 import { launchGame, buildPlayGameProperties } from "../game";
 import { startDesktopAndMobileWebChat } from "../util/chat";
@@ -69,7 +71,13 @@ const buildRedirectUrlWithJoinData = (url: string, joinData: ExperienceJoinData)
   return `${baseUrl}?${searchParams.toString()}`;
 };
 
-const launchStudio = (placeId: string, universeId: string, startTeamTest: boolean): void => {
+const launchStudio = (
+  placeId: string,
+  universeId: string,
+  startTeamTest: boolean,
+  instanceId?: string,
+  annotationId?: string,
+): void => {
   const { GameLauncher } = window.Roblox;
   if (GameLauncher && placeId && universeId) {
     // checking of whether or not Team Create is actually enabled should be done in Studio if needed
@@ -81,6 +89,8 @@ const launchStudio = (placeId: string, universeId: string, startTeamTest: boolea
       true, // isTeamCreateEnabled
       false, // enableTeamCreatePreemptiveStart
       startTeamTest,
+      instanceId,
+      annotationId,
     );
   }
 };
@@ -180,6 +190,16 @@ const deepLinkNavigate = (target: DeepLink): Promise<boolean> => {
 
                 const startTeamTest = response.data.linkType === "StudioTeamTest";
 
+                const additionalParams: { instanceId?: string; annotationId?: string } = {};
+                if (response.data.linkType === "StudioEdit") {
+                  if (params.instanceId) {
+                    additionalParams.instanceId = params.instanceId;
+                  }
+                  if (params.annotationId) {
+                    additionalParams.annotationId = params.annotationId;
+                  }
+                }
+
                 // Check if ShareLinks WebApp has registered a custom handler for Studio links
                 const { studioLinkHandler } = window.Roblox;
                 if (studioLinkHandler && typeof studioLinkHandler === "function") {
@@ -187,13 +207,21 @@ const deepLinkNavigate = (target: DeepLink): Promise<boolean> => {
                     placeId: response.data.targetId,
                     universeId,
                     startTeamTest,
+                    instanceId: additionalParams.instanceId,
+                    annotationId: additionalParams.annotationId,
                   };
                   studioLinkHandler(studioData);
                   return true;
                 }
 
                 // Default behavior is to launch Studio
-                launchStudio(response.data.targetId, universeId, startTeamTest);
+                launchStudio(
+                  response.data.targetId,
+                  universeId,
+                  startTeamTest,
+                  additionalParams.instanceId,
+                  additionalParams.annotationId,
+                );
                 return true;
               })
               .catch(() => false);
@@ -357,7 +385,7 @@ const deepLinkNavigate = (target: DeepLink): Promise<boolean> => {
               );
               if (data.status === ProfileShareStatus.VALID) {
                 // TODO: old, migrated code
-                // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
                 const profileShareSource = getQueryParam("source") as string;
                 const friendshipSourceType = getFriendshipSourceType(profileShareSource);
                 window.location.href = `${UrlPart.Users}/${data.userId}${UrlPart.Profile}?friendshipSourceType=${friendshipSourceType}`;
@@ -630,7 +658,7 @@ const deepLinkNavigate = (target: DeepLink): Promise<boolean> => {
             }
 
             // TODO: old, migrated code
-            // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
             const itemType = data.itemType as "Asset" | "Bundle" | "Look";
             const resolveLinkEvent = buildResolveLinkEvent(
               data.status,
@@ -643,7 +671,7 @@ const deepLinkNavigate = (target: DeepLink): Promise<boolean> => {
               resolveLinkEvent.params,
             );
 
-            window.location.href = `${UrlPart[itemType]}/${data.itemId}?pid=share&is_retargeting=true&deep_link_value=${params.code}`;
+            window.location.href = `${UrlPart[itemType]}/${data.itemId}?pid=share&is_retargeting=false&deep_link_value=${params.code}`;
             return true;
           })
           .catch(() => {
@@ -749,14 +777,14 @@ const deepLinkNavigate = (target: DeepLink): Promise<boolean> => {
     let zendeskUrl;
     if (params.domain === ExternalWebUrlDomains.Zendesk) {
       // TODO: old, migrated code
-      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
       const { articleId, locale } = params as ZendeskDeepLinkParams;
       zendeskUrl = getHelpDeskUrl(locale, articleId);
       if (zendeskUrl) {
         window.open(zendeskUrl, "_blank");
       }
     }
-    return Promise.resolve(!!zendeskUrl);
+    return Promise.resolve(Boolean(zendeskUrl));
   } else if (navigateSubPath === PathPart.Avatar) {
     // roblox://navigation/avatar
     if (!Object.keys(params).length) {
@@ -772,7 +800,8 @@ const deepLinkNavigate = (target: DeepLink): Promise<boolean> => {
     if (params.groupId) {
       if (params.forumCategoryId && params.forumPostId && params.forumCommentId) {
         // roblox://navigation/group?groupId=<groupId>&forumCategoryId=<forumCategoryId>&forumPostId=<forumPostId>&forumCommentId=<forumCommentId>
-        urlTarget = `${UrlPart.Groups}/${params.groupId}#!/forums/${params.forumCategoryId}/post/${params.forumPostId}/comment/${params.forumCommentId}`;
+        // We don't know the Category name or Post title here so we just use dummy values in the URL
+        urlTarget = `${UrlPart.Groups}/${params.groupId}#!/forums/category-${params.forumCategoryId}/post/post-${params.forumPostId}/comment/${params.forumCommentId}`;
       } else {
         // roblox://navigation/group?groupId=<groupId>
         urlTarget = `${UrlPart.Groups}/${params.groupId}`;
@@ -786,6 +815,19 @@ const deepLinkNavigate = (target: DeepLink): Promise<boolean> => {
     } else {
       urlTarget = `${UrlPart.SecurityAlert}?payload=null&username=`;
     }
+  } else if (navigateSubPath === PathPart.Fae) {
+    // roblox://navigation/fae
+    // Navigate to fae upsell page
+    const { AccessManagementUpsellV2Service } = window.Roblox;
+    if (AccessManagementUpsellV2Service) {
+      return AccessManagementUpsellV2Service.startAccessManagementUpsell({
+        featureName: AmpFeatureName.Fae,
+        namespace: AmpNamespace.Fae,
+      })
+        .then(() => true)
+        .catch(() => false);
+    }
+    return Promise.resolve(false);
   }
 
   if (urlTarget) {
@@ -793,7 +835,7 @@ const deepLinkNavigate = (target: DeepLink): Promise<boolean> => {
   } else {
     fireEvent?.(CounterEvents.NavigationFailed);
   }
-  return Promise.resolve(!!urlTarget);
+  return Promise.resolve(Boolean(urlTarget));
 };
 
 export default deepLinkNavigate;

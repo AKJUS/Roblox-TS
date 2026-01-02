@@ -17,6 +17,12 @@ import {
 } from "@rbx/core-scripts/tracing";
 import { shouldDuplicate, duplicationCount, retryAttemptHeader } from "@rbx/core-scripts/http/util";
 import { buildConfigBoundAuthToken } from "@rbx/core-scripts/auth/bound-auth";
+import {
+  interceptChallenge,
+  Migrate,
+  parseChallengeSpecificProperties,
+  renderChallenge,
+} from "@rbx/generic-challenges";
 
 // Constants for rendering a generic request challenge.
 const GENERIC_CHALLENGE_LOG_PREFIX = "Generic Challenge:";
@@ -61,23 +67,38 @@ const angularJsUtilities = angular
               challengeTypeRaw !== undefined &&
               challengeMetadataJsonBase64 !== undefined;
             if (challengeAvailable) {
-              if (window.Roblox.AccountIntegrityChallengeService) {
-                return window.Roblox.AccountIntegrityChallengeService.Generic.interceptChallenge({
-                  retryRequest: (challengeIdInner, redemptionMetadataJsonBase64) => {
-                    // eslint-disable-next-line no-param-reassign
-                    rejection.config.headers[GENERIC_CHALLENGE_ID_HEADER] = challengeIdInner;
-                    // eslint-disable-next-line no-param-reassign
-                    rejection.config.headers[GENERIC_CHALLENGE_TYPE_HEADER] = challengeTypeRaw;
-                    // eslint-disable-next-line no-param-reassign
-                    rejection.config.headers[GENERIC_CHALLENGE_METADATA_HEADER] =
-                      redemptionMetadataJsonBase64;
-                    const $http = $injector.get("$http");
-                    return $http(rejection.config);
-                  },
+              const retryRequest = (challengeIdInner, redemptionMetadataJsonBase64) => {
+                // eslint-disable-next-line no-param-reassign
+                rejection.config.headers[GENERIC_CHALLENGE_ID_HEADER] = challengeIdInner;
+                // eslint-disable-next-line no-param-reassign
+                rejection.config.headers[GENERIC_CHALLENGE_TYPE_HEADER] = challengeTypeRaw;
+                // eslint-disable-next-line no-param-reassign
+                rejection.config.headers[GENERIC_CHALLENGE_METADATA_HEADER] =
+                  redemptionMetadataJsonBase64;
+                const $http = $injector.get("$http");
+                return $http(rejection.config);
+              };
+              // Always attempt the new grasshoper-centralized challenge middleware first.
+              if (Migrate.isSupportedByGrasshopper(challengeTypeRaw)) {
+                return interceptChallenge({
+                  retryRequest,
                   containerId: GENERIC_CHALLENGE_CONTAINER_ID,
                   challengeId,
                   challengeTypeRaw,
                   challengeMetadataJsonBase64,
+                  legacyGenericRender:
+                    window.Roblox.AccountIntegrityChallengeService?.Generic.renderChallenge,
+                });
+              }
+              if (window.Roblox.AccountIntegrityChallengeService) {
+                return window.Roblox.AccountIntegrityChallengeService.Generic.interceptChallenge({
+                  retryRequest,
+                  containerId: GENERIC_CHALLENGE_CONTAINER_ID,
+                  challengeId,
+                  challengeTypeRaw,
+                  challengeMetadataJsonBase64,
+                  newRenderChallenge: renderChallenge,
+                  newParseChallenge: parseChallengeSpecificProperties,
                   // Wrap the error response in a `data` field to conform to the
                   // expected schema in `httpService`. This is only applicable
                   // for error objects that are not returned by Angular, since

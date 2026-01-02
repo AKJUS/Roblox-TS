@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import ClassNames from "classnames";
 import PropTypes from "prop-types";
-import { logMeasurement } from "../metrics";
 import * as thumbnailService from "../services/thumbnail2d";
 import { ThumbnailRequester } from "../util/thumbnailRequester";
 import { ThumbnailBatchHandler } from "../util/thumbnailHandler";
@@ -26,12 +25,10 @@ function Thumbnail2d({
   getThumbnail,
   version,
 }) {
-  const [startTime] = useState(new Date().getTime());
   const [thumbnailStatus, setImageStatus] = useState(null);
   const [thumbnailUrl, setImageUrl] = useState(null);
   const errorIconClass = ClassNames(thumbnailService.getCssClass(thumbnailStatus));
   const [shimmerClass, setShimmerClass] = useState("shimmer");
-  const [performanceData, setPerformanceData] = useState(null);
 
   const customHandler = useMemo(
     () =>
@@ -52,41 +49,12 @@ function Thumbnail2d({
     [targetId, getThumbnail],
   );
   const onLoadWithPerformanceMetrics = useCallback(() => {
-    if (performanceData) {
-      const duration = new Date().getTime() - startTime;
-      const { retryAttempts } = performanceData;
-      // log load success with retry
-      logMeasurement("ThumbnailLoadDurationWebapp", {
-        Status: "Success",
-        ThumbnailType: `${type}_2d`,
-        Value: duration.toString(),
-      }).catch(e => {
-        console.error(e);
-      });
-
-      if (!retryAttempts) {
-        // load success without retry
-        logMeasurement("ThumbnailNoRetrySuccessWebapp", {
-          ThumbnailType: `${type}_2d`,
-        }).catch(e => {
-          console.error(e);
-        });
-      } else {
-        // log retry attempts by type
-        logMeasurement("ThumbnailRetryWebapp", {
-          ThumbnailType: `${type}_2d`,
-          Value: retryAttempts.toString(),
-        }).catch(e => {
-          console.error(e);
-        });
-      }
-    }
     if (onLoad) {
       onLoad();
     }
-    // TOOD: old, migrated code
+    // TODO: old, migrated code
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [performanceData]);
+  }, [onLoad]);
 
   useEffect(() => {
     setShimmerClass("shimmer");
@@ -120,9 +88,6 @@ function Thumbnail2d({
           setImageStatus(state);
           setImageUrl(imageUrl);
           setShimmerClass("");
-          if (performance) {
-            setPerformanceData({ ...performance });
-          }
         }
       })
       .catch(err => {
@@ -159,7 +124,9 @@ Thumbnail2d.defaultProps = {
   containerClass: "",
   format: "webp",
   altName: "",
-  onLoad: () => {},
+  onLoad: () => {
+    // do nothing
+  },
   getThumbnail: null,
   version: "",
 };

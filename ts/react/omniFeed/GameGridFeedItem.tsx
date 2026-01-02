@@ -1,7 +1,6 @@
 import React, { useEffect, useCallback, useMemo } from 'react';
 import { WithTranslationsProps } from 'react-utilities';
-import useFriendsPresence from '../common/hooks/useFriendsPresence';
-import { TGameData } from '../common/types/bedev1Types';
+import { TGameData, TGetFriendsResponse } from '../common/types/bedev1Types';
 import { TContentType, TGameSort, TOmniRecommendationGame } from '../common/types/bedev2Types';
 import HomePageGridDiscoveryApi from '../homePage/discoveryApi/HomePageGridDiscoveryApi';
 import bedev2Services from '../common/services/bedev2Services';
@@ -17,8 +16,11 @@ type THomePageDiscoveryApiProps = {
   itemsPerRow: number | undefined;
   startingRow: number | undefined;
   recommendations: TOmniRecommendationGame[];
-  isExpandHomeContentEnabled?: boolean;
+  friendsPresenceData: TGetFriendsResponse[];
+  isDynamicLayoutSizingEnabled?: boolean;
   isNewSortHeaderEnabled?: boolean;
+  hiddenUniverses?: Set<number>;
+  setHiddenUniverses?: React.Dispatch<React.SetStateAction<Set<number>>>;
 };
 
 const { sortlessGridMaxTilesMetadataToFetch } = homePage;
@@ -30,11 +32,12 @@ export const GameGridFeedItem = ({
   itemsPerRow,
   startingRow,
   recommendations,
-  isExpandHomeContentEnabled,
-  isNewSortHeaderEnabled
+  friendsPresenceData,
+  isDynamicLayoutSizingEnabled,
+  isNewSortHeaderEnabled,
+  hiddenUniverses,
+  setHiddenUniverses
 }: THomePageDiscoveryApiProps): JSX.Element | null => {
-  const friendsPresence = useFriendsPresence();
-
   const homePageSessionInfo = usePageSession();
 
   const { contentMetadata, appendContentMetadata } = useContentMetadata();
@@ -79,21 +82,27 @@ export const GameGridFeedItem = ({
       positionId={positionId}
       itemsPerRow={itemsPerRow}
       startingRow={startingRow}
-      friendsPresence={friendsPresence}
+      friendsPresence={friendsPresenceData}
       componentType={sort.topicLayoutData?.componentType}
       playerCountStyle={sort.topicLayoutData?.playerCountStyle}
       playButtonStyle={sort.topicLayoutData?.playButtonStyle}
       hoverStyle={sort.topicLayoutData?.hoverStyle}
       isSponsoredFooterAllowed={sort.topicLayoutData?.isSponsoredFooterAllowed === 'true'}
       hideTileMetadata={sort.topicLayoutData?.hideTileMetadata === 'true'}
-      isExpandHomeContentEnabled={isExpandHomeContentEnabled}
+      isDynamicLayoutSizingEnabled={isDynamicLayoutSizingEnabled}
       isNewSortHeaderEnabled={isNewSortHeaderEnabled}
+      enableExplicitFeedback={sort.topicLayoutData?.enableExplicitFeedback === 'true'}
+      hiddenUniverses={hiddenUniverses}
+      setHiddenUniverses={setHiddenUniverses}
+      enableSponsoredFeedback={sort.topicLayoutData?.enableSponsoredFeedback === 'true'}
+      sponsoredUserCohort={sort.topicLayoutData?.sponsoredUserCohort}
+      enableReportAd={sort.topicLayoutData?.enableReportAd === 'true'}
     />
   );
 };
 
 GameGridFeedItem.defaultProps = {
-  isExpandHomeContentEnabled: undefined,
+  isDynamicLayoutSizingEnabled: undefined,
   isNewSortHeaderEnabled: undefined
 };
 

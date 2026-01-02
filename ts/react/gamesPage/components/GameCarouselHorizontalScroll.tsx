@@ -3,6 +3,7 @@ import { WithTranslationsProps } from 'react-utilities';
 import classNames from 'classnames';
 import { TGameData, TGetFriendsResponse } from '../../common/types/bedev1Types';
 import { TBuildEventProperties } from '../../common/components/GameTileUtils';
+import { isWideTileComponentType } from '../../common/utils/parsingUtils';
 import GameTileTypeMap from '../../common/components/GameTileTypeMap';
 import ScrollArrows from './ScrollArrows';
 import { PageContext } from '../../common/types/pageContext';
@@ -38,7 +39,7 @@ type TGamesPageGameCarouselProps = {
   hideTileMetadata?: boolean;
   hoverStyle?: THoverStyle;
   topicId?: string;
-  isExpandHomeContentEnabled?: boolean;
+  isDynamicLayoutSizingEnabled?: boolean;
   isCarouselHorizontalScrollEnabled?: boolean;
   isNewScrollArrowsEnabled?: boolean;
   hideScrollBackWhenDisabled?: boolean;
@@ -74,7 +75,7 @@ export const GameCarouselHorizontalScroll = ({
   hideTileMetadata,
   hoverStyle,
   topicId,
-  isExpandHomeContentEnabled,
+  isDynamicLayoutSizingEnabled,
   isCarouselHorizontalScrollEnabled,
   isNewScrollArrowsEnabled,
   hideScrollBackWhenDisabled,
@@ -93,7 +94,7 @@ export const GameCarouselHorizontalScroll = ({
   const [carouselLeftValue, setCarouselLeftValue] = useState<number>(0);
 
   const isWideTileCarousel = useMemo(() => {
-    return componentType === TComponentType.GridTile || componentType === TComponentType.EventTile;
+    return isWideTileComponentType(componentType);
   }, [componentType]);
 
   const gameTileWidthOffset = useMemo(() => {
@@ -275,8 +276,8 @@ export const GameCarouselHorizontalScroll = ({
       className={classNames('horizontal-scroller games-list', {
         'home-page-games-list': page === PageContext.HomePage,
         'wide-game-tile-list': isWideTileCarousel,
-        'expand-home-content': isExpandHomeContentEnabled,
-        'expand-home-content-disabled': !isExpandHomeContentEnabled
+        'dynamic-layout-sizing': isDynamicLayoutSizingEnabled,
+        'dynamic-layout-sizing-disabled': !isDynamicLayoutSizingEnabled
       })}>
       <div ref={carouselWindowRef} className='clearfix horizontal-scroll-window'>
         <div
@@ -361,7 +362,7 @@ GameCarouselHorizontalScroll.defaultProps = {
   hideTileMetadata: undefined,
   hoverStyle: undefined,
   topicId: undefined,
-  isExpandHomeContentEnabled: undefined,
+  isDynamicLayoutSizingEnabled: undefined,
   isCarouselHorizontalScrollEnabled: undefined,
   isNewScrollArrowsEnabled: undefined,
   hideScrollBackWhenDisabled: false

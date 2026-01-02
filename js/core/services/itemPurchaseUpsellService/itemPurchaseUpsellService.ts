@@ -3,9 +3,7 @@ import {
   RobloxIntlInstance,
   RobloxTranslationResource,
   RobloxTranslationResourceProviderInstance,
-  TranslationResourceProvider,
-  ExperimentationService,
-  CurrentUser
+  TranslationResourceProvider
 } from 'Roblox';
 import { AxiosResponse } from 'core-utilities';
 import { upsellUtil, paymentFlowAnalyticsService } from 'core-roblox-utilities';
@@ -76,7 +74,8 @@ export default class ItemPurchaseUpsellService {
     itemDetail: ItemDetailObject,
     startOriginalFlowCallback: (e?: InsufficientFundsErrorObject) => void,
     itemPurchaseDataElementMap = document.getElementById(ITEM_PURCHASE_AJAX_DATA_HTML_ELEMENT_ID)
-      ?.dataset
+      ?.dataset,
+    shouldShowUnifiedPurchaseModal = false
   ): Promise<InsufficientFundsErrorObject | void> {
     const itemPurchaseAjaxData = itemPurchaseDataElementMap as
       | ItemPurchaseAjaxDataObject
@@ -142,7 +141,8 @@ export default class ItemPurchaseUpsellService {
             upsellProductResponse.data,
             this.intl,
             this.intlProvider.getTranslationResource(PURCHASE_DIALOG_NAMESPACE),
-            this.intlProvider
+            this.intlProvider,
+            shouldShowUnifiedPurchaseModal
           );
           return Promise.resolve();
         }
@@ -176,7 +176,8 @@ export default class ItemPurchaseUpsellService {
     itemDetailDataset: ItemDetailElementDataset,
     startOriginalInsufficientFundsViewCallback: () => void,
     itemPurchaseDataElementMap = document.getElementById(ITEM_PURCHASE_AJAX_DATA_HTML_ELEMENT_ID)
-      ?.dataset
+      ?.dataset,
+    shouldShowUnifiedPurchaseModal = false
   ) {
     reportCounter(UPSELL_COUNTER_NAMES.UpsellExceedLargestEntryPoint, itemDetailDataset?.assetType);
     const itemPurchaseAjaxData = itemPurchaseDataElementMap as
@@ -202,7 +203,8 @@ export default class ItemPurchaseUpsellService {
         robuxShortfallPrice,
         itemPurchaseAjaxData.imageurl,
         itemDetailDataset,
-        this.intlProvider.getTranslationResource(PURCHASE_DIALOG_NAMESPACE)
+        this.intlProvider.getTranslationResource(PURCHASE_DIALOG_NAMESPACE),
+        shouldShowUnifiedPurchaseModal
       );
       reportCounter(
         UPSELL_COUNTER_NAMES.UpsellExceedLargestModalExpTrue,

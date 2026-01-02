@@ -16,11 +16,7 @@ type TargetTypes = {
 
 export const targetTypes: TargetTypes = {
   ...DEFAULT_TARGET_TYPES,
-  ...(window.Roblox.EventStream != null
-    ? // TODO: old, migrated code
-      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-      (window.Roblox.EventStream.TargetTypes as typeof DEFAULT_TARGET_TYPES)
-    : {}),
+  ...(window.Roblox.EventStream?.TargetTypes ?? {}),
 };
 
 export const sendEventWithTarget = (

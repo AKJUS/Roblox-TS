@@ -10,7 +10,8 @@ const FriendTileContent = ({
   userPresence,
   hasVerifiedBadge,
   sendClickEvent,
-  translate
+  translate,
+  isTrustedConnection
 }: {
   id: number;
   displayName: string;
@@ -19,6 +20,7 @@ const FriendTileContent = ({
   hasVerifiedBadge: boolean;
   sendClickEvent: () => void;
   translate: TranslateFunction;
+  isTrustedConnection: boolean;
 }): JSX.Element => {
   return (
     <div className='friend-tile-content'>
@@ -27,6 +29,7 @@ const FriendTileContent = ({
         translate={translate}
         userProfileUrl={userProfileUrl}
         handleImageClick={sendClickEvent}
+        isTrustedConnection={isTrustedConnection}
       />
 
       <a

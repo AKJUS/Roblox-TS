@@ -1,6 +1,5 @@
 import PropTypes from "prop-types";
 import classNames from "classnames";
-import "../friends.scss";
 
 const AvatarCaptionTitle = ({ title, titleLink, verifiedBadgeData }) => {
   // Can't use the normal import { BadgeSizes, VerifiedBadgeIcon } from 'roblox-badges'; b/c this is used on the devops site where roblox-badges does not exist.

@@ -21,7 +21,7 @@ const FriendsCarouselHeader = ({
 
   return (
     <div className='container-header people-list-header'>
-      {friendsCount == null ? (
+      {friendsCount == null || friendsCount === 0 ? (
         <h2>{translate(carouselHeaderText)}</h2>
       ) : (
         <h2>

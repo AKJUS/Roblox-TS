@@ -30,7 +30,6 @@ export default class TranslationResourceProvider {
     };
 
     if (Object.keys(resourceMap).length === 0) {
-      // eslint-disable-next-line no-console
       console.warn(`The namespace ${namespace} was not found`);
     }
 

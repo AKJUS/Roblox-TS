@@ -1,10 +1,10 @@
+import axios, { AxiosPromise } from "axios";
 import {
   interceptChallenge,
   Migrate,
   parseChallengeSpecificProperties,
   renderChallenge,
 } from "@rbx/generic-challenges";
-import axios, { AxiosPromise } from "axios";
 import { getToken, setToken } from "../auth/xsrfToken";
 import * as endpoints from "../endpoints";
 import {
@@ -219,13 +219,11 @@ axios.interceptors.response.use(
             challengeTypeRaw,
             challengeMetadataJsonBase64,
             // TODO: old, migrated code
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
             legacyGenericRender: AccountIntegrityChallengeService?.Generic.renderChallenge,
           });
         }
         // Or fallback to the globally-bound legacy web challenge middleware.
-        // TODO: old, migrated code
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         if (AccountIntegrityChallengeService) {
           // TODO: old, migrated code
           // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
@@ -236,7 +234,6 @@ axios.interceptors.response.use(
             challengeTypeRaw,
             challengeMetadataJsonBase64,
             newRenderChallenge: renderChallenge,
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             newParseChallenge: parseChallengeSpecificProperties,
           });
         }

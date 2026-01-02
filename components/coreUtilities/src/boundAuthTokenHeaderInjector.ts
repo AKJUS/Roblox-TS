@@ -27,7 +27,7 @@ try {
   const hba = hbaMeta();
   if (hba.boundAuthTokenWhitelist) {
     // TODO: old, migrated code
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
     const batWhitelistWrapper = JSON.parse(hba.boundAuthTokenWhitelist) as BatWhitelistWrapper;
     const batWhitelist = batWhitelistWrapper.Whitelist;
     for (const apiSampling of batWhitelist) {
@@ -82,7 +82,7 @@ const initializeBoundAuthTokensForJQuery = (): void => {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       url: options.url!,
       // TODO: old, migrated code
-      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
       withCredentials: (options.xhrFields?.withCredentials as boolean) || false,
       // TODO: Differentiate between added and passed headers in the Promise's return value if BAT
       // generation ever needs to make use of passed headers.
@@ -97,8 +97,8 @@ const initializeBoundAuthTokensForJQuery = (): void => {
     // 2. Override the current jQuery XMLHttpRequest constructor with an XMLHttpRequest constructor
     // that waits to inject BAT headers on `send`.
     // TODO: old, migrated code
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    const originalXhr = (options.xhr || $.ajaxSettings.xhr) as () => XMLHttpRequest;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+    const originalXhr = (options.xhr ?? $.ajaxSettings.xhr) as () => XMLHttpRequest;
     // eslint-disable-next-line no-param-reassign
     options.xhr = () => {
       // 3. Within the constructor override, start by instantiating the current XMLHttpRequest-like
@@ -119,7 +119,6 @@ const initializeBoundAuthTokensForJQuery = (): void => {
             try {
               Object.entries(config.headers ?? {}).forEach(([key, value]) => {
                 // @ts-expect-error TODO: old, migrated code
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-call
                 xhr.setRequestHeader(key, value.toString());
               });
             } catch (e) {

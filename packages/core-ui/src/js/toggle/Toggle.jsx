@@ -27,7 +27,9 @@ function Toggle({ isOn, className, isDisabled, onToggle, id }) {
 
 Toggle.defaultProps = {
   isDisabled: false,
-  onToggle: () => {},
+  onToggle: () => {
+    // do nothing
+  },
   className: "",
   id: "",
 };

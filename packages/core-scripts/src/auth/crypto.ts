@@ -17,6 +17,13 @@ const SIGNATURE_ALGORITHM_SPEC = {
 const FNV_PRIME = 0x01000193;
 const FNV_OFFSET_BASIS = 0x811c9dc5;
 
+export type TSecureAuthIntent = {
+  clientPublicKey: string;
+  clientEpochTimestamp: number;
+  serverNonce: string;
+  saiSignature: string;
+};
+
 /**
  * Converts the passed string to an array buffer.
  *
@@ -137,15 +144,11 @@ export const hashStringWithFnv1a32 = (str: string): string => {
 
   let hash = FNV_OFFSET_BASIS;
   for (const byte of bytes) {
-    // eslint-disable-next-line no-bitwise
     hash ^= byte; // Process each byte
-
-    // eslint-disable-next-line no-bitwise
     hash = Math.imul(hash, FNV_PRIME); // Use Math.imul for 32-bit multiplication
   }
 
   // Convert to hexadecimal and ensure lowercase
-  // eslint-disable-next-line no-bitwise
   let hex = (hash >>> 0).toString(16).toLowerCase();
 
   // Manually prepend zeros to ensure the string is 8 characters long

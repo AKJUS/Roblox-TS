@@ -14,10 +14,15 @@ function VerificationCompletePage({
   onHide: () => void;
 }): React.ReactElement {
   const IDVStore = useSelector(selectIDVState);
-  const { completionPageState, status, vendorVerificationData } = IDVStore;
+  const {
+    completionPageState,
+    status,
+    vendorVerificationData,
+    error: verificationError
+  } = IDVStore;
   const { daysUntilNextVerification } = vendorVerificationData;
   const { heading, bodyText, icon, footerText, buttonText } = completionPageState;
-  const errorState = status.sessionStatus === VerificationStatusCode.Failure;
+  const errorState = status?.sessionStatus === VerificationStatusCode.Failure || verificationError;
   const minimumAge = 18;
 
   return (

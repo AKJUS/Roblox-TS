@@ -1,6 +1,6 @@
-import { callBehaviour } from '@rbx/core-scripts/guac';
-import { httpService } from '@rbx/core-scripts/legacy/core-utilities';
-import urlConstants from '../constants/urlConstants';
+import { callBehaviour } from "@rbx/core-scripts/guac";
+import { httpService } from "@rbx/core-scripts/legacy/core-utilities";
+import urlConstants from "../constants/urlConstants";
 
 const {
   getEmailStatusUrl,
@@ -14,7 +14,7 @@ const {
   getCreditBalanceForNavigationUrl,
   getGiftCardVisibilityUrl,
   getSignedVngShopUrl,
-  getRobuxBadgeUrl
+  getRobuxBadgeUrl,
 } = urlConstants;
 
 export default {
@@ -29,7 +29,7 @@ export default {
   },
 
   getGuacBehavior() {
-    return callBehaviour('navigation-header-ui');
+    return callBehaviour("navigation-header-ui");
   },
 
   getTradeStatusCount() {
@@ -85,5 +85,5 @@ export default {
   getRobuxBadge() {
     const urlConfig = { url: getRobuxBadgeUrl(), withCredentials: true };
     return httpService.get(urlConfig);
-  }
+  },
 };

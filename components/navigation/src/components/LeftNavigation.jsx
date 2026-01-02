@@ -1,47 +1,21 @@
-/* eslint-disable jsx-a11y/anchor-is-valid */
-import { useState, useEffect, useRef } from 'react';
-import PropTypes from 'prop-types';
-import ClassNames from 'classnames';
-import { Link, ScrollBar } from '@rbx/core-ui/legacy/react-style-guide';
-import { Thumbnail2d, ThumbnailTypes } from '@rbx/thumbnails';
-import { authenticatedUser } from '@rbx/core-scripts/legacy/header-scripts';
+import { useRef } from "react";
+import PropTypes from "prop-types";
+import ClassNames from "classnames";
+import { Link, ScrollBar } from "@rbx/core-ui/legacy/react-style-guide";
+import { Thumbnail2d, ThumbnailTypes } from "@rbx/thumbnails";
+import { authenticatedUser } from "@rbx/core-scripts/legacy/header-scripts";
 import {
   BadgeSizes,
   VerifiedBadgeIconContainer,
-  robloxBadgesReadyForRender,
-  currentUserHasVerifiedBadge
-} from '@rbx/roblox-badges';
-import links from '../constants/linkConstants';
-import ScrollListContainer from '../containers/ScrollListContainer';
-import userUtil from '../util/userUtil';
+  currentUserHasVerifiedBadge,
+} from "@rbx/roblox-badges";
+import links from "../constants/linkConstants";
+import ScrollListContainer from "../containers/ScrollListContainer";
+import userUtil from "../util/userUtil";
 
 function LeftNavigation({ isLeftNavOpen, ...props }) {
-  const [showBadge, setShowBadge] = useState(false);
+  const showBadge = currentUserHasVerifiedBadge();
   const renderEl = useRef(null);
-
-  let onNavOpenHandler;
-
-  useEffect(() => {
-    const bootstrapBadges = async () => {
-      if (onNavOpenHandler && isLeftNavOpen) {
-        onNavOpenHandler();
-      } else {
-        try {
-          const readyForRender = await robloxBadgesReadyForRender();
-          if (readyForRender) {
-            setShowBadge(currentUserHasVerifiedBadge());
-          }
-        } catch (e) {
-          setShowBadge(false);
-        }
-      }
-    };
-    bootstrapBadges().catch(() => {
-      // Do nothing if we aren't able to get the verified badge status.
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLeftNavOpen, renderEl]);
-
   const badgeToRender =
     showBadge && VerifiedBadgeIconContainer ? (
       <section
@@ -56,12 +30,12 @@ function LeftNavigation({ isLeftNavOpen, ...props }) {
       </section>
     ) : null;
 
-  const classNames = ClassNames('rbx-left-col', {
-    'nav-show': isLeftNavOpen
+  const classNames = ClassNames("rbx-left-col", {
+    "nav-show": isLeftNavOpen,
   });
 
-  const displayNameDivClasses = ClassNames('font-header-2 dynamic-ellipsis-item', {
-    'verified-badge-left-nav': showBadge
+  const displayNameDivClasses = ClassNames("font-header-2 dynamic-ellipsis-item", {
+    "verified-badge-left-nav": showBadge,
   });
 
   return (
@@ -95,7 +69,7 @@ function LeftNavigation({ isLeftNavOpen, ...props }) {
 }
 
 LeftNavigation.propTypes = {
-  isLeftNavOpen: PropTypes.bool.isRequired
+  isLeftNavOpen: PropTypes.bool.isRequired,
 };
 
 export default LeftNavigation;

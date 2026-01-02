@@ -1,14 +1,13 @@
-/* eslint-disable jsx-a11y/anchor-is-valid */
-import React, { useEffect, useRef, useState } from 'react';
-import PropTypes from 'prop-types';
-import { Link } from '@rbx/core-ui/legacy/react-style-guide';
-import { paymentFlowAnalyticsService as analytics } from '@rbx/core-scripts/legacy/core-roblox-utilities';
-import { withTranslations } from '@rbx/core-scripts/react';
-import { authenticatedUser } from '@rbx/core-scripts/legacy/header-scripts';
-import links from '../constants/linkConstants';
-import { translations } from '../../component.json';
-import navigationService from '../services/navigationService';
-import LeaveRobloxPopupDisclaimer from '../components/robux-popover/LeaveRobloxPopupDisclaimer';
+import React, { useEffect, useRef, useState } from "react";
+import PropTypes from "prop-types";
+import { Link } from "@rbx/core-ui/legacy/react-style-guide";
+import { paymentFlowAnalyticsService as analytics } from "@rbx/core-scripts/legacy/core-roblox-utilities";
+import { withTranslations } from "@rbx/core-scripts/react";
+import { authenticatedUser } from "@rbx/core-scripts/legacy/header-scripts";
+import links from "../constants/linkConstants";
+import { translations } from "../../component.json";
+import navigationService from "../services/navigationService";
+import LeaveRobloxPopupDisclaimer from "../components/robux-popover/LeaveRobloxPopupDisclaimer";
 
 function NavigationRobux({ translate }) {
   const { buyRobuxUrl } = links;
@@ -27,7 +26,7 @@ function NavigationRobux({ translate }) {
       false,
       ENUM_VIEW_NAME.NAVIGATION_ROBUX_TEXT,
       ENUM_PURCHASE_EVENT_TYPE.USER_INPUT,
-      viewMessage
+      viewMessage,
     );
   };
 
@@ -67,11 +66,11 @@ function NavigationRobux({ translate }) {
 
     navigationService.getVngShopSignedRedirectionUrl().then(
       ({ data: { vngShopRedirectUrl } }) => {
-        window.open(vngShopRedirectUrl || buyRobuxOnVng.url, '_blank').focus();
+        window.open(vngShopRedirectUrl || buyRobuxOnVng.url, "_blank").focus();
       },
       () => {
-        window.open(buyRobuxOnVng.url, '_blank').focus();
-      }
+        window.open(buyRobuxOnVng.url, "_blank").focus();
+      },
     );
 
     setIsPopupOpen(false);
@@ -107,7 +106,7 @@ function NavigationRobux({ translate }) {
 }
 
 NavigationRobux.propTypes = {
-  translate: PropTypes.func.isRequired
+  translate: PropTypes.func.isRequired,
 };
 
 export default withTranslations(NavigationRobux, translations);

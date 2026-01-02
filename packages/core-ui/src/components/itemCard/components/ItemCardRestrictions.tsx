@@ -1,4 +1,4 @@
-import React, { JSX } from "react";
+import { JSX } from "react";
 import { mapItemRestrictionIcons } from "../utils";
 
 function ItemCardRestrictions({
@@ -7,15 +7,11 @@ function ItemCardRestrictions({
 }: {
   type: string;
   itemRestrictions: string[] | undefined;
-}): JSX.Element {
+}): JSX.Element | null {
   const itemRestrictionLabels = mapItemRestrictionIcons(itemRestrictions, type);
-  return (
-    <React.Fragment>
-      {itemRestrictions !== undefined && itemRestrictions.length > 0 && (
-        <span className={`restriction-icon ${itemRestrictionLabels.itemRestrictionIcon}`} />
-      )}
-    </React.Fragment>
-  );
+  return itemRestrictions?.length ? (
+    <span className={`restriction-icon ${itemRestrictionLabels.itemRestrictionIcon}`} />
+  ) : null;
 }
 
 export default ItemCardRestrictions;

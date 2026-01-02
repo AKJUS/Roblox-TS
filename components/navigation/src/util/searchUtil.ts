@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/switch-exhaustiveness-check */
-import { TranslationResourceProvider } from '@rbx/core-scripts/legacy/Roblox';
-import links from '../constants/linkConstants';
-import searchConstants from '../constants/searchConstants';
-import { GamesAutocompleteSuggestionEntryType } from '../services/searchService';
+import { TranslationResourceProvider } from "@rbx/core-scripts/legacy/Roblox";
+import links from "../constants/linkConstants";
+import searchConstants from "../constants/searchConstants";
+import { GamesAutocompleteSuggestionEntryType } from "../services/searchService";
 
 interface Suggestion {
   label?: string;
@@ -23,14 +23,14 @@ const isGameSuggestion = (suggestion: Suggestion) =>
 
 const getAutocompleteSearchType = (suggestion: Suggestion) => {
   if (isAvatarAutocompleteSuggestion(suggestion)) {
-    return 'avatar';
+    return "avatar";
   }
   switch (suggestion.type) {
     case GamesAutocompleteSuggestionEntryType.QuerySuggestion: {
-      return 'keyword';
+      return "keyword";
     }
     case GamesAutocompleteSuggestionEntryType.GameSuggestion: {
-      return 'game';
+      return "game";
     }
     default: {
       throw Error(`Unrecognized autocomplete suggestion, ${JSON.stringify(suggestion)}`);
@@ -40,22 +40,22 @@ const getAutocompleteSearchType = (suggestion: Suggestion) => {
 
 const getDefaultSearchType = (suggestion: Suggestion) => {
   switch (suggestion.label) {
-    case 'Label.Players': {
-      return 'defaultPlayers';
+    case "Label.Players": {
+      return "defaultPlayers";
     }
-    case 'Heading.Marketplace':
-    case 'Label.AvatarShop':
-    case 'Label.sCatalog': {
-      return 'defaultShops';
+    case "Heading.Marketplace":
+    case "Label.AvatarShop":
+    case "Label.sCatalog": {
+      return "defaultShops";
     }
-    case 'Label.sGroups': {
-      return 'defaultGroups';
+    case "Label.sGroups": {
+      return "defaultGroups";
     }
-    case 'Label.CreatorStore': {
-      return 'defaultLibrary';
+    case "Label.CreatorStore": {
+      return "defaultLibrary";
     }
-    case 'Label.Experience': {
-      return 'defaultGames';
+    case "Label.Experience": {
+      return "defaultGames";
     }
     default: {
       throw Error(`Unrecognized default suggestion, ${JSON.stringify(suggestion)}`);
@@ -65,25 +65,25 @@ const getDefaultSearchType = (suggestion: Suggestion) => {
 
 const getSuggestionUrl = (
   suggestion: Suggestion,
-  event: React.ChangeEvent<HTMLInputElement> | undefined
+  event: React.ChangeEvent<HTMLInputElement> | undefined,
 ) => {
   if (isAutocompleteSuggestion(suggestion) && isAvatarAutocompleteSuggestion(suggestion)) {
-    return links.avatarSearchLink.url + encodeURIComponent(suggestion.Query ?? '');
+    return links.avatarSearchLink.url + encodeURIComponent(suggestion.Query ?? "");
   }
   if (isAutocompleteSuggestion(suggestion)) {
-    return links.gameSearchLink.url + encodeURIComponent(suggestion.searchQuery ?? '');
+    return links.gameSearchLink.url + encodeURIComponent(suggestion.searchQuery ?? "");
   }
   if (event?.target.value) {
-    return (suggestion.url ?? '') + encodeURIComponent(event.target.value);
+    return (suggestion.url ?? "") + encodeURIComponent(event.target.value);
   }
 
-  return '';
+  return "";
 };
 
 const getAvatarAutocompleteLanguageCode = () => {
   const translationProvider = new TranslationResourceProvider();
   let locale = translationProvider.intl.getLocale();
-  const regionChar = locale.indexOf('-');
+  const regionChar = locale.indexOf("-");
   locale = locale.substring(0, regionChar !== -1 ? regionChar : locale.length);
   if (locale !== searchConstants.englishLanguageCode) {
     locale += `,${searchConstants.englishLanguageCode}`;
@@ -99,7 +99,7 @@ const serializeSuggestions = (suggestions: Suggestion[], searchInput: string) =>
       }
       return `${getDefaultSearchType(suggestion)}|${searchInput}`;
     })
-    .join(',');
+    .join(",");
 
 export default {
   isAutocompleteSuggestion,
@@ -110,5 +110,5 @@ export default {
   getDefaultSearchType,
   getSuggestionUrl,
   getAvatarAutocompleteLanguageCode,
-  serializeSuggestions
+  serializeSuggestions,
 };

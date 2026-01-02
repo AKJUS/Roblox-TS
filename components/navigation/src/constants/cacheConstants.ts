@@ -1,5 +1,5 @@
 const cacheConstants = {
-  userCacheKey: 'CachedUserId'
+  userCacheKey: "CachedUserId",
 };
 
 export default cacheConstants;

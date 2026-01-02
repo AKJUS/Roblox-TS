@@ -1,118 +1,118 @@
-import privacyChoicesIcon from '../images/privacyChoices.webp';
+import privacyChoicesIcon from "../images/privacyChoices.webp";
 
 export const linksList = [
   {
-    name: 'about',
-    path: '/info/about-us',
-    labelTranslationKey: 'Label.AboutUs'
+    name: "about",
+    path: "/info/about-us",
+    labelTranslationKey: "Label.AboutUs",
   },
   {
-    name: 'jobs',
-    path: '/info/jobs',
-    labelTranslationKey: 'Label.Jobs'
+    name: "jobs",
+    path: "/info/jobs",
+    labelTranslationKey: "Label.Jobs",
   },
   {
-    name: 'blog',
-    path: '/info/blog',
-    labelTranslationKey: 'Label.sBlog'
+    name: "blog",
+    path: "/info/blog",
+    labelTranslationKey: "Label.sBlog",
   },
   {
-    name: 'parents',
-    path: '/info/parents',
-    labelTranslationKey: 'Label.Parents'
+    name: "parents",
+    path: "/info/parents",
+    labelTranslationKey: "Label.Parents",
   },
   {
-    name: 'help',
-    path: '/info/help',
-    labelTranslationKey: 'Label.Help'
+    name: "help",
+    path: "/info/help",
+    labelTranslationKey: "Label.Help",
   },
   {
-    name: 'terms',
-    path: '/info/terms',
-    labelTranslationKey: 'Label.Terms'
+    name: "terms",
+    path: "/info/terms",
+    labelTranslationKey: "Label.Terms",
   },
   {
-    name: 'accessibility',
-    path: '/info/accessibility',
-    labelTranslationKey: 'Label.Accessibility'
+    name: "accessibility",
+    path: "/info/accessibility",
+    labelTranslationKey: "Label.Accessibility",
   },
   {
-    name: 'privacy',
-    path: '/info/privacy',
-    labelTranslationKey: 'Label.Privacy'
+    name: "privacy",
+    path: "/info/privacy",
+    labelTranslationKey: "Label.Privacy",
   },
   {
-    name: 'your-privacy-choices',
-    path: '/my/account#!/privacy',
-    labelTranslationKey: 'Label.YourPrivacyChoices',
-    postfixIcon: privacyChoicesIcon
+    name: "your-privacy-choices",
+    path: "/my/account#!/privacy",
+    labelTranslationKey: "Label.YourPrivacyChoices",
+    postfixIcon: privacyChoicesIcon,
   },
   {
-    name: 'sitemap',
-    path: '/sitemap',
-    labelTranslationKey: 'Label.Sitemap'
-  }
+    name: "sitemap",
+    path: "/sitemap",
+    labelTranslationKey: "Label.Sitemap",
+  },
 ];
 
 export const linksListWithGiftCardLabel = [
   {
-    name: 'about',
-    path: '/info/about-us',
-    labelTranslationKey: 'Label.AboutUs'
+    name: "about",
+    path: "/info/about-us",
+    labelTranslationKey: "Label.AboutUs",
   },
   {
-    name: 'jobs',
-    path: '/info/jobs',
-    labelTranslationKey: 'Label.Jobs'
+    name: "jobs",
+    path: "/info/jobs",
+    labelTranslationKey: "Label.Jobs",
   },
   {
-    name: 'blog',
-    path: '/info/blog',
-    labelTranslationKey: 'Label.sBlog'
+    name: "blog",
+    path: "/info/blog",
+    labelTranslationKey: "Label.sBlog",
   },
   {
-    name: 'parents',
-    path: '/info/parents',
-    labelTranslationKey: 'Label.Parents'
+    name: "parents",
+    path: "/info/parents",
+    labelTranslationKey: "Label.Parents",
   },
   {
-    name: 'giftcards',
-    path: '/giftcards',
-    labelTranslationKey: 'Label.GiftCards',
-    cssClass: 'giftcards'
+    name: "giftcards",
+    path: "/giftcards",
+    labelTranslationKey: "Label.GiftCards",
+    cssClass: "giftcards",
   },
   {
-    name: 'help',
-    path: '/info/help',
-    labelTranslationKey: 'Label.Help'
+    name: "help",
+    path: "/info/help",
+    labelTranslationKey: "Label.Help",
   },
   {
-    name: 'terms',
-    path: '/info/terms',
-    labelTranslationKey: 'Label.Terms'
+    name: "terms",
+    path: "/info/terms",
+    labelTranslationKey: "Label.Terms",
   },
   {
-    name: 'accessibility',
-    path: '/info/accessibility',
-    labelTranslationKey: 'Label.Accessibility'
+    name: "accessibility",
+    path: "/info/accessibility",
+    labelTranslationKey: "Label.Accessibility",
   },
   {
-    name: 'privacy',
-    path: '/info/privacy',
-    labelTranslationKey: 'Label.Privacy'
+    name: "privacy",
+    path: "/info/privacy",
+    labelTranslationKey: "Label.Privacy",
   },
   {
-    name: 'your-privacy-choices',
-    path: '/my/account#!/privacy',
-    labelTranslationKey: 'Label.YourPrivacyChoices',
-    postfixIcon: privacyChoicesIcon
+    name: "your-privacy-choices",
+    path: "/my/account#!/privacy",
+    labelTranslationKey: "Label.YourPrivacyChoices",
+    postfixIcon: privacyChoicesIcon,
   },
   {
-    name: 'sitemap',
-    path: '/sitemap',
-    labelTranslationKey: 'Label.Sitemap'
-  }
+    name: "sitemap",
+    path: "/sitemap",
+    labelTranslationKey: "Label.Sitemap",
+  },
 ];
 
-export const infoTabHash = '#!/info';
-export const accountSettingsPathname = '/my/account';
+export const infoTabHash = "#!/info";
+export const accountSettingsPathname = "/my/account";

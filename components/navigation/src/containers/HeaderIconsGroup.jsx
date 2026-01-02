@@ -1,23 +1,23 @@
 // Since the notification stream is angularjs code, the notification-stream-indicator below is for
 // notification stream code to engage with navigation component
 /* eslint-disable react/no-unknown-property */
-import { useState, useEffect } from 'react';
-import angular from 'angular';
-import PropTypes from 'prop-types';
-import { authenticatedUser } from '@rbx/core-scripts/legacy/header-scripts';
-import { withTranslations } from '@rbx/core-scripts/react';
-import { createSystemFeedback } from '@rbx/core-ui/legacy/react-style-guide';
-import { localStorageService } from '@rbx/core-scripts/legacy/core-roblox-utilities';
-import navigationService from '../services/navigationService';
-import NotificationStreamPopover from '../components/NotificationStreamPopover';
-import SettingsPopover from '../components/SettingsPopover';
-import BuyRobuxPopover from '../components/robux-popover/BuyRobuxPopover';
-import UniverseSearchIcon from '../components/UniverseSearchIcon';
-import navigationUtil from '../util/navigationUtil';
-import AgeBracketDisplay from '../components/AgeBracketDisplay';
-import { translations } from '../../component.json';
-import layoutConstants from '../constants/layoutConstants';
-import { shouldShowRobuxUpdateBadge } from '../util/robuxBadgeUtil';
+import { useState, useEffect } from "react";
+import angular from "angular";
+import PropTypes from "prop-types";
+import { authenticatedUser } from "@rbx/core-scripts/legacy/header-scripts";
+import { withTranslations } from "@rbx/core-scripts/react";
+import { createSystemFeedback } from "@rbx/core-ui/legacy/react-style-guide";
+import { localStorageService } from "@rbx/core-scripts/legacy/core-roblox-utilities";
+import navigationService from "../services/navigationService";
+import NotificationStreamPopover from "../components/NotificationStreamPopover";
+import SettingsPopover from "../components/SettingsPopover";
+import BuyRobuxPopover from "../components/robux-popover/BuyRobuxPopover";
+import UniverseSearchIcon from "../components/UniverseSearchIcon";
+import navigationUtil from "../util/navigationUtil";
+import AgeBracketDisplay from "../components/AgeBracketDisplay";
+import { translations } from "../../component.json";
+import layoutConstants from "../constants/layoutConstants";
+import { shouldShowRobuxUpdateBadge } from "../util/robuxBadgeUtil";
 
 const { getAccountNotificationCount } = navigationUtil;
 const [SystemFeedback, systemFeedbackService] = createSystemFeedback();
@@ -30,13 +30,13 @@ function HeaderIconsGroup({ translate, toggleUniverseSearch }) {
   const [isEligibleForVng, setIsEligibleForVng] = useState(false);
   const [canAccessStream, setCanAccessStream] = useState(true);
   const [robuxBadgeType, setRobuxBadgeType] = useState(null);
-  const [robuxError, setRobuxError] = useState('');
+  const [robuxError, setRobuxError] = useState("");
   const [creditDisplayConfig, setCreditDisplayConfig] = useState(
-    layoutConstants.creditDisplayConfigVariants.control
+    layoutConstants.creditDisplayConfigVariants.control,
   );
   const [creditAmount, setCreditAmount] = useState(null);
   const [currencyCode, setCurrencyCode] = useState(null);
-  const [creditError, setCreditError] = useState('');
+  const [creditError, setCreditError] = useState("");
   // wait for experiment to load before loading Robux wallet icons
   const [isExperimentCallDone, setIsExperimentCallDone] = useState(false);
 
@@ -54,7 +54,7 @@ function HeaderIconsGroup({ translate, toggleUniverseSearch }) {
             const untranslatedMessage = layoutConstants.economySystemOutageMessage;
             const translatedMessage = translate(untranslatedMessage);
             setRobuxError(translatedMessage || untranslatedMessage);
-          }
+          },
         )
         .finally(() => {
           setGetCurrencyCallDone(true);
@@ -70,7 +70,7 @@ function HeaderIconsGroup({ translate, toggleUniverseSearch }) {
         },
         () => {
           setRobuxError(translate(layoutConstants.economySystemOutageMessage));
-        }
+        },
       );
     }
   };
@@ -99,7 +99,7 @@ function HeaderIconsGroup({ translate, toggleUniverseSearch }) {
   };
 
   useEffect(() => {
-    window.addEventListener(`navigation-update-user-currency`, event => {
+    window.addEventListener(`navigation-update-user-currency`, () => {
       getUserCurrency();
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -135,7 +135,7 @@ function HeaderIconsGroup({ translate, toggleUniverseSearch }) {
             } else {
               setCreditDisplayConfig(
                 creditData.creditDisplayConfig ??
-                  layoutConstants.creditDisplayConfigVariants.control
+                  layoutConstants.creditDisplayConfigVariants.control,
               );
             }
             setCreditAmount(creditData.creditBalance);
@@ -143,7 +143,7 @@ function HeaderIconsGroup({ translate, toggleUniverseSearch }) {
           },
           () => {
             setCreditError(translate(layoutConstants.economySystemOutageMessage));
-          }
+          },
         )
         .finally(() => {
           setIsExperimentCallDone(true);
@@ -152,22 +152,22 @@ function HeaderIconsGroup({ translate, toggleUniverseSearch }) {
       // Conditionally display account switched confirmation banner
       try {
         const accountSwitched = localStorageService.getLocalStorage(
-          layoutConstants.accountSwitchConfirmationKeys.accountSwitchedFlag
+          layoutConstants.accountSwitchConfirmationKeys.accountSwitchedFlag,
         );
 
         if (accountSwitched) {
           systemFeedbackService.success(
             translate(layoutConstants.accountSwitchConfirmationKeys.accountSwitchedMessage, {
-              accountName: authenticatedUser.name
+              accountName: authenticatedUser.name,
             }),
             0 /* show delay */,
-            5000 /* banner duration */
+            5000 /* banner duration */,
           );
           localStorageService.removeLocalStorage(
-            layoutConstants.accountSwitchConfirmationKeys.accountSwitchedFlag
+            layoutConstants.accountSwitchConfirmationKeys.accountSwitchedFlag,
           );
         }
-      } catch (err) {
+      } catch {
         // no op
       }
     }
@@ -182,8 +182,8 @@ function HeaderIconsGroup({ translate, toggleUniverseSearch }) {
     </li>
   );
   try {
-    angular.module('notificationStreamIcon');
-    angular.module('notificationStream');
+    angular.module("notificationStreamIcon");
+    angular.module("notificationStream");
     notificationStream = <NotificationStreamPopover />;
   } catch (err) {
     console.error(err);
@@ -215,7 +215,7 @@ function HeaderIconsGroup({ translate, toggleUniverseSearch }) {
 
 HeaderIconsGroup.propTypes = {
   translate: PropTypes.func.isRequired,
-  toggleUniverseSearch: PropTypes.func.isRequired
+  toggleUniverseSearch: PropTypes.func.isRequired,
 };
 
 export default withTranslations(HeaderIconsGroup, translations);

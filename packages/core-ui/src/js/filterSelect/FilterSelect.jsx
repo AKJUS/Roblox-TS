@@ -2,10 +2,9 @@ import React from "react";
 import PropTypes from "prop-types";
 import Dropdown from "react-bootstrap/lib/Dropdown";
 
-/* eslint-disable react/prefer-stateless-function */
 class CustomToggle extends React.Component {
   render() {
-    const { onKeywordChange, bsRole, bsClass, placeholder, ...otherProps } = this.props;
+    const { onKeywordChange, placeholder, ...otherProps } = this.props;
 
     return (
       <div className="input-group">
@@ -18,6 +17,8 @@ class CustomToggle extends React.Component {
           defaultValue=""
         />
         <div className="input-group-btn">
+          {/* TODO: old, migrated code */}
+          {/* eslint-disable-next-line jsx-a11y/control-has-associated-label */}
           <button type="button" className="input-addon-btn">
             <span className="icon-search" />
           </button>
@@ -27,22 +28,15 @@ class CustomToggle extends React.Component {
   }
 }
 
-CustomToggle.defaultProps = {
-  bsRole: null,
-  bsClass: null,
-};
-
 CustomToggle.propTypes = {
   placeholder: PropTypes.string.isRequired,
   onKeywordChange: PropTypes.func.isRequired,
-  bsRole: PropTypes.string,
-  bsClass: PropTypes.string,
 };
 
 function FilterSelect({ id, placeholder, children, onKeywordChange }) {
   return (
     <Dropdown id={id} className="input-group-btn">
-      <CustomToggle bsRole="toggle" placeholder={placeholder} onKeywordChange={onKeywordChange} />
+      <CustomToggle placeholder={placeholder} onKeywordChange={onKeywordChange} />
       <Dropdown.Menu bsRole="menu">{children}</Dropdown.Menu>
     </Dropdown>
   );

@@ -5,7 +5,10 @@ const eventNames = {
   conversationMessageSent: 'conversationMessageSent',
   webChatConversationsLoaded: 'webChatConversationsLoaded',
   webChatConversationRendered: 'webChatConversationRendered',
-  webChatRendered: 'webChatRendered'
+  webChatRendered: 'webChatRendered',
+  webChatModalRendered: 'webChatModalRendered',
+  webChatModalAction: 'webChatModalAction',
+  webChatModalActionResult: 'webChatModalActionResult'
 };
 
 chatModule.constant('eventNames', eventNames);

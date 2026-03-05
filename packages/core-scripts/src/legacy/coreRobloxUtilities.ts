@@ -14,6 +14,7 @@ import * as localStorageKeys from "../local-storage/keys";
 import * as chat from "../util/chat";
 import * as elementVisibility from "../util/elementVisibility";
 import * as upsell from "../util/upsell";
+import { isGoogleAnalyticsCookieConsentOptIn } from "../cookie";
 
 export const boundAuthTokensHttpUtil = {
   buildConfigBoundAuthToken: boundAuth.buildConfigBoundAuthToken,
@@ -97,3 +98,5 @@ export const upsellUtil = {
 // eslint-disable-next-line @typescript-eslint/no-deprecated
 export { default as userInfoService } from "../util/user";
 export type { TSecureAuthIntent } from "../auth/crypto";
+// Exposed on CoreRobloxUtilities for WebApps (coreUtilities/entry.ts addExternal("CoreRobloxUtilities", { ...CoreRobloxUtilities }))
+export { isGoogleAnalyticsCookieConsentOptIn };

@@ -191,7 +191,8 @@ function dialog(
         const selectedUserPosition = angular.isDefined(scope.dialogData.selectedUserIds)
           ? scope.dialogData.selectedUserIds.indexOf(friendId)
           : -1;
-        return currentUserPosition < 0 && selectedUserPosition < 0;
+        const isLocalUser = friendId === scope.chatLibrary.userId;
+        return currentUserPosition < 0 && selectedUserPosition < 0 && !isLocalUser;
       };
 
       // dialogLibrary is used for chat dialogs in each tab status

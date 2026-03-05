@@ -1,9 +1,9 @@
 import {
   supportedDeferredDeeplinkPathPatterns,
-  deferredDeeplinkTokenQueryParameterKey
-} from './deferredDeeplinkConstants';
-import getExperienceAffiliateReferralUrl from './getExperienceAffiliateReferralUrlParams';
-import createDeeplinkToken from './deferredDeeplinkTokenService';
+  deferredDeeplinkTokenQueryParameterKey,
+} from "./deferredDeeplinkConstants";
+import getExperienceAffiliateReferralUrl from "./getExperienceAffiliateReferralUrlParams";
+import createDeeplinkToken from "./deferredDeeplinkTokenService";
 
 function getDeferredDeeplinkUrl(url: string): string | null {
   const affiliateReferralUrl = getExperienceAffiliateReferralUrl(url);
@@ -12,11 +12,11 @@ function getDeferredDeeplinkUrl(url: string): string | null {
   }
 
   const sanitizedUrl = new URL(url);
-  sanitizedUrl.search = '';
-  sanitizedUrl.hash = '';
+  sanitizedUrl.search = "";
+  sanitizedUrl.hash = "";
 
   const isSupportedDeferredDeeplinkSource = supportedDeferredDeeplinkPathPatterns.some(pattern =>
-    pattern.test(sanitizedUrl.pathname)
+    pattern.test(sanitizedUrl.pathname),
   );
 
   if (isSupportedDeferredDeeplinkSource) {
@@ -26,7 +26,7 @@ function getDeferredDeeplinkUrl(url: string): string | null {
 }
 
 async function getDeferredDeeplinkQueryParams(url: string): Promise<string> {
-  let queryParams = '';
+  let queryParams = "";
 
   const deeplinkUrl = getDeferredDeeplinkUrl(url);
   if (!deeplinkUrl) {

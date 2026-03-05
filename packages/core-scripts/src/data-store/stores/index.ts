@@ -15,6 +15,8 @@ import translationRolesDataStore from "./translationRoles/translationRolesDataSt
 import userDataStore from "./userData/userDataStore";
 import authIntentDataStore from "./authIntent/authIntentDataStore";
 
+export type { AuthIntent, GameIntent, UserAuthIntent } from "./authIntent/authIntentDataStore";
+
 // please keep this alphabetical
 export default {
   authIntentDataStore,

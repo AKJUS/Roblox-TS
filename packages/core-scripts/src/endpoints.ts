@@ -1,12 +1,12 @@
 import $ from "jquery";
-// TODO: old, migrated code
-// eslint-disable-next-line @typescript-eslint/no-deprecated
 import { parseUrl, formatUrl } from "./util/url/url";
+import { isAuthenticated } from "./meta/user";
 
 export type AjaxOptions = {
   url: string;
   data: Record<string, string>;
   crossDomain: boolean;
+  type?: string;
   xhrFields?: {
     withCredentials?: boolean;
   };
@@ -21,7 +21,7 @@ type jqXHR = {
 const rootDomain = window.location.hostname.replace(/^[\w-]+\./, "");
 const urls: Record<string, string> = {
   "/game/report-stats": `https://assetgame.${rootDomain}/game/report-stats`,
-  "/game/report-event": `https://assetgame.${rootDomain}/game/report-event`,
+  "/game/report-event": `https://metrics.${rootDomain}/v1/games/report-event`,
   "/catalog/html": `https://search.${rootDomain}/catalog/html`,
   "/catalog/json": `https://search.${rootDomain}/catalog/json`,
   "/catalog/contents": `https://search.${rootDomain}/catalog/contents`,
@@ -40,7 +40,8 @@ const firstPartyDomains = [".roblox.com", ".robloxlabs.com", ".roblox.qq.com"];
 const metaTag = document.querySelector<HTMLElement>('meta[name="locale-data"]');
 let pageUrlLocale: string = metaTag?.dataset.urlLocale ?? "";
 let overrideLanguageHeader: boolean = metaTag?.dataset.overrideLanguageHeader === "true";
-const supportLocalizedUrls = !!pageUrlLocale;
+const supportLocalizedUrls = Boolean(pageUrlLocale);
+const pageLocaleCode: string = metaTag?.dataset.languageCode ?? "";
 
 const isAbsolute = (url: string): boolean => {
   const re = /^([a-z]+:\/\/|\/\/)/;
@@ -156,6 +157,15 @@ const attachUrlLocale = (absoluteUrl: string): string => {
   return formatUrl(urlObj);
 };
 
+const attachRelativeUrlLocale = (relativeUrl: string): string => {
+  const result = extractUrlLocaleFromPath(relativeUrl);
+  if (pageUrlLocale === result.locale) {
+    return relativeUrl;
+  }
+
+  return `${pageUrlLocale ? `/${pageUrlLocale}` : ""}${result.remainingPath}`;
+};
+
 const getAbsoluteUrl = (relativeUrl: string): string => {
   // if JavascriptEndpointsEnabled setting is false, don't do anything
   if (typeof urls === typeof undefined) {
@@ -249,6 +259,27 @@ const getAcceptLanguageValue = (url: string): string | null => {
   return null;
 };
 
+// only allow virtual-events for testing, will remove after
+const urlLocaleAllowedPaths = ["/virtual-events/"];
+// only allow get and post requests
+const urlLocaleAllowedMethods = ["get", "post"];
+
+const appendUrlLocaleParam = (url: string, method?: string): string => {
+  if (
+    !pageLocaleCode ||
+    isAuthenticated() ||
+    isThirdPartyUrl(url) ||
+    !urlLocaleAllowedPaths.some(path => url.includes(path)) ||
+    (method && !urlLocaleAllowedMethods.includes(method.toLowerCase()))
+  ) {
+    return url;
+  }
+
+  // use correct query param separator
+  const separator = url.includes("?") ? "&" : "?";
+  return `${url}${separator}urlLocale=${encodeURIComponent(pageLocaleCode)}`;
+};
+
 const ajaxPrefilter = (options: AjaxOptions, _originalOptions: unknown, jqxhr: jqXHR): void => {
   const absoluteUrl = generateAbsoluteUrl(options.url, options.data, options.crossDomain);
   const modifiedOptions = options;
@@ -266,6 +297,9 @@ const ajaxPrefilter = (options: AjaxOptions, _originalOptions: unknown, jqxhr: j
   if (acceptLanguageValue) {
     jqxhr.setRequestHeader("Accept-Language", acceptLanguageValue);
   }
+
+  // append urlLocale query parameter
+  modifiedOptions.url = appendUrlLocaleParam(modifiedOptions.url, options.type);
 };
 
 const getSeoName = (assetName: string): string => {
@@ -314,12 +348,14 @@ export {
   splitAtQueryString,
   removeUrlLocale,
   attachUrlLocale,
+  attachRelativeUrlLocale,
   isThirdPartyUrl,
   getPageUrlLocale,
   setPageUrlLocale,
   getOverrideLanguageHeader,
   setOverrideLanguageHeader,
   getAcceptLanguageValue,
+  appendUrlLocaleParam,
   addCrossDomainOptionsToAllRequests,
   supportLocalizedUrls,
   Urls, // Eventually we can get rid of Endpoints.Urls, but existing JS in WWW depends on it.

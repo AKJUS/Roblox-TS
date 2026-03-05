@@ -16,7 +16,9 @@ export enum AccountRecoveryError {
   IDENTIFIER_INVALID = 3,
   TOO_MANY_REQUESTS = 4,
   ACCOUNT_NOT_VERIFIED = 5,
-  INVALID_CODE = 6
+  INVALID_CODE = 6,
+  INVALID_USER = 7,
+  TWO_STEP_VERIFICATION_REQUIRED = 8,
 }
 
 export enum RecoveryState {
@@ -94,6 +96,19 @@ export type VerifyCodeReturnType = {};
 export const VERIFY_CODE_CONFIG: UrlConfig = {
   withCredentials: true,
   url: `${accountRecoveryServiceUrl}/v1/verify-code`,
+  timeout: 10000
+};
+
+export type ContinueRecoveryReturnType = {
+  recoveryState: RecoveryState;
+}
+
+/**
+ * Request Type: `POST`
+ */
+export const CONTINUE_RECOVERY_CONFIG: UrlConfig = {
+  withCredentials: true,
+  url: `${accountRecoveryServiceUrl}/v1/continue-recovery`,
   timeout: 10000
 };
 

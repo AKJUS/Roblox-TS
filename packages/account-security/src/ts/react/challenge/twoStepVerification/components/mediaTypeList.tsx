@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useHistory } from 'react-router';
 import { Modal } from 'react-style-guide';
+import { Icon, ListItem } from '@rbx/foundation-ui';
 import * as TwoStepVerification from '../../../../common/request/types/twoStepVerification';
 import { TwoStepVerificationError } from '../../../../common/request/types/twoStepVerification';
 import InlineChallengeBody from '../../../common/inlineChallengeBody';
@@ -10,8 +11,9 @@ import {
 } from '../constants/resources';
 import { mediaTypeToPath } from '../hooks/useActiveMediaType';
 import useTwoStepVerificationContext from '../hooks/useTwoStepVerificationContext';
-import { MediaType } from '../interface';
 import { TwoStepVerificationActionType } from '../store/action';
+import { MediaType } from '../interface';
+import { getDelayTextFromDates } from '../delay/text';
 
 type Props = {
   hasSentEmailCode: boolean;
@@ -46,7 +48,9 @@ const MediaTypeList: React.FC<Props> = ({
       renderInline,
       resources,
       requestService,
-      enabledMediaTypes
+      enabledMediaTypes,
+      delayParameters,
+      metadata,
     },
     dispatch
   } = useTwoStepVerificationContext();
@@ -159,28 +163,29 @@ const MediaTypeList: React.FC<Props> = ({
    * Rendering Helpers
    */
 
-  const getMediaTypeIcon = (mediaType: MediaType): string => {
+  // The names are slightly different here.
+  const getFoundationMediaTypeIcon = (mediaType: MediaType) => {
     switch (mediaType) {
       case MediaType.Authenticator:
-        return 'icon-menu-mobile';
+        return 'icon-regular-smartphone-portrait';
       case MediaType.Email:
-        return 'icon-menu-email';
+        return 'icon-regular-envelope';
       case MediaType.RecoveryCode:
-        return 'icon-menu-recover';
+        return 'icon-regular-clock-spin-reverse-dashed';
       case MediaType.SMS:
-        return 'icon-menu-mobile';
+        return 'icon-regular-smartphone-portrait';
       case MediaType.SecurityKey:
-        return 'icon-menu-usb';
+        return 'icon-regular-key';
       case MediaType.CrossDevice:
-        return 'icon-menu-mobile';
+        return 'icon-regular-smartphone-portrait';
       case MediaType.Passkey:
-        return 'icon-menu-fingerprint';
+        return 'icon-regular-fingerprint';
       case MediaType.Password:
-        return 'icon-status-private';
+        return 'icon-regular-nine-dots-grid';
       default:
-        return 'icon-brokenpage';
+        return 'icon-regular-circle-slash';
     }
-  };
+  }
 
   const getMediaTypeLabel = (mediaType: MediaType): string | null => {
     switch (mediaType) {
@@ -208,30 +213,57 @@ const MediaTypeList: React.FC<Props> = ({
   const renderMediaType = (
     mediaType: MediaType,
     key: number,
-    rowRef: React.RefObject<HTMLTableRowElement> | null
+    rowRef: React.RefObject<HTMLLIElement> | null
   ): JSX.Element | null => {
     const mediaTypeLabel = getMediaTypeLabel(mediaType);
     if (!mediaTypeLabel) {
       return null;
-    }
+    }    
 
-    return (
-      <tr
-        tabIndex={key}
-        ref={rowRef}
-        key={key}
-        onClick={requestInFlight ? undefined : () => transitionToMediaType(mediaType)}
-        className={requestInFlight ? 'media-type-row disabled' : 'media-type-row'}>
-        <td>
-          <span className={getMediaTypeIcon(mediaType)} />
-        </td>
-        <td className='media-type-label'>{mediaTypeLabel}</td>
-        <td className='media-type-selector'>
-          <span className='icon-next' />
-          <div className='icon-placeholder' />
-        </td>
-      </tr>
-    );
+    const isDelayEnabled = metadata?.isDelayedUiEnabled ?? false;
+
+    // This will filter to undefined if no delay is defined.
+    const maybeDelayText = 
+      getDelayTextFromDates({
+        delayParameters,
+        dayTranslation: resources.Label.DayWait,
+        hourTranslation: resources.Label.HourWait,
+        minuteTranslation: resources.Label.MinuteWait,
+        erroneousDelayTranslation: resources.Label.UnableToCalculateDelay,
+        noWaitTranslation: resources.Label.NoWait,
+        frictionType: mediaType,
+      });
+
+    // Ignore delayText if it's defined if the gate is false.
+    const gatedDelayText = isDelayEnabled ? maybeDelayText : undefined;
+
+    const conditionalHandler = () => {
+      if (requestInFlight) {
+        return;
+      }
+
+      // eslint-disable-next-line no-void
+      void transitionToMediaType(mediaType)
+    }
+    const trailingIcon = <Icon 
+      name='icon-filled-chevron-large-right'
+      size='Medium'
+    />
+    const icon = <Icon name={getFoundationMediaTypeIcon(mediaType)} size='Medium' />;
+    const item = <ListItem
+      key={key}
+      title={mediaTypeLabel}
+      text={gatedDelayText}
+      leading={icon}
+      divider='None'
+      trailing={trailingIcon}
+      className='text-body-medium padding-x-xlarge padding-y-medium'
+      onSelect={conditionalHandler}
+      ref={rowRef}
+      isContained
+    />
+
+    return item;
   };
 
   /*
@@ -251,7 +283,7 @@ const MediaTypeList: React.FC<Props> = ({
     ? 'inline-challenge-margin-top-large'
     : 'modal-margin-bottom-large';
 
-  const rowRef = useRef<HTMLTableRowElement>(null);
+  const rowRef = useRef<HTMLLIElement>(null);
   useEffect(() => {
     rowRef.current?.focus();
   }, []);
@@ -260,11 +292,11 @@ const MediaTypeList: React.FC<Props> = ({
    */
 
   return (
-    <BodyElement>
+    <BodyElement data-testid='media-type-list'>
       <div className={lockIconClassName} />
       <p className={marginBottomXLargeClassName}>{resources.Label.ChooseAlternateMediaType}</p>
       <table className={`table table-striped media-type-list ${tableMarginClassName}`}>
-        <tbody>
+        <tbody className='[&>*:nth-child(even)]:bg-surface-300'>
           {enabledMediaTypes.map((mediaType, index) =>
             renderMediaType(mediaType, index, index === 0 ? rowRef : null)
           )}

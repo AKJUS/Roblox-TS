@@ -59,6 +59,23 @@ const getGuildedUrl = (isProduction: boolean, domain: string) => {
   return "https://tarobi-dev-test.com";
 };
 
+const getOtelCollectorTracesEndpoint = (isProduction: boolean, domain: string) => {
+  if (isProduction) {
+    return "https://tracing.roblox.com/v1/traces";
+  }
+
+  switch (domain.toLowerCase()) {
+    case "sitetest1":
+      return "https://otel-collector-otlp-http-sitetest1-snc3.simulpong.com/v1/traces";
+    case "sitetest2":
+      return "https://otel-collector-otlp-http-sitetest2-snc2.simulpong.com/v1/traces";
+    case "sitetest3":
+      return "https://otel-collector-otlp-http-sitetest3.simulpong.com/v1/traces";
+    default:
+      return "https://otel-collector-otlp-http-sitetest3.simulpong.com/v1/traces";
+  }
+};
+
 const { production, domainName, rootDomain } = getDomainInfo(window.location.hostname);
 
 const environmentUrls = {
@@ -75,6 +92,7 @@ const environmentUrls = {
   authApi: `https://auth.${rootDomain}`,
   avatarApi: `https://avatar.${rootDomain}`,
   badgesApi: `https://badges.${rootDomain}`,
+  beaconApi: `https://apis.${rootDomain}/beacon-api`,
   billingApi: `https://billing.${rootDomain}`,
   captchaApi: `https://captcha.${rootDomain}`,
   catalogApi: `https://catalog.${rootDomain}`,
@@ -138,9 +156,11 @@ const environmentUrls = {
     : `https://auth.${domainName}.rblx.org`,
   eduWebsiteUrl: production ? "https://www.rblx.org" : `https://www.${domainName}.rblx.org`,
   guildedBaseUrl: getGuildedUrl(production, domainName),
+  otelCollectorTracesEndpoint: getOtelCollectorTracesEndpoint(production, domainName),
   vngGamesShopUrl: production
     ? "https://shop.vnggames.com/vn/game/roblox"
     : "https://sbx-shop.vnggames.com/vn/game/roblox",
+  stripeCheckoutDomain: `pay.${rootDomain}`,
 
   // External URLs
   amazonStoreLink: "https://www.amazon.com/Roblox-Corporation/dp/B00NUF4YOA",
@@ -156,3 +176,7 @@ const environmentUrls = {
 };
 
 export default environmentUrls;
+
+// For backwards compatibility.
+
+export const EnvironmentUrls = environmentUrls;

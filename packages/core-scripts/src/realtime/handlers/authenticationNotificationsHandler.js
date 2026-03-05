@@ -1,5 +1,6 @@
 import $ from "jquery";
 import environmentUrls from "@rbx/environment-urls";
+import { pubSub } from "@rbx/core-scripts/util/cross-tab-communication";
 import * as endpoints from "../../endpoints";
 import { getClient } from "../lib/client";
 
@@ -21,4 +22,19 @@ $(() => {
       });
     }
   });
+
+  // Listen for cross-tab account switch notifications
+  // When another tab switches accounts, this tab should reload to reflect the new user
+  if (pubSub.isAvailable()) {
+    pubSub.subscribe(
+      "RBXASAccountSwitched",
+      "Roblox.Authentication.AccountSwitchHandler",
+      newValue => {
+        // Only reload when value is being cleared by another tab completing teh switch
+        if (!newValue) {
+          window.location.reload();
+        }
+      },
+    );
+  }
 });

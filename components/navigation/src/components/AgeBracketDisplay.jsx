@@ -13,8 +13,6 @@ import userUtil from "../util/userUtil";
 function AgeBracketDisplay() {
   const renderEl = useRef(null);
 
-  const { isUnder13 } = authenticatedUser;
-
   const badgeToRender =
     currentUserHasVerifiedBadge() && VerifiedBadgeIconContainer ? (
       <section
@@ -48,9 +46,6 @@ function AgeBracketDisplay() {
         </span>
         {badgeToRender}
       </Link>
-      <span className="xsmall age-bracket-label-age text-secondary">
-        {isUnder13 ? "<13" : "13+"}
-      </span>
     </div>
   );
 }

@@ -109,6 +109,7 @@ function dialogController(
               if (data.status === chatUtility.resultType.MODERATED) {
                 newMessage.error = chatUtility.errorMessages.messageContentModerated;
                 newMessage.content = chatUtility.hashOutContent(newMessage.content);
+                newMessage.isSanitized = false; // so sanitizeMessage won't be bypassed
                 chatUtility.sanitizeMessage(newMessage);
                 if (newMessage.hasLinkCard) {
                   const { linkCardMessages } = newMessage;
@@ -576,7 +577,7 @@ function dialogController(
     if (isConfirmed) {
       $scope.resetConfirmDialog();
       $scope.getLimitLinkNameForMemberList(1);
-      chatService.removeFromConversation(id, $scope.dialogData.id).then(function () {
+      chatService.removeFromConversation(id, $scope.dialogData.id).then(function (data) {
         if (data && data.status === chatUtility.resultType.SUCCESS) {
           $scope.isOverLoaded();
         }

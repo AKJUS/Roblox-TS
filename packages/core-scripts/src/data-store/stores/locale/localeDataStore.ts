@@ -38,7 +38,7 @@ const requestDataFromCacheOrNetwork = <T>(
     if (!localStorageData) {
       networkCaller().then(
         response => {
-          localStorage.saveDataByTimeStamp(localeStorageKey, response.data);
+          localStorage.saveDataByTimeStamp(localeStorageKey, response.data, cacheDurationInMs);
           resolve(response.data);
         },
         (error: unknown) => {

@@ -1,7 +1,7 @@
-import * as http from '@rbx/core-scripts/http';
-import environmentUrls from '@rbx/environment-urls';
-import { deferredDeeplinkGroupName } from './deferredDeeplinkConstants';
-import sendDeeplinkTokenCreateAttempt from './deferredDeeplinkEvents';
+import * as http from "@rbx/core-scripts/http";
+import environmentUrls from "@rbx/environment-urls";
+import { deferredDeeplinkGroupName } from "./deferredDeeplinkConstants";
+import sendDeeplinkTokenCreateAttempt from "./deferredDeeplinkEvents";
 
 const deferredDeeplinkTokenServiceUrl = `${environmentUrls.apiGatewayUrl}/deferred-deep-link/token-api`;
 export type TCreateDeeplinkTokenResponse = {
@@ -10,22 +10,22 @@ export type TCreateDeeplinkTokenResponse = {
 };
 
 const createDeeplinkToken = async (
-  experienceAffiliateReferralUrl: string
+  experienceAffiliateReferralUrl: string,
 ): Promise<string | null> => {
   const createDeeplinkTokenRequestBody = {
     linkId: experienceAffiliateReferralUrl,
-    group: deferredDeeplinkGroupName
+    group: deferredDeeplinkGroupName,
   };
 
   const urlConfig = {
     withCredentials: true,
-    url: `${deferredDeeplinkTokenServiceUrl}/create-token`
+    url: `${deferredDeeplinkTokenServiceUrl}/create-token`,
   };
 
   try {
     const res = await http.post<TCreateDeeplinkTokenResponse>(
       urlConfig,
-      createDeeplinkTokenRequestBody
+      createDeeplinkTokenRequestBody,
     );
     const token = res.data.token ?? null;
     sendDeeplinkTokenCreateAttempt(token, experienceAffiliateReferralUrl, res.status);

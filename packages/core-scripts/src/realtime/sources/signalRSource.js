@@ -1,13 +1,21 @@
+// TODO: old, migrated code
+/* eslint-disable no-invalid-this */
 import $ from "jquery";
 import * as signalR from "@microsoft/signalr";
 import { pubSub, kingmaker } from "@rbx/core-scripts/util/cross-tab-communication";
-import { realtimeEvents } from "../constants/events";
+import { realtimeEvents, topicChannels } from "../constants/events";
 import SignalRConnectionWrapper from "../lib/signalRConnectionWrapper";
 import CoreSignalRConnectionWrapper from "../lib/coreSignalRConnectionWrapper";
 import { sendConnectionEventToDataLake as sendConnectionEventToDataLakeUtil } from "../utils/events";
 
-// TODO: old, migrated code
-// eslint-disable-next-line func-names
+/**
+ * SignalR-based realtime notification source.
+ * Establishes WebSocket connection to SignalR server for namespace and topic notifications.
+ * Used by master tabs or when localStorage unavailable (single-tab mode).
+ *
+ * @param {Object} settings - Realtime configuration settings
+ * @param {Function} logger - Logging function
+ */
 const signalRSource = function (settings, logger) {
   const isAvailable = () => true;
 
@@ -20,6 +28,10 @@ const signalRSource = function (settings, logger) {
   let onSourceExpiredHandler;
   let onNotificationHandler;
   let onConnectionEventHandler;
+
+  // Topic notification handlers (set by TopicManager)
+  let topicNotificationHandler = null;
+  let topicReadyHandler = null;
 
   // State
   let isCurrentlyConnected = false;
@@ -41,6 +53,20 @@ const signalRSource = function (settings, logger) {
     if (logger) {
       logger(`SignalRSource: ${message}`, isVerbose);
     }
+  };
+
+  const getConnection = () => signalRConnection?.GetConnection?.() || null;
+
+  const subscribeTopic = (token, replaceToken = null) => {
+    const connection = getConnection();
+    if (!connection?.invoke) {
+      log("Topic subscribe: connection not available");
+      return;
+    }
+    log(`Topic subscribe: ${token}`);
+    connection.invoke("SubscribeTopic", token, replaceToken).catch(e => {
+      log(`Topic subscribe failed: ${e}`);
+    });
   };
 
   const setupReplication = () => {
@@ -66,6 +92,22 @@ const signalRSource = function (settings, logger) {
         }
       },
     );
+
+    // Listen for topic subscribe requests from follower tabs
+    pubSub.subscribe(
+      topicChannels.SubscribeRequest,
+      "Roblox.RealTime.Sources.SignalRSource",
+      message => {
+        if (!isReplicationEnabled || !message) return;
+        try {
+          const { token, replaceToken } = JSON.parse(message);
+          log(`Topic subscribe request from follower: ${token}`);
+          subscribeTopic(token, replaceToken);
+        } catch (e) {
+          log(`Failed to parse topic subscribe request: ${e}`);
+        }
+      },
+    );
   };
 
   const handleNotificationMessage = (namespace, detail, sequenceNumber) => {
@@ -85,6 +127,27 @@ const signalRSource = function (settings, logger) {
     if (isReplicationEnabled) {
       log("Replicating Notification");
       pubSub.publish(realtimeEvents.Notification, JSON.stringify(notification));
+    }
+  };
+
+  const handleTopicNotificationMessage = (topicId, detail) => {
+    log(`Topic notification received: ${topicId}`, true);
+    if (topicNotificationHandler) {
+      topicNotificationHandler(topicId, detail);
+    }
+    if (isReplicationEnabled) {
+      log("Replicating topic notification to followers");
+      pubSub.publish(topicChannels.Notification, JSON.stringify({ topicId, detail }));
+    }
+  };
+
+  const notifyTopicReady = () => {
+    if (topicReadyHandler) {
+      topicReadyHandler();
+    }
+    if (isReplicationEnabled) {
+      log("Broadcasting LeaderReconnected to followers");
+      pubSub.publish(topicChannels.LeaderReconnected, "");
     }
   };
 
@@ -133,6 +196,11 @@ const signalRSource = function (settings, logger) {
     if (isReplicationEnabled) {
       log("Replicating Connection Event.");
       pubSub.publish(realtimeEvents.ConnectionEvent, JSON.stringify(connectionEvent));
+    }
+
+    // Notify topic ready on connection
+    if (isConnected) {
+      notifyTopicReady();
     }
   };
 
@@ -209,7 +277,7 @@ const signalRSource = function (settings, logger) {
   const handleSubscriptionStatusUpdateMessage = (updateType, detailString) => {
     try {
       log(`Status Update Received: [${updateType}]${detailString}`);
-    } catch (e) {
+    } catch {
       /* empty */
     }
 
@@ -298,6 +366,7 @@ const signalRSource = function (settings, logger) {
         handleSignalRConnectionChanged,
         handleNotificationMessage,
         handleSubscriptionStatusUpdateMessage,
+        handleTopicNotificationMessage,
         sendConnectionEventToDataLake,
       );
       log("Started Core SignalR connection");
@@ -308,6 +377,7 @@ const signalRSource = function (settings, logger) {
         handleSignalRConnectionChanged,
         handleNotificationMessage,
         handleSubscriptionStatusUpdateMessage,
+        handleTopicNotificationMessage,
       );
       log("Started Legacy SignalR connection");
     }
@@ -325,11 +395,28 @@ const signalRSource = function (settings, logger) {
     }
   };
 
+  // ============================================================================
+  // TOPIC NOTIFICATION SUPPORT
+  // ============================================================================
+
+  const setTopicNotificationHandler = handler => {
+    topicNotificationHandler = handler;
+  };
+
+  const setTopicReadyHandler = handler => {
+    topicReadyHandler = handler;
+  };
+
   // Public API
   this.IsAvailable = isAvailable;
   this.Start = start;
   this.Stop = stop;
   this.Name = "SignalRSource";
+
+  // Topic notification support
+  this.SubscribeTopic = subscribeTopic;
+  this.SetTopicNotificationHandler = setTopicNotificationHandler;
+  this.SetTopicReadyHandler = setTopicReadyHandler;
 };
 
 export default signalRSource;

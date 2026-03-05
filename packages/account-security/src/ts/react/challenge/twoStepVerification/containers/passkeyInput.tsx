@@ -13,6 +13,7 @@ import {
 import { useActiveMediaType } from '../hooks/useActiveMediaType';
 import useTwoStepVerificationContext from '../hooks/useTwoStepVerificationContext';
 import { TwoStepVerificationActionType } from '../store/action';
+import { useDelayedVerificationBodyText } from '../delay/text';
 
 type Props = {
   requestInFlight: boolean;
@@ -40,7 +41,7 @@ const PasskeyInput: React.FC<Props> = ({
       metadata,
       eventService,
       metricsService,
-      requestService
+      requestService,
     },
     dispatch
   } = useTwoStepVerificationContext();
@@ -228,11 +229,13 @@ const PasskeyInput: React.FC<Props> = ({
     buttonRef.current?.focus();
   }, []);
 
+  const maybeDelayedText = useDelayedVerificationBodyText(metadata?.isDelayedUiEnabled ?? false);
+  
   return (
     metadata && (
       <BodyElement>
           <div className={lockIconClassName} />
-          <p className={marginBottomSmallClassName}>{resources.Label.VerifyWithPasskey}</p>
+          <p className={marginBottomSmallClassName}>{resources.Label.VerifyWithPasskey} {maybeDelayedText ?? ''}</p>
           <p className={marginBottomClassName}>{resources.Label.PasskeyDirections}</p>
           <button
             ref={buttonRef}

@@ -1,5 +1,5 @@
-import $ from 'jquery';
-import { Cookies, Hybrid } from '@rbx/core-scripts/legacy/Roblox';
+import $ from "jquery";
+import { Cookies, Hybrid } from "@rbx/core-scripts/legacy/Roblox";
 
 function startGame(gameLaunchParams) {
   const deferred = new $.Deferred();
@@ -16,7 +16,7 @@ function joinMultiplayerGame(placeLauncherParams) {
     requestType: Hybrid.Game.LAUNCH_MODES.SIMPLE_GAME,
     placeId: placeLauncherParams.placeId.toString(),
     isPlayTogetherGame,
-    browserTrackerId: Cookies.getBrowserTrackerId()
+    browserTrackerId: Cookies.getBrowserTrackerId(),
   };
 
   if (placeLauncherParams.joinAttemptId) {
@@ -35,7 +35,7 @@ function followPlayerIntoGame(placeLauncherParams) {
   const gameLaunchParams = {
     requestType: Hybrid.Game.LAUNCH_MODES.FOLLOW_USER,
     userId: placeLauncherParams.userId.toString(),
-    browserTrackerId: Cookies.getBrowserTrackerId()
+    browserTrackerId: Cookies.getBrowserTrackerId(),
   };
 
   if (placeLauncherParams.joinAttemptId) {
@@ -57,7 +57,7 @@ function joinGameInstance(placeLauncherParams) {
     placeId: placeLauncherParams.placeId.toString(),
     instanceId: placeLauncherParams.gameId,
     isPlayTogetherGame,
-    browserTrackerId: Cookies.getBrowserTrackerId()
+    browserTrackerId: Cookies.getBrowserTrackerId(),
   };
 
   if (placeLauncherParams.joinAttemptId) {
@@ -77,7 +77,7 @@ function joinPrivateGame(placeLauncherParams) {
     requestType: Hybrid.Game.LAUNCH_MODES.PRIVATE_SERVER,
     placeId: placeLauncherParams.placeId.toString(),
     accessCode: placeLauncherParams.accessCode,
-    browserTrackerId: Cookies.getBrowserTrackerId()
+    browserTrackerId: Cookies.getBrowserTrackerId(),
   };
 
   if (placeLauncherParams.joinAttemptId) {
@@ -97,7 +97,7 @@ function playTogetherGame(placeLauncherParams) {
     requestType: Hybrid.Game.LAUNCH_MODES.SIMPLE_GAME,
     placeId: placeLauncherParams.placeId.toString(),
     conversationId: placeLauncherParams.conversationId.toString(),
-    browserTrackerId: Cookies.getBrowserTrackerId()
+    browserTrackerId: Cookies.getBrowserTrackerId(),
   };
 
   if (placeLauncherParams.joinAttemptId) {
@@ -118,7 +118,7 @@ const AppHybridClientInterface = {
   followPlayerIntoGame,
   joinGameInstance,
   joinPrivateGame,
-  playTogetherGame
+  playTogetherGame,
 };
 
 export default AppHybridClientInterface;

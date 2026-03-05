@@ -41,7 +41,7 @@ const RecoveryCodeInput: React.FC<Props> = ({
       resources,
       eventService,
       metricsService,
-      requestService
+      requestService,
     },
     dispatch
   } = useTwoStepVerificationContext();

@@ -5,6 +5,7 @@ import { Link } from "@rbx/core-ui/legacy/react-style-guide";
 import { AccountSwitcherService } from "@rbx/core-scripts/legacy/Roblox";
 import { dataStores } from "@rbx/core-scripts/legacy/core-roblox-utilities";
 import { getSignupUrl, getIsVNGLandingRedirectEnabled } from "../util/authUtil";
+import isAccountExperienceRevampEnabled from "../util/accountExperienceUtils";
 
 function HeaderSignupLink({ translate }) {
   // use effect for get signupurl
@@ -41,7 +42,7 @@ function HeaderSignupLink({ translate }) {
           id="sign-up-button"
           className="rbx-navbar-signup btn-growth-sm nav-menu-title signup-button"
         >
-          {translate("Label.sSignUp")}
+          {translate(isAccountExperienceRevampEnabled() ? "Label.CreateAccount" : "Label.sSignUp")}
         </Link>
       </li>
     )

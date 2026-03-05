@@ -101,7 +101,7 @@ function dialogsController($scope, chatService, chatUtility, messageService, $lo
             preDialogData.isDuplicatedConversation = true;
             $scope.resetPreviousDialog(currentConversation.layoutId, layoutId, preDialogData);
             if ($scope.chatLibrary.dialogIdList.indexOf(layoutId) < 0) {
-              $scope.launchDialog(layoutId, true);
+              $scope.launchDialog(layoutId, false);
             }
           } else {
             conversation.isGroupChat =

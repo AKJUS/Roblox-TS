@@ -23,6 +23,7 @@ export interface UnifiedPurchaseVerificationModalProps {
   onAction: () => void;
   loading?: boolean;
   currentRobuxBalance?: number;
+  rentalOptionDays?: number | null;
 }
 export type ModalService = { open: () => void; close: () => void };
 
@@ -52,7 +53,8 @@ export default function createUnifiedPurchaseVerificationModal() {
     isPlace = false,
     onAction,
     loading = false,
-    currentRobuxBalance
+    currentRobuxBalance,
+    rentalOptionDays = null
   }: UnifiedPurchaseVerificationModalProps) {
     const [open, setOpen] = React.useState(false);
     React.useEffect(() => {
@@ -108,6 +110,7 @@ export default function createUnifiedPurchaseVerificationModal() {
           onAction,
           loading,
           currentRobuxBalance,
+          rentalOptionDays,
           open,
           onCancel: modalService.close
         }}

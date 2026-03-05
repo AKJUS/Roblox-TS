@@ -7,6 +7,7 @@ import batchLoadItemDetails from '../factories/batchLoadItemDetails';
 import itemDetailsService from '../services/itemDetailsService';
 import { BatchBuyItemsButton } from './BatchBuyItems';
 import translationConfig from '../translation.config';
+import '../../../../css/tailwind.css';
 
 function PriceContainer({
   items,

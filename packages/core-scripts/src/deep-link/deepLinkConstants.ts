@@ -25,6 +25,8 @@ export enum PathPart {
   ExperienceChatSubsettings = "experience_chat_subsettings",
   PartySubsettings = "party_subsettings",
   VoiceSubsettings = "voice_subsettings",
+  CommunicationSettings = "communication_settings",
+  CommunicationSubsettings = "communication_subsettings",
   TradingInventorySubsettings = "trading_inventory_subsettings",
   PrivateServerSubsettings = "private_server_subsettings",
   FriendsContactsSubsettings = "friends_contacts_subsettings",
@@ -82,6 +84,8 @@ export const DeepLinkNavigationMap: Record<string, string> = {
   [PathPart.ExperienceChatSubsettings]: "/my/account#!/privacy/Communication/ExperienceChat",
   [PathPart.PartySubsettings]: "/my/account#!/privacy/Communication/Party",
   [PathPart.VoiceSubsettings]: "/my/account#!/privacy/Communication/Voice",
+  [PathPart.CommunicationSettings]: "/my/account#!/privacy/Communication",
+  [PathPart.CommunicationSubsettings]: "/my/account#!/privacy/Communication",
   [PathPart.TradingInventorySubsettings]: "/my/account#!/privacy/TradingAndInventory",
   [PathPart.FriendsContactsSubsettings]: "/my/account#!/privacy/FriendsAndContacts",
   [PathPart.PrivateServerSubsettings]:

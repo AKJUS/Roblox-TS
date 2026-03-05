@@ -61,6 +61,26 @@ export const verifyCode = (
     AccountRecovery.AccountRecoveryError
   );
 
+export const continueRecovery = (
+  recoverySessionId: string,
+  userId: number,
+  recover2sv?: boolean,
+  twoStepVerificationToken?: string,
+  twoStepVerificationChallengeId?: string
+): Promise<
+  Result<AccountRecovery.ContinueRecoveryReturnType, AccountRecovery.AccountRecoveryError | null>
+> =>
+  toResult(
+    httpService.post(AccountRecovery.CONTINUE_RECOVERY_CONFIG, {
+      recoverySessionId,
+      userId,
+      recover2sv,
+      twoStepVerificationToken,
+      twoStepVerificationChallengeId
+    }),
+    AccountRecovery.AccountRecoveryError
+  );
+
 export const recoverySessionMetadata = (
   recoverySessionId: string
 ): Promise<

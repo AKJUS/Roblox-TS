@@ -44,7 +44,11 @@ export default class CacheStore {
     // TODO: old, migrated code
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if ((cacheProperties?.useCache ?? this.useCache) && localStorage) {
-      localStorageService.saveDataByTimeStamp(storeKey, data);
+      localStorageService.saveDataByTimeStamp(
+        storeKey,
+        data,
+        cacheProperties?.expirationWindowMS ?? this.expirationWindowMS,
+      );
     }
     this.store.set(storeKey, data);
   }

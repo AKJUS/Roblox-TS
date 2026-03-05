@@ -10,71 +10,60 @@ const presenceStatusUpdateService = (() => {
   const presenceRtnComparisonEventName = "presenceRTNComparison";
   const presenceRtnComparisonEventContext = "presenceRTNComparisonContext";
 
-  function sendEventStreamEvent(rtnUserPresences, presenceApiPresences) {
-    presenceApiPresences.forEach(presenceApiPresence => {
-      const rtnUserPresence = rtnUserPresences.get(presenceApiPresence.userId);
-      if (rtnUserPresence !== null && rtnUserPresence !== undefined) {
-        const rtnPresenceType = RTNPresenceTypeToString[rtnUserPresence.PresenceType];
-        const presenceApiPresenceType =
-          PresenceAPIPresenceTypeToString[presenceApiPresence.userPresenceType];
+  const lastPresenceUpdateByUserId = new Map();
 
-        const rtnUniverseId = rtnUserPresence.UniverseId;
-        const presenceApiUniverseId = presenceApiPresence.universeId;
-
-        const rtnGameId = rtnUserPresence.GameId;
-        const presenceApiGameId = presenceApiPresence.gameId;
-
-        const rtnPlaceId = rtnUserPresence.PlaceId;
-        const presenceApiPlaceId = presenceApiPresence.placeId;
-
-        const rtnRootPlaceId = rtnUserPresence.RootPlaceId;
-        const presenceApiRootPlaceId = presenceApiPresence.rootPlaceId;
-
-        window.Roblox.EventStream.SendEventWithTarget(
-          presenceRtnComparisonEventName,
-          presenceRtnComparisonEventContext,
-          {
-            observedUserId: presenceApiPresence.userId,
-            rtnPresenceType,
-            rtnUniverseId,
-            rtnGameId,
-            rtnPlaceId,
-            rtnRootPlaceId,
-            presenceApiPresenceType,
-            presenceApiUniverseId,
-            presenceApiGameId,
-            presenceApiPlaceId,
-            presenceApiRootPlaceId,
-          },
-          window.Roblox.EventStream.TargetTypes.WWW,
-        );
-      }
-    });
+  function firePresenceEvent(presenceChangesMap) {
+    document.dispatchEvent(
+      new CustomEvent("Roblox.Presence.Update", { detail: presenceChangesMap }),
+    );
   }
 
-  function getPresences(presenceChangesMap) {
-    const userPresenceUrlConfig = {
-      url: `${EnvironmentUrls.presenceApi}/v1/presence/users`,
-      withCredentials: true,
-    };
+  function getPresences(presenceEventsMap) {
+    const presenceChangesMap = new Map();
+    const invalidMessages = [];
+    for (const userId of presenceEventsMap.keys()) {
+      const event = presenceEventsMap.get(userId);
+      const report = event.PresenceReport;
+      if (
+        report &&
+        (!lastPresenceUpdateByUserId.has(userId) ||
+          event.SessionStarted > lastPresenceUpdateByUserId.get(userId))
+      ) {
+        presenceChangesMap.set(userId, report);
+        lastPresenceUpdateByUserId.set(userId, event.SessionStarted);
+      } else {
+        invalidMessages.push(userId);
+      }
+    }
 
-    const data = {
-      userIds: Array.from(presenceChangesMap.keys()),
-    };
+    if (invalidMessages.length > 0) {
+      const userPresenceUrlConfig = {
+        url: `${EnvironmentUrls.presenceApi}/v1/presence/users`,
+        withCredentials: true,
+      };
 
-    httpService
-      .post(userPresenceUrlConfig, data)
-      .then(result => {
-        if (result?.data) {
-          sendEventStreamEvent(presenceChangesMap, result.data.userPresences);
-          document.dispatchEvent(
-            new CustomEvent("Roblox.Presence.Update", { detail: result.data.userPresences }),
-          );
-        }
-      })
-      .catch(error => {
-        console.error(error);
-      });
+      const data = {
+        userIds: invalidMessages,
+      };
+
+      httpService
+        .post(userPresenceUrlConfig, data)
+        .then(result => {
+          if (result?.data) {
+            for (const userPresence of result.data.userPresences) {
+              presenceChangesMap.set(userPresence.userId, userPresence);
+            }
+          }
+        })
+        .catch(error => {
+          console.error(error);
+        })
+        .finally(() => {
+          firePresenceEvent(presenceChangesMap);
+        });
+    }
+
+    firePresenceEvent(presenceChangesMap);
   }
 
   function initializeRealTimeSubscriptions() {
@@ -82,20 +71,18 @@ const presenceStatusUpdateService = (() => {
       const realTimeClient = RealTime.Factory.GetClient();
       const { realtimeNotificationType, realtimeEventTypes } = presenceStatusConstants;
       realTimeClient.Subscribe(realtimeNotificationType, data => {
-        const presenceChangesMap = new Map();
+        const presenceEventsMap = new Map();
         data.forEach(each => {
           switch (each.Type) {
             case realtimeEventTypes.presenceChanged:
-              presenceChangesMap.set(each.UserId, each.PresenceReport);
+              presenceEventsMap.set(each.UserId, each);
               break;
             default:
               break;
           }
         });
 
-        if (presenceChangesMap.keys) {
-          presenceStatusUpdateService.getPresences(presenceChangesMap);
-        }
+        presenceStatusUpdateService.getPresences(presenceEventsMap);
       });
     }
   }

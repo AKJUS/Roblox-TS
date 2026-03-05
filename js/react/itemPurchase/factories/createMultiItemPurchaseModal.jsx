@@ -14,6 +14,7 @@ import {
 import { CurrentUser } from 'Roblox';
 import { authenticatedUser } from 'header-scripts';
 import { uuidService } from 'core-utilities';
+import { Badge } from '@rbx/foundation-ui';
 import translationConfig from '../translation.config';
 import itemPurchaseConstants from '../constants/itemPurchaseConstants';
 import PriceLabel from '../components/PriceLabel';
@@ -32,7 +33,7 @@ const {
   floodcheckTime
 } = itemPurchaseConstants;
 
-function ItemThumbnail({ itemsCount, item, index }) {
+function ItemThumbnail({ itemsCount, item, index, timedOption, translate }) {
   const itemName = item.name;
 
   const hasMoreItems = itemsCount > batchBuyMaxThumbnails;
@@ -41,6 +42,21 @@ function ItemThumbnail({ itemsCount, item, index }) {
 
   return (
     <div className='modal-multi-item-image-container'>
+      {timedOption && (
+        <div className='timed-options-badge-container'>
+          <Badge
+            variant='Neutral'
+            icon='icon-regular-clock'
+            className='bg-surface-0'
+            label={
+              timedOption?.days
+                ? translate(resources.timedOptionDaysAbbreviation, { days: timedOption.days })
+                : ''
+            }
+          />
+        </div>
+      )}
+
       <Thumbnail2d
         type={
           item.itemType.toLowerCase() === ItemType.Bundle
@@ -53,7 +69,6 @@ function ItemThumbnail({ itemsCount, item, index }) {
         format={ThumbnailFormat.webp}
         altName={itemName}
       />
-
       {shouldShowOverlay && (
         <div className='thumb-overlay'>
           <div className='font-header-1'>＋{moreItemsCount}</div>
@@ -248,6 +263,7 @@ export default function createMultiItemPurchaseModal() {
     translate,
     title,
     expectedTotalPrice,
+    items,
     itemDetails,
     currentRobuxBalance,
     purchaseMetadata,
@@ -416,6 +432,9 @@ export default function createMultiItemPurchaseModal() {
       itemDetails.forEach(item => {
         const itemToPurchase = {};
         if (item.collectibleItemId !== undefined) {
+          const itemPurchaseInfo = items.find(
+            i => i.id === item.id && i.itemType === item.itemType
+          );
           const purchaseFromCreator =
             item.collectibleItemDetails.saleLocationType !== 'ExperiencesDevApiOnly' &&
             item.collectibleItemDetails.unitsAvailableForConsumption > 0 &&
@@ -427,7 +446,13 @@ export default function createMultiItemPurchaseModal() {
           } else {
             itemToPurchase.collectibleProductId = item.collectibleItemDetails.collectibleProductId;
           }
-          itemToPurchase.agreedPriceRobux = item.collectibleItemDetails.lowestPrice;
+          if (itemPurchaseInfo?.timedOption) {
+            itemToPurchase.rentalOption = { durationDays: itemPurchaseInfo.timedOption.days };
+
+            itemToPurchase.agreedPriceRobux = itemPurchaseInfo.timedOption.price;
+          } else {
+            itemToPurchase.agreedPriceRobux = item.collectibleItemDetails.lowestPrice;
+          }
         } else if (item.firstReseller !== undefined) {
           itemToPurchase.limitedV1InstanceId = `${item.firstReseller.userAssetId}`;
           itemToPurchase.agreedPriceRobux = item.firstReseller.price;
@@ -529,14 +554,21 @@ export default function createMultiItemPurchaseModal() {
         />
         {itemDetails !== undefined && itemDetails.length > 0 && (
           <div className='modal-multi-item-images-container'>
-            {itemsSlice.map((item, i) => (
-              <ItemThumbnail
-                key={item.itemId}
-                itemsCount={itemDetails.length}
-                item={item}
-                index={i}
-              />
-            ))}
+            {itemsSlice.map((item, i) => {
+              const matchedItem = items.find(
+                itemInfo => itemInfo.id === item.id && itemInfo.itemType === item.itemType
+              );
+              return (
+                <ItemThumbnail
+                  key={item.itemId}
+                  itemsCount={itemDetails.length}
+                  item={item}
+                  index={i}
+                  timedOption={matchedItem?.timedOption}
+                  translate={translate}
+                />
+              );
+            })}
           </div>
         )}
       </Fragment>
@@ -578,6 +610,16 @@ export default function createMultiItemPurchaseModal() {
     translate: PropTypes.func.isRequired,
     title: PropTypes.string,
     expectedTotalPrice: PropTypes.number.isRequired,
+    items: PropTypes.arrayOf(
+      PropTypes.shape({
+        itemName: PropTypes.string.isRequired,
+        itemType: PropTypes.string.isRequired,
+        timedOption: PropTypes.shape({
+          days: PropTypes.number.isRequired,
+          price: PropTypes.number.isRequired
+        })
+      })
+    ).isRequired,
     currentRobuxBalance: PropTypes.number.isRequired,
     purchaseMetadata: PropTypes.instanceOf(Map).isRequired,
     itemDetails: PropTypes.arrayOf(

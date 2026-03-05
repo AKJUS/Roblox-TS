@@ -23,7 +23,7 @@ const log = (message, color) => {
     } else {
       messageQueue.push(message);
     }
-  } catch (e) {
+  } catch {
     /* empty */
   }
 };

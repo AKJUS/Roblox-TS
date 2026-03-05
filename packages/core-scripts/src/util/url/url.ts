@@ -1,7 +1,7 @@
-import url from "url";
+// TODO: remove this and use built-in `Url` object in JS
+// @ts-expect-error The type definitions below are according to https://github.com/defunctzombie/node-url
+import url from "npm-url";
 import { StringifiableRecord } from "query-string";
-
-// TODO: remove this and use built-in `Url` object in JS?
 
 type UrlObj = {
   protocol?: string;
@@ -15,16 +15,13 @@ type UrlObj = {
   hash?: string;
 };
 
-// Typescript thinks `url` is coming from NodeJS, so the types are all messed up.
-// The type definitions below are according to https://github.com/defunctzombie/node-url
-
 /**
  * @deprecated Please use the JavaScript built-in `URL` object instead. In particular, the
  * `toString()` method or the `href` property.
  * @see https://developer.mozilla.org/en-US/docs/Web/API/URL/toString
  */
-// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/consistent-type-assertions, @typescript-eslint/no-explicit-any
-export const formatUrl: (url: UrlObj) => string = url.format as unknown as any;
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+export const formatUrl: (url: UrlObj) => string = url.format;
 
 /**
  * @deprecated Please use the JavaScript built-in `URL` object instead. In particular, the
@@ -32,8 +29,8 @@ export const formatUrl: (url: UrlObj) => string = url.format as unknown as any;
  * parse an argument as a URL.
  * @see https://developer.mozilla.org/en-US/docs/Web/API/URL#usage_notes
  */
-// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/consistent-type-assertions, @typescript-eslint/no-explicit-any
-export const resolveUrl: (from: string, to: string) => string = url.resolve as unknown as any;
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+export const resolveUrl: (from: string, to: string) => string = url.resolve;
 
 /**
  * @deprecated Please use the JavaScript built-in `URL` object instead. In particular, the
@@ -46,5 +43,5 @@ export const parseUrl: (
   url: string,
   parseQueryString?: boolean,
   slashesDenoteHost?: boolean,
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/consistent-type-assertions, @typescript-eslint/no-explicit-any
-) => UrlObj & { href: string; path?: string } = url.parse as unknown as any;
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+) => UrlObj & { href: string; path?: string } = url.parse;

@@ -3,7 +3,6 @@ import { Modal } from 'react-style-guide';
 import * as TwoStepVerification from '../../../../common/request/types/twoStepVerification';
 import InlineChallengeBody from '../../../common/inlineChallengeBody';
 import { TIMEOUT_BEFORE_CALLBACK_MILLISECONDS } from '../app.config';
-import SupportHelp from '../components/supportHelp';
 import {
   mapTwoStepVerificationErrorToChallengeErrorCode,
   mapTwoStepVerificationErrorToResource
@@ -11,6 +10,7 @@ import {
 import { useActiveMediaType } from '../hooks/useActiveMediaType';
 import useTwoStepVerificationContext from '../hooks/useTwoStepVerificationContext';
 import { TwoStepVerificationActionType } from '../store/action';
+import { useDelayedVerificationBodyText } from '../delay/text';
 
 const HELP_PAGE_URL = 'https://www.roblox.com/info/2sv';
 const DEBOUNCE_INTERVAL_MILLISECONDS = 3000;
@@ -267,12 +267,13 @@ const CD2SVInput: React.FC<Props> = ({
    * Component Markup
    */
 
+  const maybeDelayedText = useDelayedVerificationBodyText(metadata?.isDelayedUiEnabled ?? false);
+  
   return (
     metadata && (
-      <React.Fragment>
-        <BodyElement>
+      <BodyElement>
           <div className={lockIconClassName} />
-          <p className={marginBottomClassName}>{modalDescription}</p>
+          <p className={marginBottomClassName}>{modalDescription} {maybeDelayedText ?? ''}</p>
           {showRetryButton ? (
             <button
               type='button'
@@ -314,7 +315,6 @@ const CD2SVInput: React.FC<Props> = ({
           ) : null}
           <p className={textErrorClassName}>{requestError}</p>
         </BodyElement>
-      </React.Fragment>
     )
   );
 };

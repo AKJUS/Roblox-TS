@@ -441,7 +441,8 @@ export const renderChallenge: RenderChallenge = async ({
               challengeId: challengeMetadata.challengeId,
               actionType: challengeMetadata.actionType
             }
-          })
+          }),
+        delayParameters: sharedParameters?.delayParameters
       };
       const success = TwoStepVerification.renderChallenge(fullParameters);
 

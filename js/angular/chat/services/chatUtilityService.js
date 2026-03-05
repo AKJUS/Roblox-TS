@@ -399,6 +399,9 @@ function chatUtility(
 
     updateConversationTitle(conversation, newTitle) {
       conversation.title = newTitle;
+      conversation.conversationTitle = {
+        titleForViewer: newTitle
+      };
       // used for rename editor placehoder
       conversation.name = newTitle;
     },

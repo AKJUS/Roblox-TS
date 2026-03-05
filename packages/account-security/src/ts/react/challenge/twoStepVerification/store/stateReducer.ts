@@ -40,6 +40,10 @@ const twoStepVerificationStateReducer = (
       newState.isModalVisible = true;
       return newState;
 
+    case TwoStepVerificationActionType.SET_USER_INFO:
+      newState.userInfo = action.userInfo;
+      return newState;
+
     default:
       return oldState;
   }

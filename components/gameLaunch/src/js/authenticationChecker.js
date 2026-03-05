@@ -1,26 +1,26 @@
-import $ from 'jquery';
+import $ from "jquery";
 import {
   Dialog,
   Endpoints,
   FormEvents,
   TranslationResourceProvider,
-  CurrentUser
-} from '@rbx/core-scripts/legacy/Roblox';
+  CurrentUser,
+} from "@rbx/core-scripts/legacy/Roblox";
 
 let translationProvider;
 let langMap;
 
 const soliConstants = {
-  modalClassName: 'soli-modal',
-  loginUrl: '/login?returnurl=',
-  signupUrl: '/CreateAccount?returnurl=',
-  eventContext: 'gameDetails',
-  loginField: 'gameLaunch_login',
-  signupField: 'gameLaunch_signup'
+  modalClassName: "soli-modal",
+  loginUrl: "/login?returnurl=",
+  signupUrl: "/CreateAccount?returnurl=",
+  eventContext: "gameDetails",
+  loginField: "gameLaunch_login",
+  signupField: "gameLaunch_signup",
 };
 
 function redirectToSignupWithEvent(eventField) {
-  const eventContext = 'gameDetails';
+  const eventContext = "gameDetails";
   if (FormEvents) {
     FormEvents.SendInteractionClick(eventContext, eventField);
   }
@@ -38,12 +38,12 @@ function restrictGuests(params) {
   }
 
   Dialog.open({
-    titleText: langMap.get('Heading.Dialog.SignUpOrLogin'),
-    bodyContent: langMap.get('Description.Dialog.ConnectionsSignUpOrLogin'),
+    titleText: langMap.get("Heading.Dialog.SignUpOrLogin"),
+    bodyContent: langMap.get("Description.Dialog.ConnectionsSignUpOrLogin"),
     cssClass: soliConstants.modalClassName,
     acceptColor: Dialog.green,
-    acceptText: langMap.get('Action.Dialog.SignUp'),
-    declineText: langMap.get('Action.Dialog.Login'),
+    acceptText: langMap.get("Action.Dialog.SignUp"),
+    declineText: langMap.get("Action.Dialog.Login"),
     onDecline: () => {
       if (FormEvents) {
         FormEvents.SendInteractionClick(soliConstants.eventContext, soliConstants.loginField);
@@ -51,13 +51,13 @@ function restrictGuests(params) {
       const loginUrl =
         soliConstants.loginUrl +
         encodeURIComponent(
-          window.location.origin + window.location.pathname + window.location.search
+          window.location.origin + window.location.pathname + window.location.search,
         );
       window.location.href = Endpoints ? Endpoints.getAbsoluteUrl(loginUrl) : loginUrl;
     },
     onAccept: () => {
       redirectToSignupWithEvent(soliConstants.signupField);
-    }
+    },
   });
 
   return deferred;
@@ -66,11 +66,11 @@ function restrictGuests(params) {
 // set the translation provider
 $(document).ready(() => {
   translationProvider = new TranslationResourceProvider();
-  langMap = translationProvider.getTranslationResource('Feature.GameLaunchGuestMode');
+  langMap = translationProvider.getTranslationResource("Feature.GameLaunchGuestMode");
 });
 
 const AuthenticationChecker = {
-  restrictGuests
+  restrictGuests,
 };
 
 export default AuthenticationChecker;

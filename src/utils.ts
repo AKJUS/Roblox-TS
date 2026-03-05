@@ -1,298 +1,438 @@
-// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
+import type { Mutation } from './mutation'
+import type { Query } from './query'
+import type {
+  FetchStatus,
+  MutationFunction,
+  MutationKey,
+  MutationOptions,
+  QueryFunction,
+  QueryKey,
+  QueryOptions,
+} from './types'
 
-import { HttpClient } from "./HttpClient";
-import { ILogger, LogLevel } from "./ILogger";
-import { NullLogger } from "./Loggers";
-import { IStreamSubscriber, ISubscription } from "./Stream";
-import { Subject } from "./Subject";
-import { IHttpConnectionOptions } from "./IHttpConnectionOptions";
+// TYPES
 
-// Version token that will be replaced by the prepack command
-/** The version of the SignalR client. */
-
-export const VERSION: string = "0.0.0-DEV_BUILD";
-/** @private */
-export class Arg {
-    public static isRequired(val: any, name: string): void {
-        if (val === null || val === undefined) {
-            throw new Error(`The '${name}' argument is required.`);
-        }
-    }
-    public static isNotEmpty(val: string, name: string): void {
-        if (!val || val.match(/^\s*$/)) {
-            throw new Error(`The '${name}' argument should not be empty.`);
-        }
-    }
-
-    public static isIn(val: any, values: any, name: string): void {
-        // TypeScript enums have keys for **both** the name and the value of each enum member on the type itself.
-        if (!(val in values)) {
-            throw new Error(`Unknown ${name} value: ${val}.`);
-        }
-    }
+export interface QueryFilters {
+  /**
+   * Filter to active queries, inactive queries or all queries
+   */
+  type?: QueryTypeFilter
+  /**
+   * Match query key exactly
+   */
+  exact?: boolean
+  /**
+   * Include queries matching this predicate function
+   */
+  predicate?: (query: Query) => boolean
+  /**
+   * Include queries matching this query key
+   */
+  queryKey?: QueryKey
+  /**
+   * Include or exclude stale queries
+   */
+  stale?: boolean
+  /**
+   * Include queries matching their fetchStatus
+   */
+  fetchStatus?: FetchStatus
 }
 
-/** @private */
-export class Platform {
-    // react-native has a window but no document so we should check both
-    public static get isBrowser(): boolean {
-        return typeof window === "object" && typeof window.document === "object";
-    }
-
-    // WebWorkers don't have a window object so the isBrowser check would fail
-    public static get isWebWorker(): boolean {
-        return typeof self === "object" && "importScripts" in self;
-    }
-
-    // react-native has a window but no document
-    static get isReactNative(): boolean {
-        return typeof window === "object" && typeof window.document === "undefined";
-    }
-
-    // Node apps shouldn't have a window object, but WebWorkers don't either
-    // so we need to check for both WebWorker and window
-    public static get isNode(): boolean {
-        return !this.isBrowser && !this.isWebWorker && !this.isReactNative;
-    }
+export interface MutationFilters {
+  /**
+   * Match mutation key exactly
+   */
+  exact?: boolean
+  /**
+   * Include mutations matching this predicate function
+   */
+  predicate?: (mutation: Mutation<any, any, any>) => boolean
+  /**
+   * Include mutations matching this mutation key
+   */
+  mutationKey?: MutationKey
+  /**
+   * Include or exclude fetching mutations
+   */
+  fetching?: boolean
 }
 
-/** @private */
-export function getDataDetail(data: any, includeContent: boolean): string {
-    let detail = "";
-    if (isArrayBuffer(data)) {
-        detail = `Binary data of length ${data.byteLength}`;
-        if (includeContent) {
-            detail += `. Content: '${formatArrayBuffer(data)}'`;
-        }
-    } else if (typeof data === "string") {
-        detail = `String data of length ${data.length}`;
-        if (includeContent) {
-            detail += `. Content: '${data}'`;
-        }
-    }
-    return detail;
+export type DataUpdateFunction<TInput, TOutput> = (input: TInput) => TOutput
+
+export type Updater<TInput, TOutput> =
+  | TOutput
+  | DataUpdateFunction<TInput, TOutput>
+
+export type QueryTypeFilter = 'all' | 'active' | 'inactive'
+
+// UTILS
+
+export const isServer = typeof window === 'undefined' || 'Deno' in window
+
+export function noop(): undefined {
+  return undefined
 }
 
-/** @private */
-export function formatArrayBuffer(data: ArrayBuffer): string {
-    const view = new Uint8Array(data);
-
-    // Uint8Array.map only supports returning another Uint8Array?
-    let str = "";
-    view.forEach((num) => {
-        const pad = num < 16 ? "0" : "";
-        str += `0x${pad}${num.toString(16)} `;
-    });
-
-    // Trim of trailing space.
-    return str.substr(0, str.length - 1);
+export function functionalUpdate<TInput, TOutput>(
+  updater: Updater<TInput, TOutput>,
+  input: TInput,
+): TOutput {
+  return typeof updater === 'function'
+    ? (updater as DataUpdateFunction<TInput, TOutput>)(input)
+    : updater
 }
 
-// Also in signalr-protocol-msgpack/Utils.ts
-/** @private */
-export function isArrayBuffer(val: any): val is ArrayBuffer {
-    return val && typeof ArrayBuffer !== "undefined" &&
-        (val instanceof ArrayBuffer ||
-            // Sometimes we get an ArrayBuffer that doesn't satisfy instanceof
-            (val.constructor && val.constructor.name === "ArrayBuffer"));
+export function isValidTimeout(value: unknown): value is number {
+  return typeof value === 'number' && value >= 0 && value !== Infinity
 }
 
-/** @private */
-export async function sendMessage(logger: ILogger, transportName: string, httpClient: HttpClient, url: string,
-                                  content: string | ArrayBuffer, options: IHttpConnectionOptions): Promise<void> {
-    const headers: {[k: string]: string} = {};
-
-    const [name, value] = getUserAgentHeader();
-    headers[name] = value;
-
-    logger.log(LogLevel.Trace, `(${transportName} transport) sending data. ${getDataDetail(content, options.logMessageContent!)}.`);
-
-    const responseType = isArrayBuffer(content) ? "arraybuffer" : "text";
-    const response = await httpClient.post(url, {
-        content,
-        headers: { ...headers, ...options.headers},
-        responseType,
-        timeout: options.timeout,
-        withCredentials: options.withCredentials,
-    });
-
-    logger.log(LogLevel.Trace, `(${transportName} transport) request complete. Response status: ${response.statusCode}.`);
+export function difference<T>(array1: T[], array2: T[]): T[] {
+  return array1.filter((x) => !array2.includes(x))
 }
 
-/** @private */
-export function createLogger(logger?: ILogger | LogLevel): ILogger {
-    if (logger === undefined) {
-        return new ConsoleLogger(LogLevel.Information);
-    }
-
-    if (logger === null) {
-        return NullLogger.instance;
-    }
-
-    if ((logger as ILogger).log !== undefined) {
-        return logger as ILogger;
-    }
-
-    return new ConsoleLogger(logger as LogLevel);
+export function replaceAt<T>(array: T[], index: number, value: T): T[] {
+  const copy = array.slice(0)
+  copy[index] = value
+  return copy
 }
 
-/** @private */
-export class SubjectSubscription<T> implements ISubscription<T> {
-    private _subject: Subject<T>;
-    private _observer: IStreamSubscriber<T>;
-
-    constructor(subject: Subject<T>, observer: IStreamSubscriber<T>) {
-        this._subject = subject;
-        this._observer = observer;
-    }
-
-    public dispose(): void {
-        const index: number = this._subject.observers.indexOf(this._observer);
-        if (index > -1) {
-            this._subject.observers.splice(index, 1);
-        }
-
-        if (this._subject.observers.length === 0 && this._subject.cancelCallback) {
-            this._subject.cancelCallback().catch((_) => { });
-        }
-    }
+export function timeUntilStale(updatedAt: number, staleTime?: number): number {
+  return Math.max(updatedAt + (staleTime || 0) - Date.now(), 0)
 }
 
-/** @private */
-export class ConsoleLogger implements ILogger {
-    private readonly _minLevel: LogLevel;
+export function parseQueryArgs<
+  TOptions extends QueryOptions<any, any, any, TQueryKey>,
+  TQueryKey extends QueryKey = QueryKey,
+>(
+  arg1: TQueryKey | TOptions,
+  arg2?: QueryFunction<any, TQueryKey> | TOptions,
+  arg3?: TOptions,
+): TOptions {
+  if (!isQueryKey(arg1)) {
+    return arg1 as TOptions
+  }
 
-    // Public for testing purposes.
-    public out: {
-        error(message: any): void,
-        warn(message: any): void,
-        info(message: any): void,
-        log(message: any): void,
-    };
+  if (typeof arg2 === 'function') {
+    return { ...arg3, queryKey: arg1, queryFn: arg2 } as TOptions
+  }
 
-    constructor(minimumLogLevel: LogLevel) {
-        this._minLevel = minimumLogLevel;
-        this.out = console;
-    }
-
-    public log(logLevel: LogLevel, message: string): void {
-        if (logLevel >= this._minLevel) {
-            const msg = `[${new Date().toISOString()}] ${LogLevel[logLevel]}: ${message}`;
-            switch (logLevel) {
-                case LogLevel.Critical:
-                case LogLevel.Error:
-                    this.out.error(msg);
-                    break;
-                case LogLevel.Warning:
-                    this.out.warn(msg);
-                    break;
-                case LogLevel.Information:
-                    this.out.info(msg);
-                    break;
-                default:
-                    // console.debug only goes to attached debuggers in Node, so we use console.log for Trace and Debug
-                    this.out.log(msg);
-                    break;
-            }
-        }
-    }
+  return { ...arg2, queryKey: arg1 } as TOptions
 }
 
-/** @private */
-export function getUserAgentHeader(): [string, string] {
-    let userAgentHeaderName = "X-SignalR-User-Agent";
-    if (Platform.isNode) {
-        userAgentHeaderName = "User-Agent";
+export function parseMutationArgs<
+  TOptions extends MutationOptions<any, any, any, any>,
+>(
+  arg1: MutationKey | MutationFunction<any, any> | TOptions,
+  arg2?: MutationFunction<any, any> | TOptions,
+  arg3?: TOptions,
+): TOptions {
+  if (isQueryKey(arg1)) {
+    if (typeof arg2 === 'function') {
+      return { ...arg3, mutationKey: arg1, mutationFn: arg2 } as TOptions
     }
-    return [ userAgentHeaderName, constructUserAgent(VERSION, getOsName(), getRuntime(), getRuntimeVersion()) ];
+    return { ...arg2, mutationKey: arg1 } as TOptions
+  }
+
+  if (typeof arg1 === 'function') {
+    return { ...arg2, mutationFn: arg1 } as TOptions
+  }
+
+  return { ...arg1 } as TOptions
 }
 
-/** @private */
-export function constructUserAgent(version: string, os: string, runtime: string, runtimeVersion: string | undefined): string {
-    // Microsoft SignalR/[Version] ([Detailed Version]; [Operating System]; [Runtime]; [Runtime Version])
-    let userAgent: string = "Microsoft SignalR/";
-
-    const majorAndMinor = version.split(".");
-    userAgent += `${majorAndMinor[0]}.${majorAndMinor[1]}`;
-    userAgent += ` (${version}; `;
-
-    if (os && os !== "") {
-        userAgent += `${os}; `;
-    } else {
-        userAgent += "Unknown OS; ";
-    }
-
-    userAgent += `${runtime}`;
-
-    if (runtimeVersion) {
-        userAgent += `; ${runtimeVersion}`;
-    } else {
-        userAgent += "; Unknown Runtime Version";
-    }
-
-    userAgent += ")";
-    return userAgent;
+export function parseFilterArgs<
+  TFilters extends QueryFilters,
+  TOptions = unknown,
+>(
+  arg1?: QueryKey | TFilters,
+  arg2?: TFilters | TOptions,
+  arg3?: TOptions,
+): [TFilters, TOptions | undefined] {
+  return (
+    isQueryKey(arg1) ? [{ ...arg2, queryKey: arg1 }, arg3] : [arg1 || {}, arg2]
+  ) as [TFilters, TOptions]
 }
 
-// eslint-disable-next-line spaced-comment
-/*#__PURE__*/ function getOsName(): string {
-    if (Platform.isNode) {
-        switch (process.platform) {
-            case "win32":
-                return "Windows NT";
-            case "darwin":
-                return "macOS";
-            case "linux":
-                return "Linux";
-            default:
-                return process.platform;
-        }
-    } else {
-        return "";
-    }
+export function parseMutationFilterArgs<
+  TFilters extends MutationFilters,
+  TOptions = unknown,
+>(
+  arg1?: QueryKey | TFilters,
+  arg2?: TFilters | TOptions,
+  arg3?: TOptions,
+): [TFilters, TOptions | undefined] {
+  return (
+    isQueryKey(arg1)
+      ? [{ ...arg2, mutationKey: arg1 }, arg3]
+      : [arg1 || {}, arg2]
+  ) as [TFilters, TOptions]
 }
 
-// eslint-disable-next-line spaced-comment
-/*#__PURE__*/ function getRuntimeVersion(): string | undefined {
-    if (Platform.isNode) {
-        return process.versions.node;
+export function matchQuery(
+  filters: QueryFilters,
+  query: Query<any, any, any, any>,
+): boolean {
+  const {
+    type = 'all',
+    exact,
+    fetchStatus,
+    predicate,
+    queryKey,
+    stale,
+  } = filters
+
+  if (isQueryKey(queryKey)) {
+    if (exact) {
+      if (query.queryHash !== hashQueryKeyByOptions(queryKey, query.options)) {
+        return false
+      }
+    } else if (!partialMatchKey(query.queryKey, queryKey)) {
+      return false
     }
-    return undefined;
+  }
+
+  if (type !== 'all') {
+    const isActive = query.isActive()
+    if (type === 'active' && !isActive) {
+      return false
+    }
+    if (type === 'inactive' && isActive) {
+      return false
+    }
+  }
+
+  if (typeof stale === 'boolean' && query.isStale() !== stale) {
+    return false
+  }
+
+  if (
+    typeof fetchStatus !== 'undefined' &&
+    fetchStatus !== query.state.fetchStatus
+  ) {
+    return false
+  }
+
+  if (predicate && !predicate(query)) {
+    return false
+  }
+
+  return true
 }
 
-function getRuntime(): string {
-    if (Platform.isNode) {
-        return "NodeJS";
-    } else {
-        return "Browser";
+export function matchMutation(
+  filters: MutationFilters,
+  mutation: Mutation<any, any>,
+): boolean {
+  const { exact, fetching, predicate, mutationKey } = filters
+  if (isQueryKey(mutationKey)) {
+    if (!mutation.options.mutationKey) {
+      return false
     }
+    if (exact) {
+      if (
+        hashQueryKey(mutation.options.mutationKey) !== hashQueryKey(mutationKey)
+      ) {
+        return false
+      }
+    } else if (!partialMatchKey(mutation.options.mutationKey, mutationKey)) {
+      return false
+    }
+  }
+
+  if (
+    typeof fetching === 'boolean' &&
+    (mutation.state.status === 'loading') !== fetching
+  ) {
+    return false
+  }
+
+  if (predicate && !predicate(mutation)) {
+    return false
+  }
+
+  return true
 }
 
-/** @private */
-export function getErrorString(e: any): string {
-    if (e.stack) {
-        return e.stack;
-    } else if (e.message) {
-        return e.message;
-    }
-    return `${e}`;
+export function hashQueryKeyByOptions<TQueryKey extends QueryKey = QueryKey>(
+  queryKey: TQueryKey,
+  options?: QueryOptions<any, any, any, TQueryKey>,
+): string {
+  const hashFn = options?.queryKeyHashFn || hashQueryKey
+  return hashFn(queryKey)
 }
 
-/** @private */
-export function getGlobalThis(): unknown {
-    // globalThis is semi-new and not available in Node until v12
-    if (typeof globalThis !== "undefined") {
-        return globalThis;
+/**
+ * Default query keys hash function.
+ * Hashes the value into a stable hash.
+ */
+export function hashQueryKey(queryKey: QueryKey): string {
+  return JSON.stringify(queryKey, (_, val) =>
+    isPlainObject(val)
+      ? Object.keys(val)
+          .sort()
+          .reduce((result, key) => {
+            result[key] = val[key]
+            return result
+          }, {} as any)
+      : val,
+  )
+}
+
+/**
+ * Checks if key `b` partially matches with key `a`.
+ */
+export function partialMatchKey(a: QueryKey, b: QueryKey): boolean {
+  return partialDeepEqual(a, b)
+}
+
+/**
+ * Checks if `b` partially matches with `a`.
+ */
+export function partialDeepEqual(a: any, b: any): boolean {
+  if (a === b) {
+    return true
+  }
+
+  if (typeof a !== typeof b) {
+    return false
+  }
+
+  if (a && b && typeof a === 'object' && typeof b === 'object') {
+    return !Object.keys(b).some((key) => !partialDeepEqual(a[key], b[key]))
+  }
+
+  return false
+}
+
+/**
+ * This function returns `a` if `b` is deeply equal.
+ * If not, it will replace any deeply equal children of `b` with those of `a`.
+ * This can be used for structural sharing between JSON values for example.
+ */
+export function replaceEqualDeep<T>(a: unknown, b: T): T
+export function replaceEqualDeep(a: any, b: any): any {
+  if (a === b) {
+    return a
+  }
+
+  const array = isPlainArray(a) && isPlainArray(b)
+
+  if (array || (isPlainObject(a) && isPlainObject(b))) {
+    const aSize = array ? a.length : Object.keys(a).length
+    const bItems = array ? b : Object.keys(b)
+    const bSize = bItems.length
+    const copy: any = array ? [] : {}
+
+    let equalItems = 0
+
+    for (let i = 0; i < bSize; i++) {
+      const key = array ? i : bItems[i]
+      copy[key] = replaceEqualDeep(a[key], b[key])
+      if (copy[key] === a[key]) {
+        equalItems++
+      }
     }
-    if (typeof self !== "undefined") {
-        return self;
+
+    return aSize === bSize && equalItems === aSize ? a : copy
+  }
+
+  return b
+}
+
+/**
+ * Shallow compare objects. Only works with objects that always have the same properties.
+ */
+export function shallowEqualObjects<T>(a: T, b: T): boolean {
+  if ((a && !b) || (b && !a)) {
+    return false
+  }
+
+  for (const key in a) {
+    if (a[key] !== b[key]) {
+      return false
     }
-    if (typeof window !== "undefined") {
-        return window;
-    }
-    if (typeof global !== "undefined") {
-        return global;
-    }
-    throw new Error("could not find global");
+  }
+
+  return true
+}
+
+export function isPlainArray(value: unknown) {
+  return Array.isArray(value) && value.length === Object.keys(value).length
+}
+
+// Copied from: https://github.com/jonschlinkert/is-plain-object
+export function isPlainObject(o: any): o is Object {
+  if (!hasObjectPrototype(o)) {
+    return false
+  }
+
+  // If has modified constructor
+  const ctor = o.constructor
+  if (typeof ctor === 'undefined') {
+    return true
+  }
+
+  // If has modified prototype
+  const prot = ctor.prototype
+  if (!hasObjectPrototype(prot)) {
+    return false
+  }
+
+  // If constructor does not have an Object-specific method
+  if (!prot.hasOwnProperty('isPrototypeOf')) {
+    return false
+  }
+
+  // Most likely a plain Object
+  return true
+}
+
+function hasObjectPrototype(o: any): boolean {
+  return Object.prototype.toString.call(o) === '[object Object]'
+}
+
+export function isQueryKey(value: unknown): value is QueryKey {
+  return Array.isArray(value)
+}
+
+export function isError(value: any): value is Error {
+  return value instanceof Error
+}
+
+export function sleep(timeout: number): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(resolve, timeout)
+  })
+}
+
+/**
+ * Schedules a microtask.
+ * This can be useful to schedule state updates after rendering.
+ */
+export function scheduleMicrotask(callback: () => void) {
+  sleep(0).then(callback)
+}
+
+export function getAbortController(): AbortController | undefined {
+  if (typeof AbortController === 'function') {
+    return new AbortController()
+  }
+  return
+}
+
+export function replaceData<
+  TData,
+  TOptions extends QueryOptions<any, any, any, any>,
+>(prevData: TData | undefined, data: TData, options: TOptions): TData {
+  // Use prev data if an isDataEqual function is defined and returns `true`
+  if (options.isDataEqual?.(prevData, data)) {
+    return prevData as TData
+  } else if (typeof options.structuralSharing === 'function') {
+    return options.structuralSharing(prevData, data)
+  } else if (options.structuralSharing !== false) {
+    // Structurally share data between prev and new data if needed
+    return replaceEqualDeep(prevData, data)
+  }
+  return data
 }

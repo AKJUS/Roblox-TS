@@ -39,6 +39,8 @@ import {
   TextFormField,
 } from "@rbx/core-ui";
 
+import "./main.css";
+
 addExternal("ReactStyleGuide", {
   AvatarCardItem,
   AvatarCardList,

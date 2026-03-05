@@ -35,6 +35,7 @@ import PasswordInput from './passwordInput';
 import QuickSignInInput from './quickSignInInput';
 import { RequestService } from '../../../../common/request';
 import { EventService } from '../services/eventService';
+import RecoveryRedirect from '../components/recoveryRedirect';
 
 export type LoadChallengeProps = {
   setPageLoadError: React.Dispatch<React.SetStateAction<string | null>>;
@@ -109,6 +110,16 @@ export const loadChallenge = async ({
       );
     }
     return;
+  }
+
+  // Retrieve user info
+  const resultUserInfo = await requestService.usersApi.getUserById(userId);
+  // Don't block on error, we just won't show the recovery redirect.
+  if (!resultUserInfo.isError) {
+    dispatch({
+      type: TwoStepVerificationActionType.SET_USER_INFO,
+      userInfo: resultUserInfo.value
+    });
   }
 
   // Retrieve metadata state.
@@ -251,6 +262,7 @@ const TwoStepVerification: React.FC = () => {
       challengeId,
       actionType,
       renderInline,
+      userInfo,
       metadata,
       enabledMediaTypes,
       resources,
@@ -258,7 +270,8 @@ const TwoStepVerification: React.FC = () => {
       metricsService,
       requestService,
       onModalChallengeAbandoned,
-      isModalVisible
+      isModalVisible,
+      recoveryParameters
     },
     dispatch
   } = useTwoStepVerificationContext();
@@ -457,14 +470,20 @@ const TwoStepVerification: React.FC = () => {
       );
     }
 
+    const shouldShowChangeMediaType = activeMediaType && enabledMediaTypes.length > 1 && showChangeMediaType
+    const shouldShowRecoveryRedirect = userInfo && recoveryParameters?.clientSupports2svRecovery && metadata?.is2svRecoveryEnabled && (actionType === ActionType.Login || actionType === ActionType.PasswordReset)
+
     return renderMediaTypeWithChildren(
       <React.Fragment>
-        {activeMediaType && enabledMediaTypes.length > 1 && showChangeMediaType && (
+        {shouldShowChangeMediaType && (
           <SwitchMediaType
             requestInFlight={requestInFlight}
             originalMediaType={activeMediaType}
             actionType={actionType}
           />
+        )}
+        {!shouldShowChangeMediaType && shouldShowRecoveryRedirect && (
+          <RecoveryRedirect actionType={actionType} username={userInfo.name ?? ''} recoverySessionId={recoveryParameters?.recoverySessionId} />
         )}
       </React.Fragment>
     );
@@ -477,7 +496,8 @@ const TwoStepVerification: React.FC = () => {
   return renderInline ? (
     <InlineChallenge titleText={modalTitleText}>{getPageContent()}</InlineChallenge>
   ) : (
-    <Modal className='modal-modern' show={isModalVisible} onHide={closeModal} backdrop='static'>
+    // The keyboard parameter prevents the modal from closing when the escape key is pressed
+    <Modal className='modal-modern' show={isModalVisible} onHide={closeModal} backdrop='static' keyboard={false}>
       <FragmentModalHeader
         headerText={modalTitleText}
         buttonType={HeaderButtonType.CLOSE}

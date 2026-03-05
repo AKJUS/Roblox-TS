@@ -1,6 +1,6 @@
 import { Direction } from "./types";
 import { getCurrentOverlayedElement } from "./navigationState";
-import { scrollByDirection } from "./scrollUtils";
+import { findScrollableAncestor, scrollByDirection } from "./scrollUtils";
 import { getElementViewportInfo } from "../viewportUtils";
 import { FOCUSABLE_SELECTORS, isElementFocusable } from "./elementUtils";
 import { detectActiveFocusTrap } from "./focusTrapUtils";
@@ -207,11 +207,20 @@ export function navigate(direction: Direction): boolean {
     }
 
     const nextRect = nextElement.getBoundingClientRect();
-    const viewportInfo = getElementViewportInfo(nextRect, direction);
+    const scrollContainer = findScrollableAncestor(nextElement);
+    const containerRect =
+      scrollContainer === document.body ? undefined : scrollContainer.getBoundingClientRect();
+    const viewportInfo = getElementViewportInfo(nextRect, direction, containerRect);
 
     // Calculate how far the element is from viewport
     const viewportSize =
-      direction === "up" || direction === "down" ? window.innerHeight : window.innerWidth;
+      direction === "up" || direction === "down"
+        ? scrollContainer === document.body
+          ? window.innerHeight
+          : scrollContainer.clientHeight
+        : scrollContainer === document.body
+          ? window.innerWidth
+          : scrollContainer.clientWidth;
     const maxScrollDistance = viewportSize * MAX_SCROLL_DISTANCE_RATIO;
 
     // Case 1: Element is in view and in inner zone - just focus it

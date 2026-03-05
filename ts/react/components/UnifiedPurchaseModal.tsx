@@ -19,6 +19,7 @@ export type UnifiedPurchaseModalProps = {
   onCancel?: () => void;
   loading?: boolean;
   currentRobuxBalance?: number;
+  rentalOptionDays?: number | null;
   open?: boolean;
   titleText: string;
   actionButtonText: string;
@@ -38,6 +39,7 @@ const UnifiedPurchaseModalComponent: React.FC<UnifiedPurchaseModalProps> = ({
   onCancel,
   loading = false,
   currentRobuxBalance,
+  rentalOptionDays = null,
   open = false
 }) => {
   useModalShownTracking('UnifiedPurchaseModal', open);
@@ -66,6 +68,7 @@ const UnifiedPurchaseModalComponent: React.FC<UnifiedPurchaseModalProps> = ({
             thumbnail={thumbnail}
             assetName={assetName}
             expectedPrice={expectedPrice}
+            rentalOptionDays={rentalOptionDays}
           />
         </DialogBody>
 
@@ -75,7 +78,8 @@ const UnifiedPurchaseModalComponent: React.FC<UnifiedPurchaseModalProps> = ({
               variant='Emphasis'
               className='fill basis-0'
               onClick={onAction}
-              isDisabled={loading}>
+              isDisabled={loading}
+              data-testid='purchase-confirm-button'>
               {actionButtonText}
             </Button>
           </div>

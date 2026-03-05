@@ -1,78 +1,78 @@
-import $ from 'jquery';
-import { EventStream } from '@rbx/core-scripts/legacy/Roblox';
+import $ from "jquery";
+import { EventStream } from "@rbx/core-scripts/legacy/Roblox";
 
 const gamePlayEvents = {
-  lastContext: 'unknown',
+  lastContext: "unknown",
   contextCategories: {
-    joinUser: 'JoinUser'
-  }
+    joinUser: "JoinUser",
+  },
 };
 
 function getPage() {
   const path = window.location.pathname.toLowerCase();
-  const profilePageString = 'profile';
+  const profilePageString = "profile";
   const profileLastIndex = path.lastIndexOf(profilePageString);
   // roundabout way of saying .endsWith since .endsWith is not supported by IE. Surprise surprise!
   if (profileLastIndex !== -1 && path.length === profileLastIndex + profilePageString.length) {
     return profilePageString;
   }
-  if (path.indexOf('/develop') === 0) {
-    return 'develop';
+  if (path.indexOf("/develop") === 0) {
+    return "develop";
   }
 
-  if (path.indexOf('/discover') === 0) {
-    return 'games';
+  if (path.indexOf("/discover") === 0) {
+    return "games";
   }
-  return 'gameDetail';
+  return "gameDetail";
 }
 
 function getProperties(placeId, referrerId, joinAttemptId) {
   return {
-    lType: 'protocol',
+    lType: "protocol",
     pid: placeId,
     refuid: referrerId,
     pg: getPage(),
-    joinAttemptId
+    joinAttemptId,
   };
 }
 
 function sendEvent(eventName, context, placeId, referrerId, joinAttemptId) {
-  if (context !== null && context !== '' && context !== 'unknown') {
+  if (context !== null && context !== "" && context !== "unknown") {
     gamePlayEvents.lastContext = context;
   }
   EventStream.SendEvent(
     eventName,
     gamePlayEvents.lastContext,
-    getProperties(placeId, referrerId, joinAttemptId)
+    getProperties(placeId, referrerId, joinAttemptId),
   );
 }
 
 function sendGamePlayIntent(context, placeId, referrerId, joinAttemptId) {
-  sendEvent('gamePlayIntent', context, placeId, referrerId, joinAttemptId);
-  $(document).trigger('playButton:gamePlayIntent');
+  sendEvent("gamePlayIntent", context, placeId, referrerId, joinAttemptId);
+  $(document).trigger("playButton:gamePlayIntent");
 }
 
 function sendDevelopIntent(context, placeId) {
-  sendEvent('developIntent', context, placeId);
+  sendEvent("developIntent", context, placeId);
 }
 
 function sendInstallBegin(context, placeId) {
-  sendEvent('installBegin', context, placeId);
+  sendEvent("installBegin", context, placeId);
 }
 
 function sendInstallSuccess(context, placeId) {
-  sendEvent('installSuccess', context, placeId);
+  sendEvent("installSuccess", context, placeId);
 }
 
 function sendClientStartAttempt(context, placeId) {
-  sendEvent('clientStartAttempt', context, placeId);
+  sendEvent("clientStartAttempt", context, placeId);
 }
 function sendClientStartSuccessWeb(context, placeId) {
-  sendEvent('clientStartSuccessWeb', context, placeId);
+  sendEvent("clientStartSuccessWeb", context, placeId);
 }
 
 function sendManualDownloadClick(context, placeId) {
-  sendEvent('manualDownload', context, placeId);
+  sendEvent("manualDownload", context, placeId);
 }
 
 Object.assign(gamePlayEvents, {
@@ -82,7 +82,7 @@ Object.assign(gamePlayEvents, {
   SendInstallSuccess: sendInstallSuccess,
   SendClientStartAttempt: sendClientStartAttempt,
   SendClientStartSuccessWeb: sendClientStartSuccessWeb,
-  SendManualDownloadClick: sendManualDownloadClick
+  SendManualDownloadClick: sendManualDownloadClick,
 });
 
 export default gamePlayEvents;

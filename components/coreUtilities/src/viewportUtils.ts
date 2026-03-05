@@ -8,22 +8,33 @@ interface ViewportZone {
   distanceFromViewport: number; // 0 if in view, positive if below/right, negative if above/left
 }
 
-export function getElementViewportInfo(rect: DOMRect, direction: Direction): ViewportZone {
-  const viewportWidth = window.innerWidth;
-  const viewportHeight = window.innerHeight;
+export function getElementViewportInfo(
+  rect: DOMRect,
+  direction: Direction,
+  viewportRect?: DOMRect,
+): ViewportZone {
+  const viewportWidth = viewportRect ? viewportRect.width : window.innerWidth;
+  const viewportHeight = viewportRect ? viewportRect.height : window.innerHeight;
+  const viewportLeft = viewportRect ? viewportRect.left : 0;
+  const viewportTop = viewportRect ? viewportRect.top : 0;
+  const viewportRight = viewportRect ? viewportRect.right : viewportWidth;
+  const viewportBottom = viewportRect ? viewportRect.bottom : viewportHeight;
 
   // Calculate inner zone boundaries (center 80%)
   const horizontalMargin = (viewportWidth * (1 - VIEWPORT_INNER_ZONE_RATIO)) / 2;
   const verticalMargin = (viewportHeight * (1 - VIEWPORT_INNER_ZONE_RATIO)) / 2;
 
-  const innerLeft = horizontalMargin;
-  const innerRight = viewportWidth - horizontalMargin;
-  const innerTop = verticalMargin;
-  const innerBottom = viewportHeight - verticalMargin;
+  const innerLeft = viewportLeft + horizontalMargin;
+  const innerRight = viewportRight - horizontalMargin;
+  const innerTop = viewportTop + verticalMargin;
+  const innerBottom = viewportBottom - verticalMargin;
 
   // Check if element is in viewport
   const inView =
-    rect.right >= 0 && rect.left <= viewportWidth && rect.bottom >= 0 && rect.top <= viewportHeight;
+    rect.right >= viewportLeft &&
+    rect.left <= viewportRight &&
+    rect.bottom >= viewportTop &&
+    rect.top <= viewportBottom;
 
   // Check if element is in inner zone
   const inInnerZone =
@@ -38,16 +49,16 @@ export function getElementViewportInfo(rect: DOMRect, direction: Direction): Vie
   if (!inView) {
     switch (direction) {
       case "up":
-        distanceFromViewport = rect.bottom < 0 ? rect.bottom : 0;
+        distanceFromViewport = rect.bottom < viewportTop ? rect.bottom - viewportTop : 0;
         break;
       case "down":
-        distanceFromViewport = rect.top > viewportHeight ? rect.top - viewportHeight : 0;
+        distanceFromViewport = rect.top > viewportBottom ? rect.top - viewportBottom : 0;
         break;
       case "left":
-        distanceFromViewport = rect.right < 0 ? rect.right : 0;
+        distanceFromViewport = rect.right < viewportLeft ? rect.right - viewportLeft : 0;
         break;
       case "right":
-        distanceFromViewport = rect.left > viewportWidth ? rect.left - viewportWidth : 0;
+        distanceFromViewport = rect.left > viewportRight ? rect.left - viewportRight : 0;
         break;
     }
   }

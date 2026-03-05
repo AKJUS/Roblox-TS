@@ -4,16 +4,10 @@ export const realtimeEvents = {
   RequestForConnectionStatus: "Roblox.RealTime.Events.RequestForConnectionStatus",
 };
 
-export const DEFAULT_TARGET_TYPES = {
-  DEFAULT: 0,
-  WWW: 1,
-  STUDIO: 2,
-  DIAGNOSTIC: 3,
-};
-
-export const EVENT_TYPES = {
-  formInteraction: "formInteraction",
-  modalAction: "modalAction",
-  pageLoad: "pageLoad",
-  buttonClick: "buttonClick",
+// Topic-based notification channels (Phase 1+)
+// Uses localStorage for cross-tab communication
+export const topicChannels = {
+  Notification: "Roblox.RealTime.Topic.LocalStorage.Notification",
+  SubscribeRequest: "Roblox.RealTime.Topic.LocalStorage.SubscribeRequest",
+  LeaderReconnected: "Roblox.RealTime.Topic.LocalStorage.LeaderReconnected",
 };

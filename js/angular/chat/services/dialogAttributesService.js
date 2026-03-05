@@ -200,7 +200,8 @@ function dialogAttributes(languageResource) {
     },
     modalSequence: {
       CONVERSATION_INLINE_TOP_MODAL: 'conversation_inline_top_modal',
-      CONVERSATION_OVERLAY: 'conversation_overlay'
+      CONVERSATION_OVERLAY: 'conversation_overlay',
+      CONVERSATION_LIST_OVERLAY: 'conversation_list_overlay'
     },
     modalVariant: {
       OSA_CONTEXT_CARD: 'osa_context_card',
@@ -210,7 +211,8 @@ function dialogAttributes(languageResource) {
     },
     modalActionType: {
       RECORD_HAS_SEEN: 'record_has_seen',
-      RECORD_DONT_SHOW_AGAIN: 'record_dont_show_again'
+      RECORD_DONT_SHOW_AGAIN: 'record_dont_show_again',
+      RECORD_HAS_ACCEPTED: 'record_has_accepted'
     },
     friendshipOriginType: {
       QR_CODE: 6,

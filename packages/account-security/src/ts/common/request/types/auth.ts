@@ -89,3 +89,15 @@ export const RESET_PASSWORD_CONFIG: UrlConfig = {
   url: `${authApiUrl}/v2/passwords/reset`,
   timeout: AUTH_API_TIMEOUT
 };
+
+export type InvalidateTicketsReturnType = void;
+
+/**
+ * Invalidates all account security tickets / revert links for the authenticated user.
+ * Request Type: `POST`.
+ */
+export const INVALIDATE_TICKETS_CONFIG: UrlConfig = {
+  withCredentials: true,
+  url: `${authApiUrl}/v1/revert/invalidate-tickets`,
+  timeout: AUTH_API_TIMEOUT
+};

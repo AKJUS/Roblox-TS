@@ -3,25 +3,10 @@ import { TranslateFunction } from "@rbx/core-scripts/react";
 import ItemCardStatus from "./ItemCardStatus";
 import ItemCardRestrictions from "./ItemCardRestrictions";
 import ItemCardPrice from "./ItemCardPrice";
+import { ItemCardShoppingCardProps, TTimedOption } from "../constants/itemCardTypes";
 
-export type ItemCardShoppingCardProps = {
-  isItemInCart: boolean;
-  addItemToCart: (
-    itemInfo: {
-      itemId: number;
-      collectibleItemId?: string | null;
-      itemType: string;
-      itemName: string;
-      addedToCardAt?: number;
-    },
-    displaySystemFeedback?: boolean,
-  ) => Promise<void>;
-  removeItemFromCart: (
-    itemId: number,
-    itemType: string,
-    displaySystemFeedback?: boolean,
-  ) => Promise<void>;
-};
+// Re-export for backward compatibility
+export type { ItemCardShoppingCardProps };
 
 export type ItemCardThumbnailProps = {
   itemId: number;
@@ -40,6 +25,7 @@ export type ItemCardThumbnailProps = {
   priceStatus?: string;
   unitsAvailableForConsumption?: number;
   enableThumbnailPrice?: boolean;
+  timedOptions?: TTimedOption[] | undefined;
 };
 
 function ItemCardThumbnail({
@@ -59,6 +45,7 @@ function ItemCardThumbnail({
   creatorTargetId,
   priceStatus,
   unitsAvailableForConsumption,
+  timedOptions,
 }: ItemCardThumbnailProps): JSX.Element {
   let shoppingCartButtons = null;
   if (shoppingCartProps && isHovered) {
@@ -75,7 +62,7 @@ function ItemCardThumbnail({
                 evt.stopPropagation();
 
                 // eslint-disable-next-line @typescript-eslint/no-floating-promises
-                addItemToCart({ itemId, itemType, itemName }, true);
+                addItemToCart({ itemId, itemType, itemName, timedOptions }, true);
               }}
             >
               {translate("Action.Add")}
@@ -115,11 +102,14 @@ function ItemCardThumbnail({
             premiumPricing={premiumPricing}
             unitsAvailableForConsumption={unitsAvailableForConsumption}
             enableThumbnailPrice={enableThumbnailPrice}
+            timedOptions={timedOptions}
+            translate={translate}
           />
         )}
         <div className="item-card-thumb-container-inner">{thumbnail2d}</div>
         <ItemCardStatus itemStatus={itemStatus} translate={translate} />
         <ItemCardRestrictions type={itemType} itemRestrictions={itemRestrictions} />
+
         {shoppingCartButtons}
       </div>
     </div>

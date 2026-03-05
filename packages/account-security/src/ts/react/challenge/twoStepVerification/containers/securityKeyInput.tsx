@@ -13,6 +13,7 @@ import {
 import { useActiveMediaType } from '../hooks/useActiveMediaType';
 import useTwoStepVerificationContext from '../hooks/useTwoStepVerificationContext';
 import { TwoStepVerificationActionType } from '../store/action';
+import { useDelayedVerificationBodyText } from '../delay/text';
 
 type Props = {
   requestInFlight: boolean;
@@ -40,7 +41,7 @@ const SecurityKeyInput: React.FC<Props> = ({
       metadata,
       eventService,
       metricsService,
-      requestService
+      requestService,
     },
     dispatch
   } = useTwoStepVerificationContext();
@@ -224,13 +225,14 @@ const SecurityKeyInput: React.FC<Props> = ({
    * Component Markup
    */
 
+  const maybeDelayedText = useDelayedVerificationBodyText(metadata?.isDelayedUiEnabled ?? false);
+
   return (
     metadata && (
-      <React.Fragment>
-        <BodyElement>
+      <BodyElement>
           <div className={lockIconClassName} />
           <p className={marginBottomSmallClassName}>{resources.Label.VerifyWithSecurityKey}</p>
-          <p className={marginBottomClassName}>{resources.Label.SecurityKeyDirections}</p>
+          <p className={marginBottomClassName}>{resources.Label.SecurityKeyDirections} {maybeDelayedText ?? ''}</p>
           <button
             ref={buttonRef}
             type='button'
@@ -256,7 +258,6 @@ const SecurityKeyInput: React.FC<Props> = ({
           <SupportHelp className={marginBottomClassName} />
           <p className={textErrorClassName}>{requestError}</p>
         </BodyElement>
-      </React.Fragment>
     )
   );
 };

@@ -1,7 +1,7 @@
+// TODO: old, migrated code
+/* eslint-disable no-invalid-this */
 import realtimeFactory from "./factory";
 
-// TODO: old, migrated code
-// eslint-disable-next-line func-names
 const realtimeStateTracker = function (
   localStoragePersistenceEnabled,
   eventPublishingEnabled,
@@ -44,7 +44,7 @@ const realtimeStateTracker = function (
   const safeParse = jsonString => {
     try {
       return JSON.parse(jsonString);
-    } catch (e) {
+    } catch {
       log("Error parsing jsonString");
       return null;
     }
@@ -88,7 +88,7 @@ const realtimeStateTracker = function (
         properties.ua = navigator.userAgent;
         EventStream.SendEvent(eventName, eventContext, properties);
       }
-    } catch (e) {
+    } catch {
       log("Error pushing to Event Stream");
     }
   };

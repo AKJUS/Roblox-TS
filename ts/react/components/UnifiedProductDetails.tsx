@@ -1,8 +1,12 @@
 import React from 'react';
 import { TranslateFunction } from 'react-utilities';
+import { Icon } from '@rbx/foundation-ui';
 
 import AssetName from '../../../js/react/itemPurchase/components/AssetName';
 import PriceLabel from '../../../js/react/itemPurchase/components/PriceLabel';
+import itemPurchaseConstants from '../../../js/react/itemPurchase/constants/itemPurchaseConstants';
+
+const { resources } = itemPurchaseConstants;
 
 export type UnifiedProductDetailsProps = {
   translate: TranslateFunction;
@@ -10,6 +14,7 @@ export type UnifiedProductDetailsProps = {
   assetName: string;
   expectedPrice: number;
   thumbnailSizePx?: number;
+  rentalOptionDays?: number | null;
 };
 
 const UnifiedProductDetails: React.FC<UnifiedProductDetailsProps> = ({
@@ -17,7 +22,8 @@ const UnifiedProductDetails: React.FC<UnifiedProductDetailsProps> = ({
   thumbnail,
   assetName,
   expectedPrice,
-  thumbnailSizePx = 150
+  thumbnailSizePx = 150,
+  rentalOptionDays = null
 }) => {
   return (
     <div className='flex flex-row items-center gap-large'>
@@ -44,6 +50,16 @@ const UnifiedProductDetails: React.FC<UnifiedProductDetailsProps> = ({
         <span className='text-body-large break-words'>
           <AssetName name={assetName} />
         </span>
+        {rentalOptionDays != null && (
+          <div className='flex flex-row items-center gap-small'>
+            <Icon name='icon-regular-clock' />
+            <span>
+              {translate(resources.timedOptionDaysTimerStartsWhenYouBuy, {
+                days: rentalOptionDays
+              }) || `${rentalOptionDays} days (Timer starts when you buy)`}
+            </span>
+          </div>
+        )}
         <div className='flex flex-row items-center'>
           <PriceLabel translate={translate} price={expectedPrice} color='' useFreeText={false} />
         </div>

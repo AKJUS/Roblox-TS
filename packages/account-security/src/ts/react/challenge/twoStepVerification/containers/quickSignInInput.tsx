@@ -1,3 +1,5 @@
+// Currently only used to display quick sign in modal for devices in Roblox App with non compatible two sv methods.
+
 import React, { useEffect } from 'react';
 import { Modal } from 'react-style-guide';
 import { CrossDeviceLoginDisplayCodeService, DeviceMeta, Hybrid } from 'Roblox';
@@ -6,6 +8,7 @@ import { InlineChallengeFooter } from '../../../common/inlineChallengeFooter';
 import { FooterButtonConfig, FragmentModalFooter } from '../../../common/modalFooter';
 import SupportHelp from '../components/supportHelp';
 import useTwoStepVerificationContext from '../hooks/useTwoStepVerificationContext';
+import { ActionType } from '../interface';
 
 type Props = {
   setModalTitleText: React.Dispatch<React.SetStateAction<string>>;
@@ -14,7 +17,7 @@ type Props = {
 
 const QuickSignInInput: React.FC<Props> = ({ setModalTitleText, children }: Props) => {
   const {
-    state: { renderInline, resources, metadata }
+    state: { renderInline, resources, metadata, actionType }
   } = useTwoStepVerificationContext();
 
   // to change the modal title in twoStepVerification.tsx once this mounts
@@ -23,6 +26,19 @@ const QuickSignInInput: React.FC<Props> = ({ setModalTitleText, children }: Prop
   }, [setModalTitleText, resources.Title.UseAnotherDevice]);
 
   const inRobloxApp = DeviceMeta && DeviceMeta().isInApp;
+
+  const getBodyText = function() {
+    if (inRobloxApp) {
+      return actionType === ActionType.Login
+        ? resources.Description.QuickLoginUA
+        : resources.Description.QuickLogin;
+    }
+    return resources.Description.QuickLogin;
+  }
+
+  // Determine body text based on whether we're in RobloxApp and action type
+  const bodyText =
+   getBodyText();
 
   const handleButtonClick = () => {
     if (inRobloxApp) {
@@ -61,7 +77,7 @@ const QuickSignInInput: React.FC<Props> = ({ setModalTitleText, children }: Prop
       <React.Fragment>
         <BodyElement>
           <div className={lockIconClassName} />
-          <p className={marginBottomXLargeClassName}>{resources.Description.QuickLogin}</p>
+          <p className={marginBottomXLargeClassName}>{bodyText}</p>
           {children}
         </BodyElement>
         <FooterElement positiveButton={positiveButton} negativeButton={null}>

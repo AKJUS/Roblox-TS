@@ -76,25 +76,34 @@ function HeaderIconsGroup({ translate, toggleUniverseSearch }) {
   };
   const getRobuxBadge = () => {
     if (isAuthenticated) {
-      navigationService.getRobuxBadge().then(({ data: robuxBadgeData }) => {
-        const robuxUpdateBadge = shouldShowRobuxUpdateBadge();
+      navigationService
+        .getRobuxBadge()
+        .then(({ data: robuxBadgeData }) => {
+          const robuxUpdateBadge = shouldShowRobuxUpdateBadge();
 
-        // interpret is_virtual_item_available as indicating we should
-        // show the 'New Update' badge, overriding the virtual item badge in all cases.
+          // interpret is_virtual_item_available as indicating we should
+          // show the 'New Update' badge, overriding the virtual item badge in all cases.
 
-        // const prevLocalVirtualItemStartTimeSeconds =
-        //   getRobuxBadgeLocalStorage(RobuxBadgeType.VIRTUAL_ITEM) || -1;
+          // const prevLocalVirtualItemStartTimeSeconds =
+          //   getRobuxBadgeLocalStorage(RobuxBadgeType.VIRTUAL_ITEM) || -1;
 
-        if (
-          robuxBadgeData.is_virtual_item_available &&
-          robuxUpdateBadge
-          // prevLocalVirtualItemStartTimeSeconds <
-          //   robuxBadgeData.active_virtual_item_start_time_seconds_utc
-        ) {
-          setRobuxBadgeType(robuxUpdateBadge);
-          // setRobuxBadgeType(RobuxBadgeType.VIRTUAL_ITEM);
-        }
-      });
+          if (
+            robuxBadgeData.is_virtual_item_available &&
+            robuxUpdateBadge
+            // prevLocalVirtualItemStartTimeSeconds <
+            //   robuxBadgeData.active_virtual_item_start_time_seconds_utc
+          ) {
+            setRobuxBadgeType(robuxUpdateBadge);
+            // setRobuxBadgeType(RobuxBadgeType.VIRTUAL_ITEM);
+          }
+        })
+        .catch(error => {
+          if (error.status === 403) {
+            setRobuxBadgeType(null);
+          } else {
+            throw error;
+          }
+        });
     }
   };
 

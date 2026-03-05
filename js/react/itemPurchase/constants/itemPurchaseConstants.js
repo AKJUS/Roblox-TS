@@ -98,7 +98,9 @@ export default {
     pendingDeveloperProductLimitReachedMessage: 'Message.PendingDeveloperProductLimitReached',
     pendingDeveloperProductLimitReachedHeading: 'Heading.PendingDeveloperProductLimitReached',
     additionalRobuxNeeded: 'Message.AdditionalRobux',
-    economicRestrictionsErrorHeading: 'Heading.EconomicRestrictionsError'
+    economicRestrictionsErrorHeading: 'Heading.EconomicRestrictionsError',
+    timedOptionDaysAbbreviation: 'Label.TimedOptionDaysAbbreviation',
+    timedOptionDaysTimerStartsWhenYouBuy: 'Label.TimedOptionDaysTimerStartsWhenYouBuy'
   },
   assetTypes: {
     // library catagory type

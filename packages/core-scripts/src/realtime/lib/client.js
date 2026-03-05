@@ -1,12 +1,11 @@
 import realtimeFactory from "./factory";
 import realtimeStateTracker from "./stateTracker";
 import { maybeSendEventToDataLake } from "../utils/events";
+import createTopicManager from "./topicManager";
 import signalRSource from "../sources/signalRSource";
 import hybridSource from "../sources/hybridSource";
 import crossTabReplicatedSource from "../sources/crossTabReplicatedSource";
 
-// TODO: old, migrated code
-// eslint-disable-next-line func-names
 const RealtimeClient = function (sourceConstructors) {
   let currentSource = null;
 
@@ -23,6 +22,7 @@ const RealtimeClient = function (sourceConstructors) {
 
   let customLogger = null;
   let logVerboseMessages = false;
+
   const log = (message, isVerbose) => {
     if (!isVerbose || logVerboseMessages) {
       if (customLogger) {
@@ -31,6 +31,9 @@ const RealtimeClient = function (sourceConstructors) {
     }
   };
   let stateTracker = null;
+
+  // Topic-based notifications manager
+  const topicManager = createTopicManager({ log });
 
   const setCustomLogger = loggerCallback => {
     customLogger = loggerCallback;
@@ -273,6 +276,7 @@ const RealtimeClient = function (sourceConstructors) {
 
     if (connectionEvent.isConnected) {
       executeConnectionCallbacks();
+
       if (connectionEvent.namespace) {
         const { namespace } = connectionEvent;
         const sequenceNumber = connectionEvent.namespaceSequenceNumber;
@@ -328,6 +332,12 @@ const RealtimeClient = function (sourceConstructors) {
       if (started) {
         log(`New source started: ${newSource.Name}`);
         currentSource = newSource;
+
+        // Notify topic manager of new source (handles topic subscriptions for new source)
+        // Note: onConnectionEvent will also call this on connect, making it potentially redundant
+        // but ensuring topic subscriptions work even if connection event timing varies
+        topicManager.onSourceChanged(newSource);
+
         break;
       }
     }
@@ -417,6 +427,25 @@ const RealtimeClient = function (sourceConstructors) {
     }
   };
 
+  // ============================================================================
+  // TOPIC-BASED NOTIFICATIONS (Phase 1)
+  // ============================================================================
+  // Delegated to TopicManager for separation of concerns
+  // See: topicManager.js and ../ARCHITECTURE.md
+
+  /**
+   * PUBLIC API: Subscribe to topic-based notifications
+   *
+   * @param {string} token - Topic token with topicId prefix (format: "{namespace}!{topic}.body.sig")
+   * @param {function} callback - Function to call when notification received
+   * @returns {object} Handle with unsubscribe() method
+   */
+  const subscribeToTopicNotification = (token, callback) => topicManager.subscribe(token, callback);
+
+  // ============================================================================
+  // END TOPIC-BASED NOTIFICATIONS
+  // ============================================================================
+
   // Automatic Start
   initialize();
   // Public Interface
@@ -427,6 +456,9 @@ const RealtimeClient = function (sourceConstructors) {
   this.IsConnected = isConnectedMethod;
   this.SetLogger = setCustomLogger;
   this.SetVerboseLogging = setVerboseLogging;
+
+  // Topic-based notifications (Phase 1)
+  this.SubscribeToTopicNotification = subscribeToTopicNotification;
 };
 
 let client = null;

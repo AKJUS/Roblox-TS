@@ -151,6 +151,7 @@ export default function createItemPurchase({
     collectibleProductId,
     isLimited,
     customProps,
+    rentalOptionDays = null,
     saleLocationId = null
   }) {
     const [loading, setLoading] = useState(false);
@@ -551,6 +552,7 @@ export default function createItemPurchase({
         expectedPrice: price,
         expectedPurchaserId: CurrentUser.userId,
         expectedPurchaserType: 'User',
+        rentalOptionDays,
         expectedSellerId,
         expectedSellerType: sellerType,
         idempotencyKey: uuidService.generateRandomUuid()
@@ -709,6 +711,7 @@ export default function createItemPurchase({
             isPlace,
             loading,
             currentRobuxBalance,
+            rentalOptionDays,
             onAction: () => {
               purchaseItem(expectedPrice);
               return false;
@@ -811,7 +814,8 @@ export default function createItemPurchase({
     collectibleProductId: null,
     sellerType: null,
     isLimited: false,
-    saleLocationId: null
+    saleLocationId: null,
+    rentalOptionDays: null
   };
 
   ItemPurchase.propTypes = {
@@ -848,7 +852,8 @@ export default function createItemPurchase({
     collectibleItemInstanceId: PropTypes.string,
     collectibleProductId: PropTypes.string,
     isLimited: PropTypes.bool,
-    saleLocationId: PropTypes.number
+    saleLocationId: PropTypes.number,
+    rentalOptionDays: PropTypes.number
   };
   return [
     withTranslations(ItemPurchase, translationConfig.purchasingResources),

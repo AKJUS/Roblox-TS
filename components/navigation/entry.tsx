@@ -1,11 +1,13 @@
+import { QueryClientProvider } from "@tanstack/react-query";
 import ready from "@rbx/core-scripts/util/ready";
-import { renderWithErrorBoundary } from "@rbx/core-scripts/react";
+import { queryClient, renderWithErrorBoundary } from "@rbx/core-scripts/react";
 import { addExternal } from "@rbx/externals";
-import LeftNavigation from "./src/containers/LeftNavigation";
+import LeftNavigation from "./src/leftNav";
 import NavigationRightHeader from "./src/containers/NavigationRightHeader";
 import NavigationRobux from "./src/containers/NavigationRobux";
 import { cacheUserId } from "./src/util/authUtil";
 import developUtil from "./src/util/developUtil";
+import navClickUtil from "./src/util/navClickUtil";
 import MenuIcon from "./src/containers/MenuIcon";
 import setupAuthInterceptor from "./src/services/authInterceptor";
 import * as navigation from "./src";
@@ -23,6 +25,7 @@ const navigationRobuxMobileContainerId = "navigation-robux-mobile-container";
 addExternal(["Roblox", "NavigationService"], { ...navigation });
 cacheUserId();
 developUtil.initializeDevelopLink();
+navClickUtil.initNavClickEvents();
 
 // Setup HTTP interceptor to listen for 401 auth codes
 setupAuthInterceptor();
@@ -57,6 +60,11 @@ ready(() => {
   }
 
   if (document.getElementById(leftNavigationContainerId)) {
-    renderWithErrorBoundary(<LeftNavigation />, document.getElementById(leftNavigationContainerId));
+    renderWithErrorBoundary(
+      <QueryClientProvider client={queryClient}>
+        <LeftNavigation />
+      </QueryClientProvider>,
+      document.getElementById(leftNavigationContainerId),
+    );
   }
 });

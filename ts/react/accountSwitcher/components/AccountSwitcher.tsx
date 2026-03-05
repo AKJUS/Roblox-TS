@@ -10,6 +10,7 @@ export type accountSwitcherProps = {
   helpText?: string;
   onAccountSelection: (userId: number) => void;
   handleAddAccount: () => void;
+  suppressAddAccountRow?: boolean;
   translate: WithTranslationsProps['translate'];
 };
 
@@ -19,6 +20,7 @@ export const AccountSwitcher = ({
   helpText,
   onAccountSelection,
   handleAddAccount,
+  suppressAddAccountRow = false,
   translate
 }: accountSwitcherProps): JSX.Element => {
   const [hasAnyRowBeenClicked, setHasAnyRowBeenClicked] = useState<boolean>(false);
@@ -36,8 +38,8 @@ export const AccountSwitcher = ({
 
   return (
     <div className='section-content account-switcher-section'>
-      <h1 className='account-switcher-header'>{titleText}</h1>
-      <h1 className='account-switcher-help-text'>{helpText}</h1>
+      {titleText && <h1 className='account-switcher-header'>{titleText}</h1>}
+      {helpText && <h2 className='account-switcher-help-text'>{helpText}</h2>}
       <ul className='account-switcher-list '>
         {users.map(user => (
           // iterator elements should have a unique key
@@ -54,9 +56,11 @@ export const AccountSwitcher = ({
             </div>
           </li>
         ))}
-        <li className='account-selection-list-item'>
-          <AddAccountRow handleAddAccount={handleAddAccount} translate={translate} />
-        </li>
+        {!suppressAddAccountRow && (
+          <li className='account-selection-list-item'>
+            <AddAccountRow handleAddAccount={handleAddAccount} translate={translate} />
+          </li>
+        )}
       </ul>
     </div>
   );

@@ -29,7 +29,8 @@ const resources = {
     pendingStateTemplate: 'pending-state',
     contactCardTemplate: 'contact-card',
     osaContextCardTemplate: 'osa-context-card',
-    dialogAlertTemplate: 'dialog-alert'
+    dialogAlertTemplate: 'dialog-alert',
+    groupInviteDialogTemplate: 'group-invite-dialog'
   },
   eventStreamParams: {
     actions: {

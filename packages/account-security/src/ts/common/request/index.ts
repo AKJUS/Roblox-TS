@@ -25,6 +25,7 @@ import * as Fido2Api from './apis/fido2';
 import * as AccountRecoveryApi from './apis/accountRecovery';
 import * as LegacyAccountInfoApi from './apis/legacyAccountInfo';
 import * as UserSettingsApi from './apis/userSettings';
+import * as UsersApi from './apis/users';
 
 /**
  * A class encapsulating the various HTTP requests in this web app.
@@ -63,6 +64,7 @@ export class RequestServiceDefault {
   accountRecoveryApi = AccountRecoveryApi;
   legacyAccountInfoApi = LegacyAccountInfoApi;
   userSettingsApi = UserSettingsApi;
+  usersApi = UsersApi;
 }
 
 /**

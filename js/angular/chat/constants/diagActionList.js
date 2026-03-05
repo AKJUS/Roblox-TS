@@ -5,7 +5,8 @@ const diagActionList = {
   ConversationMessageSentWeb: 'ConversationMessageSentWeb',
   WebChatConversationsLoadedWeb: 'WebChatConversationsLoadedWeb',
   WebChatConversationRenderedWeb: 'WebChatConversationRenderedWeb',
-  WebChatRenderedWeb: 'WebChatRenderedWeb'
+  WebChatRenderedWeb: 'WebChatRenderedWeb',
+  ModalPrefix: 'WebChatModal'
 };
 
 chatModule.constant('diagActionList', diagActionList);

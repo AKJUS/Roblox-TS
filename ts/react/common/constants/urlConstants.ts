@@ -1,5 +1,3 @@
-import { EnvironmentUrls } from 'Roblox';
-
 // same with url constants in angular core utilities
 export const urlQueryConstants = {
   urlQueryStringPrefix: '?',
@@ -17,5 +15,3 @@ export const verifiedSignupUrl = {
 export const passkeyUrl = {
   startAuthentication: '/v1/passkey/StartAuthentication'
 };
-
-export const intlAuthComplianceUrl = `${EnvironmentUrls.universalAppConfigurationApi}/v1/behaviors/intl-auth-compliance/content`;

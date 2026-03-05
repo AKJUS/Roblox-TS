@@ -1,32 +1,32 @@
-import $ from 'jquery';
-import { GaEventSettings } from '@rbx/core-scripts/legacy/Roblox';
-import GameLauncher from './gameLauncher';
-import GamePlayEvents from './gamePlayEvents';
+import $ from "jquery";
+import { GaEventSettings } from "@rbx/core-scripts/legacy/Roblox";
+import GameLauncher from "./gameLauncher";
+import GamePlayEvents from "./gamePlayEvents";
 
 const GameLaunchLogger = {
   logToConsoleEnabled: false,
   logToGAEnabled: true,
-  logToEphemeralCountersEnabled: true
+  logToEphemeralCountersEnabled: true,
 };
 
 const ephemeralCountersEvents = {};
 ephemeralCountersEvents[GameLauncher.startClientAttemptedEvent] = [
-  'GameLaunchAttempt_<os>',
-  'GameLaunchAttempt_<os>_<launchmethod>'
+  "GameLaunchAttempt_<os>",
+  "GameLaunchAttempt_<os>_<launchmethod>",
 ];
 ephemeralCountersEvents[GameLauncher.startClientSucceededEvent] = [
-  'GameLaunchSuccessWeb_<os>',
-  'GameLaunchSuccessWeb_<os>_<launchmethod>'
+  "GameLaunchSuccessWeb_<os>",
+  "GameLaunchSuccessWeb_<os>_<launchmethod>",
 ];
 
 const googleAnalyticsEvents = {};
 if (GaEventSettings.gaLaunchAttemptAndLaunchSuccessEnabled) {
-  googleAnalyticsEvents[GameLauncher.startClientAttemptedEvent] = 'Launch Attempt';
-  googleAnalyticsEvents[GameLauncher.startClientSucceededEvent] = 'Launch Success';
+  googleAnalyticsEvents[GameLauncher.startClientAttemptedEvent] = "Launch Attempt";
+  googleAnalyticsEvents[GameLauncher.startClientSucceededEvent] = "Launch Success";
 }
-googleAnalyticsEvents[GameLauncher.beginInstallEvent] = 'Install Begin';
-googleAnalyticsEvents[GameLauncher.successfulInstallEvent] = 'Install Success';
-googleAnalyticsEvents[GameLauncher.manualDownloadEvent] = 'Manual Download';
+googleAnalyticsEvents[GameLauncher.beginInstallEvent] = "Install Begin";
+googleAnalyticsEvents[GameLauncher.successfulInstallEvent] = "Install Success";
+googleAnalyticsEvents[GameLauncher.manualDownloadEvent] = "Manual Download";
 
 const eventStreamEvents = {};
 eventStreamEvents[GameLauncher.startClientAttemptedEvent] = GamePlayEvents.SendClientStartAttempt;
@@ -41,7 +41,7 @@ function getLaunchMode(params) {
 }
 
 function getOsName() {
-  return $('#PlaceLauncherStatusPanel').data('os-name');
+  return $("#PlaceLauncherStatusPanel").data("os-name");
 }
 
 function logToConsole(value) {
@@ -55,12 +55,12 @@ function logToConsole(value) {
 function logToEphemeralCounters(counterName, launchMethod) {
   if (GameLaunchLogger.logToEphemeralCountersEnabled) {
     let osName = getOsName();
-    if (osName === 'Windows') {
-      osName = 'Win32';
+    if (osName === "Windows") {
+      osName = "Win32";
     }
     let counter = counterName;
-    counter = counter.replace('<os>', osName);
-    counter = counter.replace('<launchmethod>', launchMethod);
+    counter = counter.replace("<os>", osName);
+    counter = counter.replace("<launchmethod>", launchMethod);
     if (window.EventTracker?.fireEvent) {
       window.EventTracker.fireEvent(counter);
     }
@@ -69,7 +69,7 @@ function logToEphemeralCounters(counterName, launchMethod) {
 
 function logToGA(category, name, label, value) {
   if (
-    typeof window.GoogleAnalyticsEvents !== 'undefined' &&
+    typeof window.GoogleAnalyticsEvents !== "undefined" &&
     GameLaunchLogger.logToGAEnabled &&
     window.GoogleAnalyticsEvents.FireEvent
   ) {
@@ -98,7 +98,7 @@ Object.assign(GameLaunchLogger, {
   // functions
   logToConsole,
   logToEphemeralCounters,
-  logToGA
+  logToGA,
 });
 
 $(document).ready(() => {
@@ -108,9 +108,9 @@ $(document).ready(() => {
     GameLauncher.startClientSucceededEvent,
     GameLauncher.beginInstallEvent,
     GameLauncher.successfulInstallEvent,
-    GameLauncher.manualDownloadEvent
+    GameLauncher.manualDownloadEvent,
   ];
-  $(GameLauncher).on(gameLauncherEvents.join(' '), logGameLauncherEvent);
+  $(GameLauncher).on(gameLauncherEvents.join(" "), logGameLauncherEvent);
 });
 
 export default GameLaunchLogger;

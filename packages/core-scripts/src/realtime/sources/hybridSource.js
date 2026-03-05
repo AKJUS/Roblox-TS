@@ -1,13 +1,25 @@
+// TODO: old, migrated code
+/* eslint-disable no-invalid-this */
 import options from "../constants/options";
 
 const Hybrid = window.Roblox?.Hybrid;
 
-// TODO: old, migrated code.
-// eslint-disable-next-line func-names
-const hybridSource = function (settings, logger) {
+/**
+ * Hybrid source for mobile web views with native bridge.
+ * Uses native app's notification system instead of SignalR.
+ * Only available in web views (not native apps, not regular web).
+ * @param {Object} _settings - Realtime configuration settings (unused)
+ * @param {Function} logger - Logging function
+ */
+const hybridSource = function (_settings, logger) {
   let onSourceExpiredHandler;
   let onNotificationHandler;
   let onConnectionEventHandler;
+
+  // Topic notification handlers (set by TopicManager)
+  let topicNotificationHandler = null;
+  let topicReadyHandler = null;
+  let connectionReady = false;
 
   let heartbeatTriggerTime;
   const heartbeatInterval = 5000;
@@ -62,6 +74,11 @@ const hybridSource = function (settings, logger) {
           sequenceNumber: result.sequenceNumber || 0,
           namespaceSequenceNumbers: result.namespaceSequenceNumbers,
         });
+        connectionReady = result.isConnected;
+        if (connectionReady && topicReadyHandler) {
+          log("Connection confirmed ready, notifying TopicManager");
+          topicReadyHandler();
+        }
       } else {
         log("ConnectionStatus request failed! Aborting attempt to use HybridSource");
         if (onSourceExpiredHandler) {
@@ -113,11 +130,44 @@ const hybridSource = function (settings, logger) {
     }
 
     log(`ConnectionEvent received: ${JSON.stringify(result)}`, true);
+    const isConnected = result.params.isConnected || false;
     onConnectionEventHandler({
-      isConnected: result.params.isConnected || false,
+      isConnected,
       sequenceNumber: result.params.sequenceNumber || -1,
       namespaceSequenceNumbersObj: result.params.namespaceSequenceNumbers || {},
     });
+    connectionReady = isConnected;
+    if (isConnected && topicReadyHandler) {
+      log("Reconnection detected, notifying TopicManager to resubscribe topics");
+      topicReadyHandler();
+    }
+  };
+
+  const hybridOnTopicNotificationHandler = result => {
+    if (!result || !result.params) {
+      log("onTopicNotification event without sufficient data");
+      return;
+    }
+    const { topicId, detail } = result.params;
+    log(`Topic notification received: ${topicId}`, true);
+    topicNotificationHandler?.(topicId, detail);
+  };
+
+  const subscribeTopic = (token, replaceToken) => {
+    if (!Hybrid?.RealTime?.subscribeTopic) {
+      log("subscribeTopic not available on bridge, skipping");
+      return;
+    }
+    log(`Topic subscribe: ${token}`);
+    Hybrid.RealTime.subscribeTopic(
+      token,
+      (success, result) => {
+        if (!success) {
+          log(`Topic subscribe failed: ${JSON.stringify(result)}`);
+        }
+      },
+      replaceToken,
+    );
   };
 
   const subscribeToHybridEvents = () => {
@@ -127,6 +177,7 @@ const hybridSource = function (settings, logger) {
         // Wire up events
         Hybrid.RealTime.onNotification.subscribe(hybridOnNotificationHandler);
         Hybrid.RealTime.onConnectionEvent.subscribe(hybridOnConnectionEventHandler);
+        Hybrid.RealTime.onTopicNotification?.subscribe(hybridOnTopicNotificationHandler);
 
         // Query the current state
         requestConnectionStatus();
@@ -147,6 +198,7 @@ const hybridSource = function (settings, logger) {
   const detachHybridEventHandlers = () => {
     Hybrid.RealTime.onNotification.unsubscribe(hybridOnNotificationHandler);
     Hybrid.RealTime.onConnectionEvent.unsubscribe(hybridOnConnectionEventHandler);
+    Hybrid.RealTime.onTopicNotification?.unsubscribe(hybridOnTopicNotificationHandler);
   };
 
   const stop = () => {
@@ -170,11 +222,28 @@ const hybridSource = function (settings, logger) {
     return true;
   };
 
+  const setTopicNotificationHandler = handler => {
+    topicNotificationHandler = handler;
+  };
+
+  const setTopicReadyHandler = handler => {
+    topicReadyHandler = handler;
+    if (handler && connectionReady) {
+      log("Connection already ready, replaying ready signal to TopicManager");
+      handler();
+    }
+  };
+
   // Public API
   this.IsAvailable = isAvailable;
   this.Start = start;
   this.Stop = stop;
   this.Name = "HybridSource";
+
+  // Topic notification support
+  this.SubscribeTopic = subscribeTopic;
+  this.SetTopicNotificationHandler = setTopicNotificationHandler;
+  this.SetTopicReadyHandler = setTopicReadyHandler;
 };
 
 export default hybridSource;

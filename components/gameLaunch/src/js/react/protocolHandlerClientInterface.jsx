@@ -1,54 +1,54 @@
 // Please note: This file depends on RobloxCookies.js being already loaded.
-import ReactDOM from 'react-dom';
-import $ from 'jquery';
-import { QueryClientProvider } from '@tanstack/react-query';
+import ReactDOM from "react-dom";
+import $ from "jquery";
+import { QueryClientProvider } from "@tanstack/react-query";
 import {
   Cookies,
   CurrentUser,
   Dialog,
   Endpoints,
   EnvironmentUrls,
-  TranslationResourceProvider
-} from '@rbx/core-scripts/legacy/Roblox';
-import { getCurrentBrowser } from '@rbx/core-scripts/legacy/core-utilities';
-import { queryClient, renderWithErrorBoundary, TranslationProvider } from '@rbx/core-scripts/react';
-import { translations } from '../../../component.json';
-import GameLauncher from '../gameLauncher';
-import { getDeferredDeeplinkQueryParams } from '../../ts/deferredDeeplinks/deferredDeeplinkUtilities';
-import DownloadDialog from '../../ts/DownloadDialog';
-import { resetClientStatus, getAuthTicket } from '../../ts/api';
+  TranslationResourceProvider,
+} from "@rbx/core-scripts/legacy/Roblox";
+import { getCurrentBrowser } from "@rbx/core-scripts/legacy/core-utilities";
+import { queryClient, renderWithErrorBoundary, TranslationProvider } from "@rbx/core-scripts/react";
+import { translations } from "../../../component.json";
+import GameLauncher from "../gameLauncher";
+import { getDeferredDeeplinkQueryParams } from "../../ts/deferredDeeplinks/deferredDeeplinkUtilities";
+import DownloadDialog from "../../ts/DownloadDialog";
+import { resetClientStatus, getAuthTicket } from "../../ts/api";
 
 const ProtocolHandlerClientInterface = {
   isInstalling: false,
-  robloxLocale: '',
-  gameLocale: '',
-  protocolUrlSeparator: '+',
+  robloxLocale: "",
+  gameLocale: "",
+  protocolUrlSeparator: "+",
   protocolDetectionEnabled: false,
   avatarParamEnabled: true,
   separateScriptParamsEnabled: false,
   waitTimeBeforeFailure: 300,
-  protocolNameForStudio: 'roblox-studio',
-  protocolNameForClient: 'roblox-client',
+  protocolNameForStudio: "roblox-studio",
+  protocolNameForClient: "roblox-client",
   logger: null,
-  channel: '',
-  studioChannel: '',
-  playerChannel: '',
+  channel: "",
+  studioChannel: "",
+  playerChannel: "",
   isDuarAutoOptInEnabled: false,
   isDuarOptOutDisabled: false,
-  isJoinAttemptIdEnabled: false
+  isJoinAttemptIdEnabled: false,
 };
 
 const distributorTypes = {
-  Global: 'Global'
+  Global: "Global",
 };
 
 const launchModes = {
-  edit: 'edit',
-  plugin: 'plugin',
-  play: 'play',
-  build: 'build',
-  app: 'app',
-  asset: 'asset'
+  edit: "edit",
+  plugin: "plugin",
+  play: "play",
+  build: "build",
+  app: "app",
+  asset: "asset",
 };
 
 function isStudioMode(launchMode) {
@@ -60,13 +60,13 @@ function isStudioMode(launchMode) {
 }
 
 function getDialogContainer() {
-  const id = 'react-dialog-container';
+  const id = "react-dialog-container";
   let container = document.getElementById(id);
   if (container) {
     ReactDOM.unmountComponentAtNode(container);
-    container.innerHTML = '';
+    container.innerHTML = "";
   } else {
-    container = document.createElement('div');
+    container = document.createElement("div");
     container.id = id;
     document.body.appendChild(container);
   }
@@ -77,13 +77,13 @@ function showLaunchFailureDialog() {
   $.modal.close();
 
   const translationProvider = new TranslationResourceProvider();
-  const visitGameResources = translationProvider.getTranslationResource('Common.VisitGame');
-  const controlsResources = translationProvider.getTranslationResource('CommonUI.Controls');
+  const visitGameResources = translationProvider.getTranslationResource("Common.VisitGame");
+  const controlsResources = translationProvider.getTranslationResource("CommonUI.Controls");
   Dialog.open({
-    titleText: visitGameResources.get('Heading.ErrorStartingGame'),
-    bodyContent: visitGameResources.get('Response.Dialog.ErrorLaunching'),
-    acceptText: controlsResources.get('Action.OK') || 'OK',
-    showDecline: false
+    titleText: visitGameResources.get("Heading.ErrorStartingGame"),
+    bodyContent: visitGameResources.get("Response.Dialog.ErrorLaunching"),
+    acceptText: controlsResources.get("Action.OK") || "OK",
+    showDecline: false,
   });
 }
 
@@ -93,8 +93,8 @@ function cleanUpAndLogSuccess(gameLaunchParams) {
 
   // Log success!
   const logParams = {
-    launchMethod: 'Protocol',
-    params: gameLaunchParams
+    launchMethod: "Protocol",
+    params: gameLaunchParams,
   };
   $(GameLauncher).trigger(GameLauncher.startClientSucceededEvent, logParams);
   if (ProtocolHandlerClientInterface.isInstalling) {
@@ -104,15 +104,15 @@ function cleanUpAndLogSuccess(gameLaunchParams) {
 }
 
 function setLocationHref(href) {
-  let iframe = $('iframe#gamelaunch');
+  let iframe = $("iframe#gamelaunch");
   if (iframe.length > 0) {
     iframe.remove();
   }
 
-  iframe = $("<iframe id='gamelaunch' class='hidden'></iframe>").attr('src', href);
-  $('body').append(iframe);
+  iframe = $("<iframe id='gamelaunch' class='hidden'></iframe>").attr("src", href);
+  $("body").append(iframe);
   // for selenium
-  const seleniumEvent = new Event('ProtocolLaunchStartSelenium');
+  const seleniumEvent = new Event("ProtocolLaunchStartSelenium");
   window.dispatchEvent(seleniumEvent);
 }
 
@@ -129,7 +129,7 @@ function launchProtocolUrl(gameLaunchParams, authTicket) {
   if (
     authTicket &&
     (gameLaunchParams.protocolName !== ProtocolHandlerClientInterface.protocolNameForStudio ||
-      authTicket.indexOf('Guest:') !== 0)
+      authTicket.indexOf("Guest:") !== 0)
   ) {
     urlComponents.push(`gameinfo:${encodeURIComponent(authTicket)}`);
   }
@@ -158,8 +158,8 @@ function launchProtocolUrl(gameLaunchParams, authTicket) {
   GameLauncher.gameLaunchLogger?.logToConsole?.(
     `launchProtocolUrl: ${JSON.stringify({
       url: gameLaunchUrl,
-      params: gameLaunchParams
-    })}`
+      params: gameLaunchParams,
+    })}`,
   );
 
   // setLocationHref is used so that automated tests can intercept the protocol handler URL for verification.  Do not refactor without checking the tests.
@@ -205,16 +205,16 @@ function startGame(gameLaunchDefaultParams) {
     !gameLaunchParams.otherParams.LaunchExp
   ) {
     if (ProtocolHandlerClientInterface.isDuarOptOutDisabled) {
-      gameLaunchParams.otherParams.LaunchExp = 'InApp';
+      gameLaunchParams.otherParams.LaunchExp = "InApp";
     } else {
-      gameLaunchParams.otherParams.LaunchExp = 'PreferInApp';
+      gameLaunchParams.otherParams.LaunchExp = "PreferInApp";
     }
   }
 
   // fire startClientAttempted
   $(GameLauncher).trigger(GameLauncher.startClientAttemptedEvent, {
-    launchMethod: 'Protocol',
-    params: gameLaunchParams
+    launchMethod: "Protocol",
+    params: gameLaunchParams,
   });
   const ret = startGameFlow(gameLaunchParams);
   ProtocolHandlerClientInterface.showDialog(gameLaunchParams);
@@ -224,9 +224,9 @@ function startGame(gameLaunchDefaultParams) {
 
 function startGameWithDeepLinkUrl(deepLinkUrl, placeId) {
   const gameLaunchParams = {
-    launchMode: 'play',
+    launchMode: "play",
     protocolName: ProtocolHandlerClientInterface.protocolNameForClient,
-    placeId
+    placeId,
   };
   ProtocolHandlerClientInterface.showDialog(gameLaunchParams);
   setLocationHref(deepLinkUrl);
@@ -242,12 +242,12 @@ function openDesktopUniversalApp() {
   DUALaunchParams.otherParams.browsertrackerid = Cookies.getBrowserTrackerId();
   DUALaunchParams.otherParams.robloxLocale = ProtocolHandlerClientInterface.robloxLocale;
   DUALaunchParams.otherParams.gameLocale = ProtocolHandlerClientInterface.gameLocale;
-  DUALaunchParams.otherParams.LaunchExp = 'InApp';
+  DUALaunchParams.otherParams.LaunchExp = "InApp";
 
   // fire startClientAttempted
   $(GameLauncher).trigger(GameLauncher.startClientAttemptedEvent, {
-    launchMethod: 'Protocol',
-    params: DUALaunchParams
+    launchMethod: "Protocol",
+    params: DUALaunchParams,
   });
   const ret = startGameFlow(DUALaunchParams);
   ProtocolHandlerClientInterface.showDialog(DUALaunchParams);
@@ -256,35 +256,35 @@ function openDesktopUniversalApp() {
 }
 
 function getPlaceLauncherUrl(requestType, otherParams) {
-  let absoluteUrl = ' ';
+  let absoluteUrl = " ";
   if (Endpoints && Endpoints.Urls) {
-    absoluteUrl = `${Endpoints.getAbsoluteUrl('/Game/PlaceLauncher.ashx')}?`;
+    absoluteUrl = `${Endpoints.getAbsoluteUrl("/Game/PlaceLauncher.ashx")}?`;
   }
 
   // if endpoints are turned off, or if the absolute url resolver returns a relative path, fallback on the old method
-  if (absoluteUrl[0] !== 'h') {
+  if (absoluteUrl[0] !== "h") {
     const domainUrl = `http://${window.location.host}`;
-    const domainPath = '/Game/PlaceLauncher.ashx?';
+    const domainPath = "/Game/PlaceLauncher.ashx?";
     absoluteUrl = domainUrl + domainPath;
   }
-  absoluteUrl = absoluteUrl.replace('placelauncher', 'PlaceLauncher');
+  absoluteUrl = absoluteUrl.replace("placelauncher", "PlaceLauncher");
 
   const args = {
     request: requestType,
-    browserTrackerId: Cookies.getBrowserTrackerId()
+    browserTrackerId: Cookies.getBrowserTrackerId(),
   };
   $.extend(args, otherParams);
   return absoluteUrl + $.param(args);
 }
 
 function getStudioScriptUrl(scriptHandlerName, placeId, universeId, allowUpload) {
-  let absoluteUrl = ' ';
+  let absoluteUrl = " ";
   if (Endpoints && Endpoints.Urls) {
     absoluteUrl = `${Endpoints.getAbsoluteUrl(`/Game/${scriptHandlerName}`)}?`;
   }
 
   // if endpoints are turned off, or if the absolute url resolver returns a relative path, fallback on the old method
-  if (absoluteUrl[0] !== 'h') {
+  if (absoluteUrl[0] !== "h") {
     const domainUrl = `http://${window.location.host}`;
     const domainPath = `/Game/${scriptHandlerName}?`;
     absoluteUrl = domainUrl + domainPath;
@@ -292,60 +292,60 @@ function getStudioScriptUrl(scriptHandlerName, placeId, universeId, allowUpload)
 
   const args = {
     placeId,
-    upload: allowUpload ? placeId : '',
+    upload: allowUpload ? placeId : "",
     universeId,
-    testMode: false
+    testMode: false,
   };
   return absoluteUrl + $.param(args);
 }
 
 function getEditScriptUrl(placeId, universeId, allowUpload) {
-  return getStudioScriptUrl('Edit.ashx', placeId, universeId, allowUpload);
+  return getStudioScriptUrl("Edit.ashx", placeId, universeId, allowUpload);
 }
 
 function openStudio() {
   const otherParams = {};
 
   if (ProtocolHandlerClientInterface.avatarParamEnabled) {
-    otherParams.avatar = 'avatar';
+    otherParams.avatar = "avatar";
   }
 
   return startGame({
     protocolName: ProtocolHandlerClientInterface.protocolNameForStudio,
-    launchMode: 'edit',
-    otherParams
+    launchMode: "edit",
+    otherParams,
   });
 }
 
 function tryAssetInStudio(assetId) {
   const otherParams = {
-    assetid: assetId
+    assetid: assetId,
   };
 
   if (ProtocolHandlerClientInterface.avatarParamEnabled) {
-    otherParams.avatar = 'avatar';
+    otherParams.avatar = "avatar";
   }
 
   return startGame({
     protocolName: ProtocolHandlerClientInterface.protocolNameForStudio,
-    launchMode: 'asset',
-    otherParams
+    launchMode: "asset",
+    otherParams,
   });
 }
 
 function openPluginInStudio(pluginId) {
   const otherParams = {
-    pluginid: pluginId
+    pluginid: pluginId,
   };
 
   if (ProtocolHandlerClientInterface.avatarParamEnabled) {
-    otherParams.avatar = 'avatar';
+    otherParams.avatar = "avatar";
   }
 
   startGame({
     protocolName: ProtocolHandlerClientInterface.protocolNameForStudio,
-    launchMode: 'plugin',
-    otherParams
+    launchMode: "plugin",
+    otherParams,
   });
 }
 
@@ -354,15 +354,15 @@ function editGameInStudio(
   universeId,
   allowUpload,
   startTeamTest = false,
-  instanceId = '',
-  annotationId = ''
+  instanceId = "",
+  annotationId = "",
 ) {
   let otherParams;
   if (ProtocolHandlerClientInterface.separateScriptParamsEnabled) {
     otherParams = {
-      task: startTeamTest ? 'StartTeamTest' : 'EditPlace',
+      task: startTeamTest ? "StartTeamTest" : "EditPlace",
       placeId,
-      universeId
+      universeId,
     };
     if (!startTeamTest) {
       if (instanceId) {
@@ -375,20 +375,20 @@ function editGameInStudio(
   } else {
     const scriptUrl = getEditScriptUrl(placeId, universeId, allowUpload);
     otherParams = {
-      script: scriptUrl
+      script: scriptUrl,
     };
   }
 
   if (ProtocolHandlerClientInterface.avatarParamEnabled) {
-    otherParams.avatar = 'avatar';
+    otherParams.avatar = "avatar";
   }
 
   // we currently always pass "avatar" to studio, but in the future it may need to be optional
   startGame({
     protocolName: ProtocolHandlerClientInterface.protocolNameForStudio,
-    launchMode: 'edit',
+    launchMode: "edit",
     otherParams,
-    placeId
+    placeId,
   });
 }
 
@@ -396,11 +396,11 @@ function editGameInStudio(
 function joinMultiplayerGame(placeLauncherParams) {
   const protocol = ProtocolHandlerClientInterface.protocolNameForClient;
 
-  const launchMode = 'play';
-  const placeLauncherUrl = getPlaceLauncherUrl('RequestGame', placeLauncherParams);
+  const launchMode = "play";
+  const placeLauncherUrl = getPlaceLauncherUrl("RequestGame", placeLauncherParams);
   const isPlayTogetherGame = placeLauncherParams.isPlayTogetherGame === true;
   const otherParams = {
-    placelauncherurl: placeLauncherUrl
+    placelauncherurl: placeLauncherUrl,
   };
   const startGameParams = {
     protocolName: protocol,
@@ -409,7 +409,7 @@ function joinMultiplayerGame(placeLauncherParams) {
     placeId: placeLauncherParams.placeId,
     isPlayTogetherGame,
     launchData: placeLauncherParams.launchData,
-    eventId: placeLauncherParams.eventId
+    eventId: placeLauncherParams.eventId,
   };
 
   return startGame(startGameParams);
@@ -419,15 +419,15 @@ function joinMultiplayerGame(placeLauncherParams) {
 function followPlayerIntoGame(placeLauncherParams) {
   const protocol = ProtocolHandlerClientInterface.protocolNameForClient;
 
-  const launchMode = 'play';
-  const placeLauncherUrl = getPlaceLauncherUrl('RequestFollowUser', placeLauncherParams);
+  const launchMode = "play";
+  const placeLauncherUrl = getPlaceLauncherUrl("RequestFollowUser", placeLauncherParams);
   const params = {
-    placelauncherurl: placeLauncherUrl
+    placelauncherurl: placeLauncherUrl,
   };
   const startGameParams = {
     protocolName: protocol,
     launchMode,
-    otherParams: params
+    otherParams: params,
   };
 
   return startGame(startGameParams);
@@ -437,18 +437,18 @@ function followPlayerIntoGame(placeLauncherParams) {
 function joinGameInstance(placeLauncherParams) {
   const protocol = ProtocolHandlerClientInterface.protocolNameForClient;
 
-  const launchMode = 'play';
-  const placeLauncherUrl = getPlaceLauncherUrl('RequestGameJob', placeLauncherParams);
+  const launchMode = "play";
+  const placeLauncherUrl = getPlaceLauncherUrl("RequestGameJob", placeLauncherParams);
   const isPlayTogetherGame = placeLauncherParams.isPlayTogetherGame === true;
   const params = {
-    placelauncherurl: placeLauncherUrl
+    placelauncherurl: placeLauncherUrl,
   };
   const startGameParams = {
     protocolName: protocol,
     launchMode,
     otherParams: params,
     placeId: placeLauncherParams.placeId,
-    isPlayTogetherGame
+    isPlayTogetherGame,
   };
 
   return startGame(startGameParams);
@@ -458,16 +458,16 @@ function joinGameInstance(placeLauncherParams) {
 function joinPrivateGame(placeLauncherParams) {
   const protocol = ProtocolHandlerClientInterface.protocolNameForClient;
 
-  const launchMode = 'play';
-  const placeLauncherUrl = getPlaceLauncherUrl('RequestPrivateGame', placeLauncherParams);
+  const launchMode = "play";
+  const placeLauncherUrl = getPlaceLauncherUrl("RequestPrivateGame", placeLauncherParams);
   const params = {
-    placelauncherurl: placeLauncherUrl
+    placelauncherurl: placeLauncherUrl,
   };
   const startGameParams = {
     protocolName: protocol,
     launchMode,
     otherParams: params,
-    placeId: placeLauncherParams.placeId
+    placeId: placeLauncherParams.placeId,
   };
 
   return startGame(startGameParams);
@@ -477,36 +477,36 @@ function joinPrivateGame(placeLauncherParams) {
 function playTogetherGame(placeLauncherParams) {
   const protocol = ProtocolHandlerClientInterface.protocolNameForClient;
 
-  const launchMode = 'play';
-  const placeLauncherUrl = getPlaceLauncherUrl('RequestPlayTogetherGame', placeLauncherParams);
+  const launchMode = "play";
+  const placeLauncherUrl = getPlaceLauncherUrl("RequestPlayTogetherGame", placeLauncherParams);
   const otherParams = {
-    placelauncherurl: placeLauncherUrl
+    placelauncherurl: placeLauncherUrl,
   };
   const startGameParams = {
     protocolName: protocol,
     launchMode,
     otherParams,
     placeId: placeLauncherParams.placeId,
-    conversationId: placeLauncherParams.conversationId
+    conversationId: placeLauncherParams.conversationId,
   };
 
   return startGame(startGameParams);
 }
 
 async function startDownload() {
-  const iframe = document.getElementById('downloadInstallerIFrame');
-  const downloadUrl = '/download/client';
+  const iframe = document.getElementById("downloadInstallerIFrame");
+  const downloadUrl = "/download/client";
 
   // NOTE: This policy is needed for deferred deeplinking from Chrome on Windows. Otherwise, the deeplink URL is wiped from the installer
-  iframe.referrerPolicy = 'no-referrer';
+  iframe.referrerPolicy = "no-referrer";
   const queryParams = await getDeferredDeeplinkQueryParams(window.location.toString());
 
   iframe.src = `${downloadUrl}${queryParams}`;
 }
 
 function startStudioDownload() {
-  const iframe = document.getElementById('downloadInstallerIFrame');
-  iframe.src = '/download/studio';
+  const iframe = document.getElementById("downloadInstallerIFrame");
+  iframe.src = "/download/studio";
 }
 
 function showDialog(gameLaunchParams) {
@@ -519,9 +519,9 @@ function showDialog(gameLaunchParams) {
         <DownloadDialog
           download={async () => {
             if (gameLaunchParams.placeId) {
-              const refInfoRaw = window.localStorage.getItem('ref_info');
+              const refInfoRaw = window.localStorage.getItem("ref_info");
               if (refInfoRaw != null) {
-                window.localStorage.removeItem('ref_info');
+                window.localStorage.removeItem("ref_info");
                 let refInfo = {};
                 try {
                   refInfo = JSON.parse(atob(refInfoRaw));
@@ -535,8 +535,8 @@ function showDialog(gameLaunchParams) {
 
             // fire begin install event
             $(GameLauncher).trigger(GameLauncher.beginInstallEvent, {
-              launchMethod: 'Protocol',
-              params: gameLaunchParams
+              launchMethod: "Protocol",
+              params: gameLaunchParams,
             });
             ProtocolHandlerClientInterface.isInstalling = true;
             if (studio) {
@@ -551,14 +551,14 @@ function showDialog(gameLaunchParams) {
         />
       </QueryClientProvider>
     </TranslationProvider>,
-    container
+    container,
   );
 }
 
 async function manualDownload() {
   $(GameLauncher).trigger(GameLauncher.manualDownloadEvent, {
-    launchMethod: 'Protocol',
-    params: {}
+    launchMethod: "Protocol",
+    params: {},
   });
   await startDownload();
 }
@@ -566,7 +566,7 @@ async function manualDownload() {
 // TODO: old, migrated code
 // eslint-disable-next-line require-await
 async function attachManualDownloadToLink() {
-  $('body #GameLaunchManualInstallLink').click(async () => {
+  $("body #GameLaunchManualInstallLink").click(async () => {
     await manualDownload();
     return false;
   });
@@ -593,16 +593,16 @@ Object.assign(ProtocolHandlerClientInterface, {
   showDialog,
   showLaunchFailureDialog,
   cleanUpAndLogSuccess,
-  startGameWithDeepLinkUrl
+  startGameWithDeepLinkUrl,
 });
 
 function getProtocolNameForEnvironment(protocolName) {
   switch (EnvironmentUrls.domain) {
-    case 'sitetest1.robloxlabs.com':
+    case "sitetest1.robloxlabs.com":
       return `${protocolName}-sitetest1`;
-    case 'sitetest2.robloxlabs.com':
+    case "sitetest2.robloxlabs.com":
       return `${protocolName}-sitetest2`;
-    case 'sitetest3.robloxlabs.com':
+    case "sitetest3.robloxlabs.com":
       return `${protocolName}-sitetest3`;
     default:
       return protocolName;
@@ -611,45 +611,45 @@ function getProtocolNameForEnvironment(protocolName) {
 
 $(document).ready(() => {
   GameLauncher.setGameLaunchInterface(ProtocolHandlerClientInterface);
-  const placeLauncherPanel = $('#PlaceLauncherStatusPanel');
+  const placeLauncherPanel = $("#PlaceLauncherStatusPanel");
   ProtocolHandlerClientInterface.protocolNameForClient =
-    getProtocolNameForEnvironment('roblox-player');
+    getProtocolNameForEnvironment("roblox-player");
   ProtocolHandlerClientInterface.protocolNameForStudio =
-    getProtocolNameForEnvironment('roblox-studio');
+    getProtocolNameForEnvironment("roblox-studio");
   ProtocolHandlerClientInterface.protocolDetectionEnabled = true;
   ProtocolHandlerClientInterface.separateScriptParamsEnabled = true;
   ProtocolHandlerClientInterface.avatarParamEnabled = true;
   ProtocolHandlerClientInterface.isJoinAttemptIdEnabled = true;
-  ProtocolHandlerClientInterface.robloxLocale = placeLauncherPanel.data('protocol-roblox-locale');
-  ProtocolHandlerClientInterface.gameLocale = placeLauncherPanel.data('protocol-game-locale');
-  const channel = placeLauncherPanel.data('protocol-channel-name');
-  if (typeof channel === 'string' && channel.toUpperCase() !== 'LIVE') {
+  ProtocolHandlerClientInterface.robloxLocale = placeLauncherPanel.data("protocol-roblox-locale");
+  ProtocolHandlerClientInterface.gameLocale = placeLauncherPanel.data("protocol-game-locale");
+  const channel = placeLauncherPanel.data("protocol-channel-name");
+  if (typeof channel === "string" && channel.toUpperCase() !== "LIVE") {
     ProtocolHandlerClientInterface.channel = channel;
   }
 
-  const studioChannel = placeLauncherPanel.data('protocol-studio-channel-name');
-  if (typeof studioChannel === 'string' && studioChannel.toUpperCase() !== 'LIVE') {
+  const studioChannel = placeLauncherPanel.data("protocol-studio-channel-name");
+  if (typeof studioChannel === "string" && studioChannel.toUpperCase() !== "LIVE") {
     ProtocolHandlerClientInterface.studioChannel = studioChannel;
   }
 
-  const playerChannel = placeLauncherPanel.data('protocol-player-channel-name');
-  if (typeof playerChannel === 'string' && playerChannel.toUpperCase() !== 'LIVE') {
+  const playerChannel = placeLauncherPanel.data("protocol-player-channel-name");
+  if (typeof playerChannel === "string" && playerChannel.toUpperCase() !== "LIVE") {
     ProtocolHandlerClientInterface.playerChannel = playerChannel;
   }
 
   if (
     !ProtocolHandlerClientInterface.logger &&
-    typeof window.Roblox.ProtocolHandlerLogger !== 'undefined'
+    typeof window.Roblox.ProtocolHandlerLogger !== "undefined"
   ) {
     ProtocolHandlerClientInterface.logger = window.Roblox.ProtocolHandlerLogger;
   }
 
   ProtocolHandlerClientInterface.isDuarAutoOptInEnabled = placeLauncherPanel.data(
-    'is-duar-auto-opt-in-enabled'
+    "is-duar-auto-opt-in-enabled",
   );
 
   ProtocolHandlerClientInterface.isDuarOptOutDisabled = placeLauncherPanel.data(
-    'is-duar-opt-out-disabled'
+    "is-duar-opt-out-disabled",
   );
 });
 

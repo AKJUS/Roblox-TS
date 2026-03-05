@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, unmountComponentAtNode } from 'react-dom';
 import '../../../../css/challenge/twoStepVerification/twoStepVerification.scss';
 import '../../../../css/common/inlineChallenge.scss';
@@ -6,15 +5,10 @@ import '../../../../css/common/modalModern.scss';
 import '../../../../css/common/spinner.scss';
 import { RequestServiceDefault } from '../../../common/request';
 import App from './App';
-import {
-  LOG_PREFIX,
-  TRANSLATION_CONFIG,
-  TWO_STEP_VERIFICATION_LANGUAGE_RESOURCES,
-  TWO_STEP_VERIFICATION_LANGUAGE_RESOURCES_NEW
-} from './app.config';
 import { RenderChallenge } from './interface';
 import { EventServiceDefault } from './services/eventService';
 import { MetricsServiceDefault } from './services/metricsService';
+import '../../../../css/tailwind.css';
 
 // Global instance since we do not need 2SV parameters for instantiation.
 const requestServiceDefault = new RequestServiceDefault();
@@ -37,9 +31,11 @@ export const renderChallenge: RenderChallenge = ({
   renderInline,
   shouldModifyBrowserHistory,
   shouldShowRememberDeviceCheckbox,
+  delayParameters,
+  recoveryParameters,
   onChallengeCompleted,
   onChallengeInvalidated,
-  onModalChallengeAbandoned
+  onModalChallengeAbandoned,
 }) => {
   const container = document.getElementById(containerId);
   if (container !== null) {
@@ -66,6 +62,8 @@ export const renderChallenge: RenderChallenge = ({
         onChallengeCompleted={onChallengeCompleted}
         onChallengeInvalidated={onChallengeInvalidated}
         onModalChallengeAbandoned={onModalChallengeAbandoned}
+        delayParameters={delayParameters}
+        recoveryParameters={recoveryParameters}
       />,
       container
     );

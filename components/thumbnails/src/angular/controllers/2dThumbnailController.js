@@ -1,3 +1,4 @@
+import { logMeasurement } from "../../metrics";
 import {
   ThumbnailStates,
   DefaultThumbnailSize,
@@ -31,6 +32,36 @@ function twoDThumbnailController($scope, thumbnailService) {
 
   ctrl.isLazyLoadingEnabled = function () {
     return ctrl.thumbnailOptions && ctrl.thumbnailOptions.isLazyLoading;
+  };
+
+  ctrl.updateImageLoadMetrics = function (finishTime) {
+    const duration = finishTime - ctrl.startTime;
+    const { retryAttempts } = ctrl.performance;
+
+    logMeasurement("ThumbnailLoadDurationWebapp", {
+      Status: "Success",
+      ThumbnailType: `${ctrl.thumbnailType}_2d`,
+      Version: ctrl.version,
+      Value: duration.toString(),
+    });
+    if (!retryAttempts) {
+      // load success without retry
+      logMeasurement("ThumbnailNoRetrySuccessWebapp", {
+        ThumbnailType: `${ctrl.thumbnailType}_2d`,
+        Version: ctrl.version,
+      }).catch(e => {
+        console.error(e);
+      });
+    } else {
+      // log retry attempts by type
+      logMeasurement("ThumbnailRetryWebapp", {
+        ThumbnailType: `${ctrl.thumbnailType}_2d`,
+        Version: ctrl.version,
+        Value: retryAttempts.toString(),
+      }).catch(e => {
+        console.error(e);
+      });
+    }
   };
 
   const init = function () {

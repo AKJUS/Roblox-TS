@@ -47,7 +47,6 @@ function chatService($q, chatUtility, httpService, $log, apiParamsInitialization
       }
       conversation.initiator = { ...conversation.user_data[conversation.created_by] };
       conversation.hasUnreadMessages = conversation.unread_message_count > 0;
-      conversation.hasDefaultName = !conversation.name;
       conversation.conversationTitle = {
         titleForViewer: conversation.name
       };

@@ -5,6 +5,7 @@ import { withTranslations } from "@rbx/core-scripts/react";
 import { translations } from "../../component.json";
 import layoutConstant from "../constants/layoutConstants";
 import SkipToMainContent from "../components/SkipToMainContent";
+import isAccountExperienceRevampEnabled from "../util/accountExperienceUtils";
 
 const { headerMenuIconClickEvent } = layoutConstant;
 const { isAuthenticated } = authenticatedUser;
@@ -14,6 +15,11 @@ function MenuIcon(props) {
   const onClickMenuIcon = () => {
     document.dispatchEvent(new CustomEvent(headerMenuIconClickEvent.name));
   };
+
+  // Hide menu icon when account experience revamp is enabled
+  if (isAccountExperienceRevampEnabled()) {
+    return null;
+  }
 
   return (
     <Fragment>

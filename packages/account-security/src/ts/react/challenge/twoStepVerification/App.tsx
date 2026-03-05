@@ -8,11 +8,13 @@ import {
   ActionType,
   OnChallengeCompletedCallback,
   OnChallengeInvalidatedCallback,
-  OnModalChallengeAbandonedCallback
+  OnModalChallengeAbandonedCallback,
+  RecoveryParameters
 } from './interface';
 import { EventService } from './services/eventService';
 import { MetricsService } from './services/metricsService';
 import { TwoStepVerificationContextProvider } from './store/contextProvider';
+import { DelayParameters } from './delay';
 
 type Props = {
   userId: string;
@@ -27,6 +29,8 @@ type Props = {
   onChallengeCompleted: OnChallengeCompletedCallback;
   onChallengeInvalidated: OnChallengeInvalidatedCallback;
   onModalChallengeAbandoned: OnModalChallengeAbandonedCallback | null;
+  delayParameters?: DelayParameters
+  recoveryParameters?: RecoveryParameters;
 } & WithTranslationsProps;
 
 export const App: React.FC<Props> = ({
@@ -42,7 +46,9 @@ export const App: React.FC<Props> = ({
   translate,
   onChallengeCompleted,
   onChallengeInvalidated,
-  onModalChallengeAbandoned
+  onModalChallengeAbandoned,
+  delayParameters,
+  recoveryParameters,
 }: Props) => {
   const ContextProviderElement = (
     <TwoStepVerificationContextProvider
@@ -57,7 +63,9 @@ export const App: React.FC<Props> = ({
       translate={translate}
       onChallengeCompleted={onChallengeCompleted}
       onChallengeInvalidated={onChallengeInvalidated}
-      onModalChallengeAbandoned={onModalChallengeAbandoned}>
+      onModalChallengeAbandoned={onModalChallengeAbandoned}
+      delayParameters={delayParameters}
+      recoveryParameters={recoveryParameters}>
       <TwoStepVerification />
     </TwoStepVerificationContextProvider>
   );

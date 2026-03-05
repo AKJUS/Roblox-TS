@@ -4,8 +4,9 @@ import type {
   BatchRequestProcessor,
 } from "@rbx/core-scripts/util/batch-request";
 import BatchRequestFactory from "@rbx/core-scripts/util/batch-request";
+import { logMeasurement } from "../metrics";
 import { getThumbnailMetaData } from "../services/thumbnailMetaData";
-import { getCachePropertiesFromMetaData } from "./thumbnailUtil";
+import { getCachePropertiesFromMetaData, shouldLogMetrics } from "./thumbnailUtil";
 import {
   ThumbnailTypes,
   DefaultBatchSize,
@@ -98,10 +99,39 @@ export class ThumbnailRequester<QueueItem> {
     return (
       batchRequester
         .queueItem(item, undefined, cacheProperties)
+        .then((data: ThumbnailDataItem) => {
+          if (data.performance && shouldLogMetrics(metaData)) {
+            const { thumbnails, thumbnail } = data;
+            const logMetrics = (thumb: Thumbnail) => {
+              logMeasurement("ThumbnailStatusCountWebapp", {
+                ThumbnailType: `${type}_2d`,
+                Status: thumb.state,
+                Version: thumb.version,
+              }).catch((e: unknown) => {
+                console.error(e);
+              });
+            };
+            if (thumbnail) {
+              logMetrics(thumbnail);
+            }
+            if (thumbnails) {
+              thumbnails.forEach(logMetrics);
+            }
+          }
+          return data;
+        })
         // TODO: old, migrated code
         // eslint-disable-next-line @typescript-eslint/use-unknown-in-catch-callback-variable
         .catch((error: BatchRequestError) => {
           console.error({ error });
+          if (shouldLogMetrics(metaData) && error === BatchRequestError.maxAttemptsReached) {
+            logMeasurement("ThumbnailTimeoutWebapp", {
+              ThumbnailType: `${type}_2d`,
+            }).catch((e: unknown) => {
+              console.error(e);
+            });
+          }
+
           // chain the rejection so that other listeners get triggered.
           // TODO: old, migrated code
           // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors

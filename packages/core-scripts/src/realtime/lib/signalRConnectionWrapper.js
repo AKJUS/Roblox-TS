@@ -1,14 +1,16 @@
 import $ from "jquery";
+import { isGoogleAnalyticsCookieConsentOptIn } from "../../cookie";
 
-// TODO: old, migrated code
-// eslint-disable-next-line func-names
 const signalRConnectionWrapper = function (
   settings,
   logger,
   onConnectionStatusChangedCallback,
   onNotificationCallback,
   onSubscriptionStatusCallback,
+  onTopicNotificationCallback,
 ) {
+  // TODO: old, migrated code
+  // eslint-disable-next-line no-invalid-this
   const self = this;
 
   // SignalR Constants
@@ -21,6 +23,7 @@ const signalRConnectionWrapper = function (
   const signalRState = { connecting: 0, connected: 1, reconnecting: 2, disconnected: 4 };
 
   let signalrConnection = null;
+  let userNotificationsHub = null;
   let isConnected = false;
 
   const getExponentialBackoff = () => {
@@ -118,8 +121,8 @@ const signalRConnectionWrapper = function (
       const attemptCount = exponentialBackoff.GetAttemptCount();
       if (attemptCount === 1) {
         const { CurrentUser } = window.Roblox;
-        const userId = `userId: ${CurrentUser}` && CurrentUser.userId;
-        if (typeof GoogleAnalyticsEvents !== "undefined") {
+        const userId = `userId: ${CurrentUser}`;
+        if (isGoogleAnalyticsCookieConsentOptIn() && typeof GoogleAnalyticsEvents !== "undefined") {
           // TODO: old, migrated code
           // eslint-disable-next-line no-undef
           GoogleAnalyticsEvents.FireEvent(["SignalR", "Attempting to Reconnect", userId]);
@@ -152,11 +155,12 @@ const signalRConnectionWrapper = function (
     const connection = $.hubConnection(`${notificationsBaseUrl}/notifications`, {
       useDefaultPath: false,
     });
-    const userNotificationsHub = connection.createHubProxy("userNotificationHub");
+    userNotificationsHub = connection.createHubProxy("userNotificationHub");
 
     // Subscribe to events raised by the server(magikx)
     userNotificationsHub.on("notification", onNotificationCallback);
     userNotificationsHub.on("subscriptionStatus", onSubscriptionStatusCallback);
+    userNotificationsHub.on("topicNotification", onTopicNotificationCallback);
 
     // Wire up signalR connection state change events
     connection.stateChanged(handleSignalRStateChange);
@@ -183,6 +187,7 @@ const signalRConnectionWrapper = function (
       $(signalrConnection).unbind(); // unbind all events to stop onDisconnected from triggering
       signalrConnection.stop();
       signalrConnection = null;
+      userNotificationsHub = null;
     }
     onConnectionStatusChangedCallback(false);
   };
@@ -198,11 +203,16 @@ const signalRConnectionWrapper = function (
 
   const getIsConnected = () => isConnected;
 
+  // Return hub proxy (not raw connection) for topic subscriptions
+  // Hub proxy has .on() and .invoke() methods needed by TopicManager
+  const getConnection = () => userNotificationsHub;
+
   // Interface
   self.Start = start;
   self.Stop = stop;
   self.Restart = restart;
   self.IsConnected = getIsConnected;
+  self.GetConnection = getConnection;
 };
 
 export default signalRConnectionWrapper;

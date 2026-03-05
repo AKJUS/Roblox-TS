@@ -1,15 +1,16 @@
 import * as signalR from "@microsoft/signalr";
 
-// TODO: old, migrated code
-// eslint-disable-next-line func-names
 const coreSignalRConnectionWrapper = function (
   settings,
   logger,
   onConnectionStatusChangedCallback,
   onNotificationCallback,
   onSubscriptionStatusCallback,
+  onTopicNotificationCallback,
   connectionEventCallback,
 ) {
+  // TODO: old, migrated code
+  // eslint-disable-next-line no-invalid-this
   const self = this;
 
   // Initialize values
@@ -119,6 +120,7 @@ const coreSignalRConnectionWrapper = function (
     // Subscribe to the notification and subscriptionStatus methods which the server will call
     userNotificationConnection.on("notification", onNotificationCallback);
     userNotificationConnection.on("subscriptionStatus", onSubscriptionStatusCallback);
+    userNotificationConnection.on("topicNotification", onTopicNotificationCallback);
 
     // Connect to handleSignalRDisconnected when connection closes (disconnects)
     // Since our Core Signal R does not reconnect, we do not need a callback on reconnect
@@ -160,11 +162,14 @@ const coreSignalRConnectionWrapper = function (
 
   const getIsConnected = () => isConnected;
 
+  const getConnection = () => userNotificationConnection;
+
   // Interface
   self.Start = start;
   self.Stop = stop;
   self.Restart = restart;
   self.IsConnected = getIsConnected;
+  self.GetConnection = getConnection;
 };
 
 export default coreSignalRConnectionWrapper;

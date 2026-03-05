@@ -25,6 +25,7 @@ export const renderAccountSwitcher: TRenderAccountSwitcher = async ({
   helpText,
   onAccountSwitched,
   handleAddAccount,
+  suppressAddAccountRow,
   removeInvalidActiveUser,
   isModal = true,
   translate,
@@ -42,6 +43,7 @@ export const renderAccountSwitcher: TRenderAccountSwitcher = async ({
         helpText={helpText}
         onAccountSwitched={onAccountSwitched}
         handleAddAccount={handleAddAccount}
+        suppressAddAccountRow={suppressAddAccountRow}
         removeInvalidActiveUser={removeInvalidActiveUser}
         isModal={isModal}
         translate={translate}

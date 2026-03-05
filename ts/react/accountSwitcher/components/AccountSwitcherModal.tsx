@@ -15,6 +15,7 @@ export type accountSwitcherModalProps = {
   isAccountLimitReached: boolean;
   onAccountSelection: (userId: number) => void;
   handleAddAccount: () => void;
+  suppressAddAccountRow?: boolean;
   handleShowLogoutAllModal: () => void;
   handleModalDismiss: () => void;
   activeUser?: TUserData;
@@ -26,6 +27,7 @@ export const AccountSwitcherModal = ({
   isAccountLimitReached,
   onAccountSelection,
   handleAddAccount,
+  suppressAddAccountRow = false,
   handleShowLogoutAllModal,
   handleModalDismiss,
   activeUser,
@@ -82,7 +84,7 @@ export const AccountSwitcherModal = ({
                 />
               </li>
             ))}
-            {!isAccountLimitReached && (
+            {!isAccountLimitReached && !suppressAddAccountRow && (
               <li className='account-selection-list-item'>
                 <AddAccountRow handleAddAccount={handleAddAccount} translate={translate} />
               </li>

@@ -13,6 +13,7 @@ import InlineChallengeBody from '../../../common/inlineChallengeBody';
 import { FragmentModalHeader, HeaderButtonType } from '../../../common/modalHeader';
 import {
   CHALLENGE_ID_KEY,
+  PROGRESS_CHECK_ENABLE,
   PROGRESS_CHECK_MINIMUM_PROGRESS,
   PROGRESS_CHECK_PERIOD_MILLISECONDS,
   PROGRESS_DISPLAY_PERCENTAGE_PRECISION,
@@ -132,7 +133,7 @@ const ProofOfSpace: React.FC = () => {
   };
 
   const checkProgress = () => {
-    if (curProgress.current === 1) {
+    if (curProgress.current === 1 || !PROGRESS_CHECK_ENABLE) {
       return;
     }
 

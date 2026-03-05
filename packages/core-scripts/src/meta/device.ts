@@ -1,5 +1,7 @@
 // Do not import anything here without considering if you need to update the rspack.config.js
 
+import { recordGet } from "@rbx/core-types";
+
 const deviceDataset = (): DOMStringMap | null => {
   const metaTag = document.querySelector<HTMLMetaElement>(`meta[name="device-meta"]`);
   return metaTag?.dataset ?? null;
@@ -28,7 +30,7 @@ export const isIE = (): boolean =>
   window.navigator.userAgent.toUpperCase().includes("TRIDENT/") ||
   window.navigator.userAgent.toUpperCase().includes("MSIE");
 
-export const isIE11 = (): boolean => isIE() && !!/rv[: ]\d+./.exec(window.navigator.userAgent);
+export const isIE11 = (): boolean => isIE() && /rv[: ]\d+./.test(window.navigator.userAgent);
 
 export const AppTypes = {
   android: "android",
@@ -67,6 +69,8 @@ export type DeviceMeta = {
   isAndroidDevice: boolean;
   isUniversalApp: boolean;
   isChromeOs: boolean;
+  isSamsungGalaxyStoreApp: boolean;
+  isPcGdkApp: boolean;
 };
 
 export const getDeviceMeta = (): DeviceMeta | null => {
@@ -74,14 +78,8 @@ export const getDeviceMeta = (): DeviceMeta | null => {
   return dataset == null
     ? null
     : {
-        deviceType: dataset.deviceType
-          ? // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-            ((DeviceTypes as Record<string, string>)[dataset.deviceType] ?? "")
-          : "",
-        appType: dataset.appType
-          ? // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-            ((AppTypes as Record<string, string>)[dataset.appType] ?? "")
-          : "",
+        deviceType: dataset.deviceType ? (recordGet(DeviceTypes, dataset.deviceType) ?? "") : "",
+        appType: dataset.appType ? (recordGet(AppTypes, dataset.appType) ?? "") : "",
         isInApp: dataset.isInApp === "true",
         isDesktop: dataset.isDesktop === "true",
         isPhone: dataset.isPhone === "true",
@@ -98,5 +96,7 @@ export const getDeviceMeta = (): DeviceMeta | null => {
         isAndroidDevice: dataset.isAndroidDevice === "true",
         isUniversalApp: dataset.isUniversalApp === "true",
         isChromeOs: dataset.isChromeOs === "true",
+        isSamsungGalaxyStoreApp: dataset.isSamsungGalaxyStoreApp === "true",
+        isPcGdkApp: dataset.isPcgdkApp === "true",
       };
 };

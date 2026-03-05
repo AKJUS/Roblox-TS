@@ -16,6 +16,7 @@ import {
 import { useActiveMediaType } from '../hooks/useActiveMediaType';
 import useTwoStepVerificationContext from '../hooks/useTwoStepVerificationContext';
 import { TwoStepVerificationActionType } from '../store/action';
+import { useDelayedVerificationBodyText } from '../delay/text';
 
 type Props = {
   userEmailCopy: string;
@@ -45,7 +46,7 @@ const EmailInput: React.FC<Props> = ({
       metadata,
       eventService,
       metricsService,
-      requestService
+      requestService,
     },
     dispatch
   } = useTwoStepVerificationContext();
@@ -147,12 +148,14 @@ const EmailInput: React.FC<Props> = ({
    * Component Markup
    */
 
+  const maybeDelayedText = useDelayedVerificationBodyText(metadata?.isDelayedUiEnabled ?? false);
+  
   return (
     metadata && (
       <React.Fragment>
         <BodyElement>
           <div className={lockIconClassName} />
-          <p className={marginBottomXLargeClassName}>{userEmailCopy}</p>
+          <p className={marginBottomXLargeClassName}>{userEmailCopy} {maybeDelayedText ?? ''}</p>
 
           <InputControl
             id='two-step-verification-code-input'

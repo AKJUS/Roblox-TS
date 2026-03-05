@@ -2,6 +2,7 @@ import {
   GetMetadataReturnType,
   GetUserConfigurationReturnType
 } from '../../../../common/request/types/twoStepVerification';
+import { UserInfo } from '../../../../common/request/types/users';
 import { ErrorCode, MediaType, OnChallengeCompletedData } from '../interface';
 
 export enum TwoStepVerificationActionType {
@@ -10,7 +11,8 @@ export enum TwoStepVerificationActionType {
   SET_CHALLENGE_COMPLETED,
   SET_CHALLENGE_INVALIDATED,
   HIDE_MODAL_CHALLENGE,
-  SHOW_MODAL_CHALLENGE
+  SHOW_MODAL_CHALLENGE,
+  SET_USER_INFO
 }
 
 export type TwoStepVerificationAction =
@@ -36,4 +38,8 @@ export type TwoStepVerificationAction =
     }
   | {
       type: TwoStepVerificationActionType.SHOW_MODAL_CHALLENGE;
-    };
+    }
+  | {
+    type: TwoStepVerificationActionType.SET_USER_INFO;
+    userInfo: UserInfo;
+  };

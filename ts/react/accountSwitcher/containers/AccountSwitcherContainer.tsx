@@ -41,6 +41,7 @@ export type accountSwitcherContainerProps = {
   onAccountSwitched: (targetUserId: number) => void;
   onConfirmationSuccessCallback?: () => void;
   handleAddAccount: () => void;
+  suppressAddAccountRow?: boolean;
   removeInvalidActiveUser?: boolean;
   isModal?: boolean;
   translate: WithTranslationsProps['translate'];
@@ -53,6 +54,7 @@ export const AccountSwitcherContainer = ({
   helpText,
   onAccountSwitched,
   handleAddAccount,
+  suppressAddAccountRow = false,
   removeInvalidActiveUser = false,
   isModal,
   translate,
@@ -215,6 +217,7 @@ export const AccountSwitcherContainer = ({
             isAccountLimitReached={users.isAccountLimitReached}
             onAccountSelection={handleAccountSelection}
             handleAddAccount={handleAddAccountAndSendClickLog}
+            suppressAddAccountRow={suppressAddAccountRow}
             handleShowLogoutAllModal={handleShowLogoutAllModal}
             handleModalDismiss={handleModalDismiss}
             activeUser={users.activeUser}
@@ -246,6 +249,7 @@ export const AccountSwitcherContainer = ({
           helpText={helpText}
           onAccountSelection={handleAccountSelection}
           handleAddAccount={handleAddAccountAndSendClickLog}
+          suppressAddAccountRow={suppressAddAccountRow}
           translate={translate}
         />
       )}

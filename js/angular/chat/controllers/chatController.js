@@ -186,7 +186,7 @@ function chatController(
     const shouldOpenNewDialog = $scope.chatLibrary.dialogDict[oldLayoutId];
     $scope.closeDialog(oldLayoutId);
     if (shouldOpenNewDialog) {
-      $scope.updateDialogList(newLayoutId, true);
+      $scope.launchDialog(newLayoutId, true);
     }
 
     // if 1:1, update userConversationsDict to point to new conversation
@@ -227,6 +227,16 @@ function chatController(
     return getConversationsByIds(conversationIds, true);
   };
 
+  $scope.fetchConversations = fetchConversations;
+
+  $scope.removeConversationFromUI = function (conversationId) {
+    const conversation = $scope.chatLibrary.conversationsDict[conversationId];
+    if (conversation && !conversation.remove) {
+      conversation.remove = true;
+      $scope.closeDialog(conversation.layoutId);
+    }
+  };
+
   const multiFetchConversations = function (conversationIds) {
     // fetch conversations in batches of page size
     for (
@@ -265,7 +275,7 @@ function chatController(
     });
   };
 
-  const updateChatConversation = function (allMessages, conversation, isSelf) {
+  const updateChatConversationMessages = function (allMessages, conversation, isSelf) {
     messageService.appendMessages($scope.chatLibrary, conversation, allMessages);
     gameService.fetchDataForLinkCard(allMessages, $scope.chatLibrary);
     messageUtility.hasUnreadMessages(conversation, allMessages);
@@ -301,7 +311,7 @@ function chatController(
       messageReceiveStartTime = new Date().getTime();
     }
     const updateChatConversationCallback = function (messageReceiveStartTime) {
-      updateChatConversation(allData, conversation, isSelf);
+      updateChatConversationMessages(allData, conversation, isSelf);
       if (messageReceiveStartTime) {
         const messageReceiveEndTime = new Date().getTime();
         const messageReceiveInterval = messageReceiveEndTime - messageReceiveStartTime;
@@ -347,6 +357,15 @@ function chatController(
     }
   };
 
+  const isGroupDialogUnacknowledged = function (conversation) {
+    return (
+      $scope.chatLibrary.groupPartyOsaEnabled &&
+      conversation?.osaAcknowledgementStatus ===
+        dialogAttributes.osaAcknowledgementStatus.UNACKNOWLEDGED &&
+      conversation?.type === chatUtility.conversationType.multiUserConversation
+    );
+  };
+
   $scope.retrieveDialogStatus = function () {
     // need to do with whole dialogDict
     if (
@@ -370,8 +389,13 @@ function chatController(
       }
       const { dialogDict } = $scope.preSetChatLibrary;
       const { dialogsLayout } = $scope.preSetChatLibrary;
+      // filter out dialogs that are not loaded in the chatUserDict and unacknowledged group party dialogs
       angular.forEach(dialogIdList, function (dialogId, idx) {
-        if (dialogId !== chatUtility.newGroup.layoutId && !$scope.chatUserDict[dialogId]) {
+        const conversation = $scope.chatUserDict[dialogId];
+        const dialogMissing = dialogId !== chatUtility.newGroup.layoutId && !conversation;
+        const groupDialogUnacknowledged = isGroupDialogUnacknowledged(conversation);
+
+        if (dialogMissing || groupDialogUnacknowledged) {
           $scope.preSetChatLibrary.dialogIdList.splice(idx, 1);
           delete dialogDict[dialogId];
           delete dialogsLayout[dialogId];
@@ -379,20 +403,25 @@ function chatController(
 
         $scope.resetDialogLayout(dialogsLayout[dialogId]);
       });
+
       $scope.chatLibrary.dialogIdList = [
         ...new Set([...$scope.chatLibrary.dialogIdList, ...$scope.preSetChatLibrary.dialogIdList])
       ];
 
       const openConversations = [];
       angular.forEach(dialogDict, function (dialog, layoutId) {
+        // only update the dialog if it's not currently open
         if (!dialog.isUpdated && !$scope.chatLibrary.dialogDict[layoutId]) {
           dialog.isUpdated = true;
         }
+
         if (layoutId === chatUtility.newGroup.layoutId) {
           $scope.chatUserDict[chatUtility.newGroup.layoutId] = $scope.newGroup;
         } else if ($scope.chatUserDict[layoutId]) {
           openConversations.push($scope.chatUserDict[layoutId]);
         }
+
+        // open the dialog and add it to relevant lists
         $scope.chatLibrary.dialogDict[layoutId] = dialog;
         if (dialogsLayout[layoutId]) {
           $scope.chatLibrary.dialogsLayout[layoutId] = dialogsLayout[layoutId];
@@ -885,12 +914,7 @@ function chatController(
         case chatUtility.channelsNotificationType.channelArchived:
         case chatUtility.channelsNotificationType.channelDeleted:
         case chatUtility.channelsNotificationType.removedFromChannel:
-          if (!$scope.chatLibrary.conversationsDict[channelId].remove) {
-            const { layoutId } = $scope.chatLibrary.conversationsDict[channelId];
-            $scope.chatLibrary.conversationsDict[channelId].remove = true;
-            $scope.closeDialog(layoutId);
-            fetchConversations(channelId);
-          }
+          $scope.removeConversationFromUI(channelId);
           break;
         case chatUtility.channelsNotificationType.channelUpdated:
           $scope.updateConversationTitle(channelId);
@@ -1905,36 +1929,9 @@ function chatController(
           conversation.name = conversation.Username;
         }
     }
-    // add new conversation into the right place;
-    const userProfileFields = [UserProfileField.Names.CombinedName];
-    const { userIds, isGroupChat } = conversation;
 
-    userProfilesService
-      .watchUserProfiles(userIds, userProfileFields)
-      .subscribe(({ loading, error, data }) => {
-        const names = [];
-        angular.forEach(Object.entries(data), ([id, user]) => {
-          if (!$scope.chatLibrary.friendsDict[id]) {
-            return;
-          }
-          $scope.chatLibrary.friendsDict[id].nameForDisplay = user.names.combinedName;
-          names.push(user.names.combinedName);
-        });
-
-        names.sort();
-        const newTitle = names.join(', ');
-
-        if (isGroupChat) {
-          const { titleForViewer } = conversation.conversationTitle;
-          chatUtility.updateConversationTitle(
-            conversation,
-            conversation.hasDefaultName ? newTitle : titleForViewer
-          );
-        } else {
-          chatUtility.updateConversationTitle(conversation, newTitle);
-        }
-        $scope.$applyAsync();
-      });
+    const { titleForViewer } = conversation.conversationTitle ?? {};
+    chatUtility.updateConversationTitle(conversation, titleForViewer);
 
     $scope.chatUserDict[conversation.layoutId] = conversation;
     const position = $scope.chatLibrary.chatLayoutIds.indexOf(conversation.layoutId);
@@ -1956,6 +1953,9 @@ function chatController(
         ...chatUtility.conversationInitStatus
       };
       $scope.chatLibrary.conversationsDict[conversation.id].layoutId = conversation.layoutId;
+    } else {
+      // Reset remove flag when conversation is re-added (e.g., user is re-invited)
+      $scope.chatLibrary.conversationsDict[conversation.id].remove = false;
     }
   };
 
@@ -1990,28 +1990,8 @@ function chatController(
         : chatUtility.dialogType.CHAT;
       $scope.getUserInfoForConversation(unreadConversation);
 
-      const userProfileFields = [UserProfileField.Names.CombinedName];
-      const { userIds } = unreadConversation;
-
-      const names = [];
-      const data = await userProfilesService.queryUserProfiles(userIds, userProfileFields);
-
-      angular.forEach(data, user => {
-        names.push(user.names.combinedName);
-      });
-
-      names.sort();
-      const newTitle = names.join(', ');
-
-      if (unreadConversation.isGroupChat) {
-        const { titleForViewer } = unreadConversation.conversationTitle;
-        chatUtility.updateConversationTitle(
-          unreadConversation,
-          unreadConversation.hasDefaultName ? newTitle : titleForViewer
-        );
-      } else {
-        chatUtility.updateConversationTitle(unreadConversation, newTitle);
-      }
+      const { titleForViewer } = unreadConversation.conversationTitle ?? {};
+      chatUtility.updateConversationTitle(unreadConversation, titleForViewer);
 
       unreadConversation.isUserPending = $scope.getIsUserPending(unreadConversation);
       unreadConversation.isConversationUnavailableWithUser = $scope.getIsConversationDisabledWithUser(
@@ -2079,7 +2059,7 @@ function chatController(
           notifyUser(unreadConversation);
         }
       }
-      $scope.$apply();
+      $scope.$applyAsync();
     }
     $scope.retrieveDialogStatus();
 
@@ -2241,8 +2221,8 @@ function chatController(
           const { rootPlaceId } = conversation.pinGame;
           $scope.fetchPlaceDetailsIntoPlacesLibrary([rootPlaceId], [conversation]);
         }
-        chatUtility.updateFocusedDialog($scope.chatLibrary, newLayoutId);
         messageService.formatTimestampInConversation(conversation);
+        $scope.launchDialog(newLayoutId);
         return conversation;
       },
       function () {
@@ -2292,6 +2272,14 @@ function chatController(
     $scope.launchDialog(layoutId, false);
   };
 
+  const openGroupInviteDialog = function (layoutId) {
+    $scope.chatViewModel.groupInviteDialogLayoutId = layoutId;
+  };
+
+  $scope.closeGroupInviteDialog = function () {
+    $scope.chatViewModel.groupInviteDialogLayoutId = null;
+  };
+
   // autoPop will be true when the dialog generation is not from user click interaction
   $scope.launchDialog = function (layoutId, autoPop) {
     $scope.chatLibrary.dialogRequestedToOpenParams.layoutId = layoutId;
@@ -2305,6 +2293,14 @@ function chatController(
       $scope.updateDialogList(layoutId, autoPop);
       $scope.chatUserDict[chatUtility.newGroup.layoutId] = $scope.newGroup;
     } else if ($scope.chatLibrary.dialogIdList.indexOf(layoutId) < 0 && conversation) {
+      if (isGroupDialogUnacknowledged(conversation)) {
+        // only want to navigate to OSA dialog if a user's interaction opened the conversation
+        if (!autoPop) {
+          openGroupInviteDialog(layoutId);
+        }
+        return;
+      }
+
       // either conversation or friends
       $scope.openConversation();
       $scope.expandGameListInConversation(layoutId);
@@ -2480,7 +2476,7 @@ function chatController(
     const layoutId = doesUserHavePrivateConversation(userId);
     if (layoutId && $scope.validLayoutId(layoutId, chatUtility.dialogType.CHAT)) {
       $scope.chatLibrary.chatLayout.urlParseInitialized = true;
-      $scope.launchDialog(layoutId, true);
+      $scope.launchDialog(layoutId);
     } else {
       $scope.openConversationFromFriendId(userId);
     }
@@ -2827,6 +2823,7 @@ function chatController(
     };
     $scope.chatLibrary.isWebChatAutotranslationEnabled =
       chatUiPoliciesResponse.isWebChatAutotranslationEnabled ?? false;
+    $scope.chatLibrary.groupPartyOsaEnabled = chatUiPoliciesResponse.groupPartyOsaEnabled ?? false;
 
     // initialize eventstream variable
     $scope.chatLibrary.eventStreamParams = { ...chatUtility.eventStreamParams };
@@ -2867,6 +2864,8 @@ function chatController(
 
   $scope.initializeChatViewModel = function () {
     $scope.chatViewModel = { ...libraryInitialization.chatViewModel };
+    // Initialize group invite dialog state
+    $scope.chatViewModel.groupInviteDialogLayoutId = null;
   };
   $scope.bootstrapAllInitialization = function (data) {
     const { metadataResponse } = data;
@@ -2928,6 +2927,22 @@ function chatController(
     ];
     return Promise.all(promises);
   };
+
+  $scope.$watchCollection(
+    () => $scope.chatLibrary.dialogIdList,
+    dialogIds => {
+      if (!dialogIds) return;
+
+      // Safely check each dialog and close any that shouldn't be open
+      dialogIds.forEach(layoutId => {
+        const conversation = $scope.chatUserDict[layoutId];
+        if (isGroupDialogUnacknowledged(conversation)) {
+          $log.debug(`Closing unacknowledged group dialog: ${layoutId}`);
+          $scope.closeDialog(layoutId);
+        }
+      });
+    }
+  );
 
   $scope.initialize();
 }

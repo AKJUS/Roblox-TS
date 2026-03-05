@@ -165,12 +165,14 @@ const isLoginLinkAvailable = () => {
 
 const getIsVNGLandingRedirectEnabled = async () => {
   try {
-    const data = await ExperimentationService.getAllValuesForLayer(VNG_LANDING_LAYER);
-    const isIXPEnabled = data?.IsVngLandingPageRedirectEnabled ?? false;
-    const { isVNGComplianceEnabled: isFeatureEnabled } = await getIntAuthCompliancePolicy();
+    const [ixp, intAuth] = await Promise.all([
+      ExperimentationService.getAllValuesForLayer(VNG_LANDING_LAYER),
+      getIntAuthCompliancePolicy(),
+    ]);
+    const isIXPEnabled = ixp.IsVngLandingPageRedirectEnabled ?? false;
+    const isFeatureEnabled = intAuth.isVNGComplianceEnabled ?? false;
     return isFeatureEnabled && isIXPEnabled;
   } catch {
-    // fall back to false
     return false;
   }
 };

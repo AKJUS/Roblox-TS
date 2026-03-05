@@ -1,34 +1,35 @@
+import { arrayIncludes } from "@rbx/core-types";
 import "../global";
 import "./eventStream";
-import { DEFAULT_TARGET_TYPES, EVENT_TYPES } from "../realtime/constants/events";
+
+export const eventTypes = {
+  formInteraction: "formInteraction",
+  modalAction: "modalAction",
+  pageLoad: "pageLoad",
+  buttonClick: "buttonClick",
+};
 
 // TODO: these functions should all be async / awaitable. E.g., when clicking on <a>,
 // we want to wait for the metrics to be sent before navigating to the other page.
 
-export const eventTypes = EVENT_TYPES;
-
-type TargetTypes = {
-  DEFAULT: number;
-  WWW: number;
-  STUDIO: number;
-  DIAGNOSTIC: number;
-};
-
-export const targetTypes: TargetTypes = {
-  ...DEFAULT_TARGET_TYPES,
+export const targetTypes = {
+  DEFAULT: 0,
+  WWW: 1,
+  STUDIO: 2,
+  DIAGNOSTIC: 3,
   ...(window.Roblox.EventStream?.TargetTypes ?? {}),
-};
+} as const;
 
 export const sendEventWithTarget = (
   eventName: string,
   context: string,
-  additionalProperties: Record<string, string | number | undefined>,
+  additionalProperties: Record<string, string | number | boolean | undefined>,
   targetType?: number,
 ): void => {
   const { EventStream } = window.Roblox;
   if (EventStream?.SendEventWithTarget != null) {
     const validatedTargetType =
-      targetType != null && Object.values(targetTypes).includes(targetType)
+      targetType != null && arrayIncludes(Object.values(targetTypes), targetType)
         ? targetType
         : targetTypes.WWW;
 

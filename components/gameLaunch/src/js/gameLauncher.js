@@ -1,15 +1,15 @@
-import $ from 'jquery';
-import { uuidService } from '@rbx/core-scripts/legacy/core-utilities';
-import AuthenticationChecker from './authenticationChecker';
-import { preemptiveStartTeamCreate } from './gameLaunchHttpService';
+import $ from "jquery";
+import { uuidService } from "@rbx/core-scripts/legacy/core-utilities";
+import AuthenticationChecker from "./authenticationChecker";
+import { preemptiveStartTeamCreate } from "./gameLaunchHttpService";
 
 // EventNames
-const startClientAttemptedEvent = 'startClientAttempted';
-const startClientFailedEvent = 'startClientFailed';
-const startClientSucceededEvent = 'startClientSucceeded';
-const beginInstallEvent = 'beginInstall';
-const successfulInstallEvent = 'successfulInstall';
-const manualDownloadEvent = 'manualDownload';
+const startClientAttemptedEvent = "startClientAttempted";
+const startClientFailedEvent = "startClientFailed";
+const startClientSucceededEvent = "startClientSucceeded";
+const beginInstallEvent = "beginInstall";
+const successfulInstallEvent = "successfulInstall";
+const manualDownloadEvent = "manualDownload";
 
 let resolveInit;
 
@@ -19,7 +19,7 @@ const gameLauncher = {
   gameLaunchLogger: null,
   initialized: new Promise(resolve => {
     resolveInit = resolve;
-  })
+  }),
 };
 
 function isJoinAttemptIdEnabled() {
@@ -29,7 +29,7 @@ function isJoinAttemptIdEnabled() {
 function generateGameLaunchParams(originalParams, joinAttemptId, joinAttemptOrigin) {
   const params = {
     ...originalParams,
-    joinAttemptId: joinAttemptId ?? uuidService.generateRandomUuid()
+    joinAttemptId: joinAttemptId ?? uuidService.generateRandomUuid(),
   };
 
   if (joinAttemptOrigin) {
@@ -55,8 +55,8 @@ function editGameInStudio(
   isTeamCreateEnabled = false,
   enableTeamCreatePreemptiveStart = false,
   startTeamTest = false,
-  instanceId = '',
-  annotationId = ''
+  instanceId = "",
+  annotationId = "",
 ) {
   if (isTeamCreateEnabled && enableTeamCreatePreemptiveStart) {
     preemptiveStartTeamCreate(placeId);
@@ -68,7 +68,7 @@ function editGameInStudio(
     // Studio has an error if you attempt to start Team Test when Team Create is off
     isTeamCreateEnabled && startTeamTest,
     instanceId,
-    annotationId
+    annotationId,
   );
 }
 
@@ -91,14 +91,14 @@ function joinMultiplayerGame(
   joinAttemptId,
   joinAttemptOrigin,
   joinData,
-  referredByPlayerId
+  referredByPlayerId,
 ) {
   let params = {
     placeId,
     launchData: joinData?.launchData,
     eventId: joinData?.eventId,
     isPlayTogetherGame: isPlayTogetherGame === true,
-    referredByPlayerId
+    referredByPlayerId,
   };
 
   if (gameLauncher.gameLaunchInterface.isJoinAttemptIdEnabled) {
@@ -106,7 +106,7 @@ function joinMultiplayerGame(
   }
 
   const deferred = AuthenticationChecker.restrictGuests(params).then(
-    gameLauncher.gameLaunchInterface.joinMultiplayerGame
+    gameLauncher.gameLaunchInterface.joinMultiplayerGame,
   );
   return deferred;
 }
@@ -119,7 +119,7 @@ function followPlayerIntoGame(userId, joinAttemptId, joinAttemptOrigin) {
   }
 
   const deferred = AuthenticationChecker.restrictGuests(params).then(
-    gameLauncher.gameLaunchInterface.followPlayerIntoGame
+    gameLauncher.gameLaunchInterface.followPlayerIntoGame,
   );
   return deferred;
 }
@@ -131,13 +131,13 @@ function joinGameInstance(
   isPlayTogetherGame,
   joinAttemptId,
   joinAttemptOrigin,
-  referredByPlayerId
+  referredByPlayerId,
 ) {
   let params = {
     placeId,
     gameId,
     isPlayTogetherGame: isPlayTogetherGame === true,
-    referredByPlayerId
+    referredByPlayerId,
   };
 
   if (gameLauncher.gameLaunchInterface.isJoinAttemptIdEnabled) {
@@ -145,7 +145,7 @@ function joinGameInstance(
   }
 
   const deferred = AuthenticationChecker.restrictGuests(params).then(
-    gameLauncher.gameLaunchInterface.joinGameInstance
+    gameLauncher.gameLaunchInterface.joinGameInstance,
   );
   return deferred;
 }
@@ -155,7 +155,7 @@ async function joinPrivateGame(placeId, accessCode, linkCode, joinAttemptId, joi
   let params = {
     placeId,
     accessCode,
-    linkCode
+    linkCode,
   };
 
   if (gameLauncher.gameLaunchInterface.isJoinAttemptIdEnabled) {
@@ -174,7 +174,7 @@ function playTogetherGame(placeId, conversationId, joinAttemptId, joinAttemptOri
   }
 
   const deferred = AuthenticationChecker.restrictGuests(params).then(
-    gameLauncher.gameLaunchInterface.playTogetherGame
+    gameLauncher.gameLaunchInterface.playTogetherGame,
   );
   return deferred;
 }
@@ -184,24 +184,24 @@ function playTogetherGame(placeId, conversationId, joinAttemptId, joinAttemptOri
 $.fn.bindGameLaunch = function bindGameLaunch() {
   // TODO: old, migrated code
   // eslint-disable-next-line prefer-arrow-callback
-  this.find('.VisitButtonPlayGLI').click(function () {
+  this.find(".VisitButtonPlayGLI").click(function () {
     // TODO: old, migrated code
     // eslint-disable-next-line no-invalid-this
     const el = $(this);
-    const placeId = el.attr('placeid');
-    const isMembershipLevelOk = el.data('is-membership-level-ok');
+    const placeId = el.attr("placeid");
+    const isMembershipLevelOk = el.data("is-membership-level-ok");
     joinMultiplayerGame(placeId, isMembershipLevelOk);
   });
 
   // TODO: old, migrated code
   // eslint-disable-next-line prefer-arrow-callback
-  this.find('.VisitButtonEditGLI').click(function () {
+  this.find(".VisitButtonEditGLI").click(function () {
     // TODO: old, migrated code
     // eslint-disable-next-line no-invalid-this
     const el = $(this);
-    const placeId = el.attr('placeid');
-    const universeId = el.data('universeid');
-    const allowUpload = !!el.data('allowupload');
+    const placeId = el.attr("placeid");
+    const universeId = el.data("universeid");
+    const allowUpload = !!el.data("allowupload");
     editGameInStudio(placeId, universeId, allowUpload);
   });
 
@@ -210,7 +210,7 @@ $.fn.bindGameLaunch = function bindGameLaunch() {
 
 $(document).ready(() => {
   // ---------- VisitButtons bindings: --------------
-  $('body').bindGameLaunch();
+  $("body").bindGameLaunch();
 });
 
 Object.assign(gameLauncher, {
@@ -237,7 +237,7 @@ Object.assign(gameLauncher, {
   startClientSucceededEvent,
   beginInstallEvent,
   successfulInstallEvent,
-  manualDownloadEvent
+  manualDownloadEvent,
 });
 
 export default gameLauncher;

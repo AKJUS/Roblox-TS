@@ -109,6 +109,12 @@ export interface RobloxThumbnailsApisModelsThumbnailBatchRequest {
    * @memberof RobloxThumbnailsApisModelsThumbnailBatchRequest
    */
   isCircular?: boolean;
+  /**
+   * Shape of the head asset
+   * @type {string}
+   * @memberof RobloxThumbnailsApisModelsThumbnailBatchRequest
+   */
+  headShape?: string;
 }
 
 /**

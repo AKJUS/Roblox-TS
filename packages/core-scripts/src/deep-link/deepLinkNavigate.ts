@@ -225,6 +225,26 @@ const deepLinkNavigate = (target: DeepLink): Promise<boolean> => {
                 return true;
               })
               .catch(() => false);
+          } else if (
+            (response.data.linkType === "UserTrustedConnection" ||
+              response.data.linkType === "StudioTrustedConnection") &&
+            response.data.targetId
+          ) {
+            const linkTypeV2 =
+              response.data.linkType === "UserTrustedConnection"
+                ? ShareLinksTypeV2.USER_TRUSTED_CONNECTION
+                : ShareLinksTypeV2.STUDIO_TRUSTED_CONNECTION;
+            const resolveLinkEvent = buildResolveLinkEvent(
+              response.data.linkStatus,
+              code,
+              linkTypeV2,
+            );
+            sendEventWithTarget(
+              resolveLinkEvent.type,
+              resolveLinkEvent.context,
+              resolveLinkEvent.params,
+            );
+            window.location.href = target.url;
           }
           return true;
         })

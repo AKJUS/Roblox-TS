@@ -15,7 +15,9 @@ function guacService($q, httpService, $log) {
       return Guac.callBehaviour('abuse-reporting-revamp');
     },
     getRenameFriendsPolicies() {
-      return Promise.resolve({ renameFriendsToConnections: true });
+      return Guac.callBehaviour('web-rename-friends')
+        .then(data => ({ renameFriendsToConnections: !(data?.connectionsToFriendsRenameEnabled ?? false) }))
+        .catch(() => ({ renameFriendsToConnections: true }));
     }
   };
 }

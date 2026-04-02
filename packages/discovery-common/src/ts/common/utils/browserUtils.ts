@@ -19,11 +19,11 @@ export const buildGameDetailUrl = (
   placeId: number,
   placeName: string,
   eventProperties: TGameDetailReferral = {},
+  canonicalUrlPath?: string,
 ): string => {
-  return getUrlWithQueries(
-    `${game.getRelativePath(placeId)}/${formatSeoName(placeName)}`,
-    eventProperties,
-  );
+  const basePath =
+    canonicalUrlPath || `${game.getRelativePath(placeId)}/${formatSeoName(placeName)}`;
+  return getUrlWithQueries(basePath, eventProperties);
 };
 
 export const buildAddGamePassUrl = (placeId: string): string => {

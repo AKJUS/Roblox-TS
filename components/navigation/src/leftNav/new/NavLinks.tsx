@@ -5,7 +5,9 @@ import environmentUrls from "@rbx/environment-urls";
 import { getAbsoluteUrl } from "@rbx/core-scripts/endpoints";
 import * as http from "@rbx/core-scripts/http";
 import { useTranslation } from "@rbx/core-scripts/react";
-import { AuthenticatedUser } from "@rbx/core-scripts/meta/user";
+import { callBehaviour } from "@rbx/core-scripts/guac";
+import { AuthenticatedUser, isBlackbirdUser } from "@rbx/core-scripts/meta/user";
+import { isEnabled as isBlackbirdEnabled } from "@rbx/core-scripts/meta/subscription";
 import { sendEventWithTarget, targetTypes } from "@rbx/core-scripts/event-stream";
 import paymentFlowAnalyticsService from "@rbx/core-scripts/payments-flow";
 import {
@@ -52,10 +54,14 @@ const ProfileNavItem = ({ id, displayName }: { id: number; displayName: string }
           <Thumbnail2d targetId={id} type={ThumbnailTypes.avatarHeadshot} altName={displayName} />
         </span>
       </span>
-      <span className="flex gap-xsmall min-width-0">
+      <span className="flex gap-xsmall min-width-0 align-items-center">
         <span className="text-truncate-end text-no-wrap">{displayName}</span>
         {currentUserHasVerifiedBadge() ? (
           <VerifiedBadgeIconContainer size={BadgeSizes.CAPTIONHEADER} />
+        ) : null}
+        {isBlackbirdUser() ? (
+          // TODO(SUBS-4332)
+          <Icon name="icon-regular-paper-airplane" size="Small" />
         ) : null}
       </span>
     </a>
@@ -186,6 +192,48 @@ const PremiumNavItem = () => {
   );
 };
 
+const blackbirdPathRegex = /^\/blackbird(\/|$)/;
+
+const BlackbirdNavItem = ({ currentPath }: { currentPath: string }) => {
+  const { translate } = useTranslation();
+
+  return (
+    <NavItem
+      path="/blackbird"
+      isCurrentPath={blackbirdPathRegex.test(currentPath)}
+      icon="icon-regular-paper-airplane"
+      text={translate("Label.Blackbird")}
+    />
+  );
+};
+
+const BlackbirdUpsellNavItem = ({ currentPath }: { currentPath: string }) => {
+  const { translate } = useTranslation();
+
+  if (blackbirdPathRegex.test(currentPath)) {
+    return null;
+  }
+
+  return (
+    <li className="padding-top-xsmall">
+      <a
+        href="/blackbird"
+        className="gap-y-medium flex flex-col padding-medium bg-shift-100 stroke-default stroke-thick radius-medium text-body-medium"
+      >
+        <Icon name="icon-regular-paper-airplane" />
+        <span>
+          {translate("Description.ExclusiveBenefits", {
+            product: translate("Label.Blackbird"),
+          })}
+        </span>
+        <span className="content-default [text-decoration:underline] [text-decoration-skip-ink:none] [text-underline-offset:3px]">
+          {translate("Action.Subscribe")}
+        </span>
+      </a>
+    </li>
+  );
+};
+
 const plusAbbreviate = (num: number, limit: number) => (num > limit ? `${limit}+` : num.toString());
 
 const LeftNavigation = ({ user }: { user: AuthenticatedUser }) => {
@@ -215,6 +263,17 @@ const LeftNavigation = ({ user }: { user: AuthenticatedUser }) => {
   }, []);
 
   const { translate } = useTranslation();
+
+  const { data: connectionsToFriendsRenameEnabled } = useQuery({
+    queryKey: ["connections-to-friends-rename"],
+    queryFn: async () => {
+      const data = await callBehaviour<{ connectionsToFriendsRenameEnabled: boolean }>(
+        "web-rename-friends",
+      );
+      return data.connectionsToFriendsRenameEnabled;
+    },
+    placeholderData: false,
+  });
 
   const queryClient = useQueryClient();
 
@@ -282,6 +341,7 @@ const LeftNavigation = ({ user }: { user: AuthenticatedUser }) => {
           icon="icon-regular-person"
           text={translate("Label.sProfile")}
         />
+        {isBlackbirdEnabled() ? <BlackbirdNavItem currentPath={currentPath} /> : null}
         <NavItem
           path="/my/messages/#!/inbox"
           isCurrentPath={/^\/my\/messages(\/|$)/.test(currentPath)}
@@ -293,7 +353,7 @@ const LeftNavigation = ({ user }: { user: AuthenticatedUser }) => {
           path={friendRequestCount ? "/users/friends#!/friend-requests" : "/users/friends"}
           isCurrentPath={/^\/users\/(\d+\/)?friends(\/|$)/.test(currentPath)}
           icon="icon-regular-two-people"
-          text={translate("Label.Connect")}
+          text={translate(connectionsToFriendsRenameEnabled ? "Label.Friends" : "Label.Connect")}
           notification={friendRequestCount ? plusAbbreviate(friendRequestCount, 500) : undefined}
         />
         <NavItem
@@ -334,7 +394,10 @@ const LeftNavigation = ({ user }: { user: AuthenticatedUser }) => {
           icon="icon-regular-gift-card"
           text={translate("Label.GiftCards")}
         />
-        <PremiumNavItem />
+        {!isBlackbirdEnabled() ? <PremiumNavItem /> : null}
+        {isBlackbirdEnabled() && !isBlackbirdUser() ? (
+          <BlackbirdUpsellNavItem currentPath={currentPath} />
+        ) : null}
       </ul>
     </nav>
   );

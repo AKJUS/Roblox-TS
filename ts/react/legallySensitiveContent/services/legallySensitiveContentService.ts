@@ -1,3 +1,5 @@
+import { useEffect, useState } from 'react';
+import { Guac } from 'Roblox';
 import { TranslateFunction } from 'react-utilities';
 import { UserSetting } from '../enums/UserSetting';
 import {
@@ -5,7 +7,10 @@ import {
   TLegallySensitiveActions
 } from '../types/legallySensitiveContentTypes';
 import { SettingValue } from '../types/settingTypes';
-import legallySensitiveContentConstants from '../constants/legallySensitiveContentConstants';
+import legallySensitiveContentConstants, {
+  PHONE_DISCOVERABILITY_CONSENT_FRIENDS_RENAME_KEY,
+  PHONE_DISCOVERABILITY_PARENT_SIDE_CONSENT_FRIENDS_RENAME_KEY
+} from '../constants/legallySensitiveContentConstants';
 import { updateUserSetting } from './userSettingsService';
 import { getAuditDataForConsent, getEncodedAuditHeader } from '../utils/auditUtils';
 import ConsentName from '../enums/ConsentName';
@@ -27,26 +32,59 @@ export const useTranslatedLegallySensitiveContentAndActions = (
   consentName: ConsentName,
   surface: string
 ): [TLegallySensitiveData, TLegallySensitiveActions] => {
+  const [
+    connectionsToFriendsRenameEnabled,
+    setConnectionsToFriendsRenameEnabled
+  ] = useState<boolean>(false);
+
+  useEffect(() => {
+    Guac.callBehaviour<{ connectionsToFriendsRenameEnabled: boolean }>('web-rename-friends')
+      .then(data => {
+        setConnectionsToFriendsRenameEnabled(data.connectionsToFriendsRenameEnabled ?? false);
+      })
+      .catch(() => {
+        setConnectionsToFriendsRenameEnabled(false);
+      });
+  }, []);
+
+  const getAuditConsentName = (): ConsentName => {
+    if (
+      consentName === ConsentName.phoneNumberDiscoverabilitySetting &&
+      connectionsToFriendsRenameEnabled
+    ) {
+      return ConsentName.phoneNumberDiscoverabilitySettingFriendsRename;
+    }
+    return consentName;
+  };
+
   const getLegallySensitiveData = (): TLegallySensitiveData => {
     let languageConstants;
     switch (consentName) {
-      case ConsentName.phoneNumberDiscoverabilitySetting:
+      case ConsentName.phoneNumberDiscoverabilitySetting: {
         languageConstants = legallySensitiveContentConstants.phoneNumberDiscoverabilitySetting;
+        const consentKey = connectionsToFriendsRenameEnabled
+          ? PHONE_DISCOVERABILITY_CONSENT_FRIENDS_RENAME_KEY
+          : languageConstants.consentTranslationKey;
         return {
           wordsOfConsent: {
             title: translate(languageConstants.titleTranslationKey),
-            consent: translate(languageConstants.consentTranslationKey)
+            consent: translate(consentKey)
           }
         };
-      case ConsentName.phoneNumberDiscoverabilitySettingParentSide:
-        languageConstants =
+      }
+      case ConsentName.phoneNumberDiscoverabilitySettingParentSide: {
+        const phoneParentConstants =
           legallySensitiveContentConstants.phoneNumberDiscoverabilitySettingParentSide;
+        const consentKey = connectionsToFriendsRenameEnabled
+          ? PHONE_DISCOVERABILITY_PARENT_SIDE_CONSENT_FRIENDS_RENAME_KEY
+          : phoneParentConstants.consentTranslationKey;
         return {
           wordsOfConsent: {
-            title: translate(languageConstants.titleTranslationKey),
-            consent: translate(languageConstants.consentTranslationKey)
+            title: translate(phoneParentConstants.titleTranslationKey),
+            consent: translate(consentKey)
           }
         };
+      }
       case ConsentName.phoneNumberDiscoverabilityUpsell:
         languageConstants = legallySensitiveContentConstants.phoneNumberDiscoverabilityUpsell;
         return {
@@ -117,9 +155,9 @@ export const useTranslatedLegallySensitiveContentAndActions = (
   const updateSettingWithAuditing = async (
     settingName: UserSetting,
     settingValue: SettingValue,
-    additionalContextualData?: Record<string, any>
+    additionalContextualData?: Record<string, unknown>
   ) => {
-    const auditData = getAuditDataForConsent(consentName, translate);
+    const auditData = getAuditDataForConsent(getAuditConsentName(), translate);
     const auditHeaderValue = getEncodedAuditHeader(auditData, surface, additionalContextualData);
     try {
       await updateUserSetting(settingName, settingValue, auditHeaderValue);
@@ -128,8 +166,10 @@ export const useTranslatedLegallySensitiveContentAndActions = (
     }
   };
 
-  const getBase64EncodedAuditHeader = (additionalContextualData?: Record<string, any>): string => {
-    const auditData = getAuditDataForConsent(consentName, translate);
+  const getBase64EncodedAuditHeader = (
+    additionalContextualData?: Record<string, unknown>
+  ): string => {
+    const auditData = getAuditDataForConsent(getAuditConsentName(), translate);
     const encodedHeaderValue = getEncodedAuditHeader(auditData, surface, additionalContextualData);
     return encodedHeaderValue;
   };

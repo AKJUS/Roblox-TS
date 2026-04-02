@@ -1,36 +1,5 @@
-// TODO: old, migrated code
-// eslint-disable-next-line import-x/no-cycle
 import { TPlayabilityStatusWithUnplayableError } from "../types/playButtonTypes";
-
-export const PlayabilityStatus = {
-  UnplayableOtherReason: "UnplayableOtherReason",
-  Playable: "Playable",
-  GuestProhibited: "GuestProhibited",
-  GameUnapproved: "GameUnapproved",
-  IncorrectConfiguration: "IncorrectConfiguration",
-  UniverseRootPlaceIsPrivate: "UniverseRootPlaceIsPrivate",
-  InsufficientPermissionFriendsOnly: "InsufficientPermissionFriendsOnly",
-  InsufficientPermissionGroupOnly: "InsufficientPermissionGroupOnly",
-  DeviceRestricted: "DeviceRestricted",
-  UnderReview: "UnderReview",
-  PurchaseRequired: "PurchaseRequired",
-  AccountRestricted: "AccountRestricted",
-  TemporarilyUnavailable: "TemporarilyUnavailable",
-  ComplianceBlocked: "ComplianceBlocked",
-  ContextualPlayabilityRegionalAvailability: "ContextualPlayabilityRegionalAvailability",
-  ContextualPlayabilityRegionalCompliance: "ContextualPlayabilityRegionalCompliance",
-  ContextualPlayabilityAgeRecommendationParentalControls:
-    "ContextualPlayabilityAgeRecommendationParentalControls",
-  ContextualPlayabilityAgeGated: "ContextualPlayabilityAgeGated",
-  PlaceHasNoPublishedVersion: "PlaceHasNoPublishedVersion",
-  ContextualPlayabilityUnverifiedSeventeenPlusUser:
-    "ContextualPlayabilityUnverifiedSeventeenPlusUser",
-  FiatPurchaseRequired: "FiatPurchaseRequired",
-  ContextualPlayabilityUnrated: "ContextualPlayabilityUnrated",
-  ContextualPlayabilityAgeGatedByDescriptor: "ContextualPlayabilityAgeGatedByDescriptor",
-  ContextualPlayabilityExperienceBlockedParentalControls:
-    "ContextualPlayabilityExperienceBlockedParentalControls",
-} as const;
+import { PlayabilityStatus } from "./playabilityStatus";
 
 // NOTE: This does not override the true event name since it is set in:
 // Roblox.CoreScripts.WebApp/Roblox.CoreScripts.WebApp/js/core/services/playGames/playGameService.js
@@ -110,6 +79,10 @@ const counterEvents = {
   PlayabilityStatusFetchInvalidUniverseId: "PlayabilityStatusFetchInvalidUniverseId",
   PlayabilityStatusFetchInvalidResponse: "PlayabilityStatusFetchInvalidResponse",
   PlayabilityStatusFetchFailed: "PlayabilityStatusFetchFailed",
+  PlayableUxTreatmentMalformedData: "PlayableUxTreatmentMalformedData",
+  PlayableUxTreatmentUnknownTreatment: "PlayableUxTreatmentUnknownTreatment",
+  PlayableUxTreatmentPlayabilityStatusStillLoading:
+    "PlayableUxTreatmentPlayabilityStatusStillLoading",
 };
 
 const avatarChatUpsellLayer = "Voice.AvatarChat.Upsell";
@@ -122,6 +95,7 @@ const unlockPlayIntentConstants = {
   restrictedUnplayableUpsellName: "RestrictedUnplayableOptionNotFound",
   unverifiedSeventeenPlusUpsellName: "AgeVerificationUnverifiedSeventeenPlusUser",
   fiatPurchaseUpsellName: "FiatPurchase",
+  reconfirmLaunchModalUpsellName: "ReconfirmLaunchModal",
 };
 
 export const FeatureExperienceDetails = {
@@ -137,7 +111,6 @@ export default {
   playButtonErrorStatusTranslationMap,
   playButtonTextTranslationMap,
   eventStreamProperties,
-  PlayabilityStatus,
   counterEvents,
   avatarChatUpsellLayer,
   avatarChatUpsellLayerU13,

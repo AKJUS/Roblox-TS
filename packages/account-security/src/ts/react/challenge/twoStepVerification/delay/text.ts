@@ -32,16 +32,16 @@ export const getDelayTextFromDates = (
     return undefined;
   }
 
-  const { bypassableFrictionTypes } = delayParameters;
-  // TODO: remove this once backend is fully in and decides which types we can bypass with.
-  // Backwards compatibility while we test frontend before backend changes are in.
-  const hardCodedFrictionTypesFallback = bypassableFrictionTypes ?? [
-    'Passkey', 'SecurityKey', 'CrossDevice',
+  const { eligibleMethods } = delayParameters;
+  const hardCodedFrictionTypesFallback = eligibleMethods ?? [
+    { method: 'Passkey', bypassable: true }, 
+    { method: 'SecurityKey', bypassable: true },
+    { method: 'CrossDevice', bypassable: true },
   ]
-  // TODO: this will be challenge metadata
-  // driven in the future, due to the phishable method predicates.
-  // Only show delay text for applicable media types.
-  if (hardCodedFrictionTypesFallback.includes(frictionType)) {
+
+  if (hardCodedFrictionTypesFallback.some(eligibleMethod => 
+    eligibleMethod.method === frictionType && 
+    eligibleMethod.bypassable)) {
     return noWaitTranslation;
   }
 

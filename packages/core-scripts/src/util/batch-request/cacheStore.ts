@@ -84,7 +84,7 @@ export default class CacheStore {
     // TODO: old, migrated code
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (localStorage) {
-      const keysToRemove = [];
+      const keysToRemove: string[] = [];
       for (let i = 0; i < localStorage.length; i += 1) {
         // `i < localStorage.length`
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion

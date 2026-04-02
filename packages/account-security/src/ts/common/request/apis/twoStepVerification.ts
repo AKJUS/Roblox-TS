@@ -191,6 +191,19 @@ export const getRecoveryCodesStatus = (
     TwoStepVerification.TwoStepVerificationError
   );
 
+export const clearRecoveryCodes = (
+  userId: string
+): Promise<
+  Result<
+    TwoStepVerification.ClearRecoveryCodesReturnType,
+    TwoStepVerification.TwoStepVerificationError | null
+  >
+> =>
+  toResult(
+    httpService.post(TwoStepVerification.CLEAR_RECOVERY_CODES_CONFIG(userId), {}),
+    TwoStepVerification.TwoStepVerificationError
+  );
+
 export const generateRecoveryCodes = (
   userId: string
 ): Promise<

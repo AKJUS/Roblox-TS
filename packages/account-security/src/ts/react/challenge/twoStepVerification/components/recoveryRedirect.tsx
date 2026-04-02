@@ -23,7 +23,10 @@ const RecoveryRedirect: React.FC<Props> = ({
 
   let baseUrl = `${EnvironmentUrls.websiteUrl}/login/forgot-password-or-username`;
   let target = '_self';
-  if (
+  if (DeviceMeta && (DeviceMeta().isUWPApp || DeviceMeta().isWin32App)) {
+    baseUrl = `${EnvironmentUrls.websiteUrl}/login/forgot-password-or-username`;
+    target = '_blank';
+  } else if (
     DeviceMeta &&
     DeviceMeta().isInApp
   ) {

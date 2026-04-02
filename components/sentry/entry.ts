@@ -9,11 +9,12 @@ import {
   getActiveSpan,
   flush,
 } from "@sentry/browser";
-import environmentUrls from "@rbx/environment-urls";
 import { authenticatedUser } from "@rbx/core-scripts/legacy/header-scripts";
 import { buildTracesSampler } from "./src/utils/tracesSampler";
 import { filterCdnSpans } from "./src/utils/filterCdnSpans";
 import { sendToOtel } from "./src/utils/sentryToOtel";
+import { getOtelCollectorTracesEndpoint } from "./src/utils/otelEndpoint";
+import { buildSampleRate } from "./src/utils/buildSampleRate";
 
 declare global {
   interface Window {
@@ -35,10 +36,12 @@ if (typeof window !== "undefined") {
 }
 
 const metaTag = document.querySelector<HTMLMetaElement>('meta[name="sentry-meta"]');
+const environmentMetaTag = document.querySelector<HTMLMetaElement>('meta[name="environment-meta"]');
 const { dsn, envName, sampleRate } = metaTag?.dataset ?? {};
-const otelEndpoint =
-  environmentUrls.otelCollectorTracesEndpoint ||
-  "https://otel-collector-otlp-http-sitetest3.simulpong.com/v1/traces";
+const otelEndpoint = getOtelCollectorTracesEndpoint(
+  window.location.hostname,
+  environmentMetaTag?.dataset,
+);
 
 const parsedSampleRate = sampleRate == null ? 0.001 : parseFloat(sampleRate);
 const perfBase = Math.min(parsedSampleRate, 0.0005);
@@ -56,7 +59,7 @@ initSentry({
   tracesSampleRate: perfBase,
   // Cut noise: only trace XHR/fetch calls to our own API and page loads.
   tracesSampler: buildTracesSampler(perfBase),
-  sampleRate: parsedSampleRate,
+  sampleRate: buildSampleRate(parsedSampleRate),
   replaysOnErrorSampleRate: parsedSampleRate,
   beforeSendTransaction: event => {
     // Fire-and-forget, doesn't block

@@ -4,6 +4,7 @@ import { renderToString } from 'react-dom/server';
 import { withTranslations } from 'react-utilities';
 import { createModal } from 'react-style-guide';
 import { escapeHtml } from 'core-utilities';
+import UnifiedPurchaseCompletionModal from '../../../../ts/react/components/UnifiedPurchaseCompletionModal';
 import urlConstants from '../constants/urlConstants';
 import translationConfig from '../translation.config';
 import itemPurchaseConstants from '../constants/itemPurchaseConstants';
@@ -15,8 +16,25 @@ import TransactionVerb from '../../../../ts/react/enums/TransactionVerb';
 const { getAvatarPageUrl } = urlConstants;
 const { resources } = itemPurchaseConstants;
 
-export default function createPurchaseConfirmationModal() {
-  const [Modal, modalService] = createModal();
+export default function createPurchaseConfirmationModal({ customPurchaseConfirmationModal }) {
+  const [Modal, legacyModalService] = createModal();
+  let setOpenRef = null;
+  const modalService = {
+    open: () => {
+      if (setOpenRef) {
+        setOpenRef(true);
+      } else {
+        legacyModalService.open();
+      }
+    },
+    close: () => {
+      if (setOpenRef) {
+        setOpenRef(false);
+      } else {
+        legacyModalService.close();
+      }
+    }
+  };
   function PurchaseConfirmationModal({
     translate,
     expectedPrice,
@@ -32,8 +50,22 @@ export default function createPurchaseConfirmationModal() {
     onDecline,
     transactionVerb,
     itemDelayed,
-    currentRobuxBalance
+    currentRobuxBalance,
+    shouldShowUnifiedPurchaseCompletionModal
   }) {
+    const [open, setOpen] = React.useState(false);
+    React.useEffect(() => {
+      if (customPurchaseConfirmationModal || shouldShowUnifiedPurchaseCompletionModal) {
+        setOpenRef = setOpen;
+        return () => {
+          if (setOpenRef === setOpen) {
+            setOpenRef = null;
+          }
+        };
+      }
+      setOpenRef = null;
+      return undefined;
+    }, [shouldShowUnifiedPurchaseCompletionModal]);
     let actionButtonText;
     let onAction;
     let neutralButtonText = translate(resources.continueAction);
@@ -83,6 +115,39 @@ export default function createPurchaseConfirmationModal() {
       />
     );
 
+    if (customPurchaseConfirmationModal) {
+      return React.createElement(customPurchaseConfirmationModal, {
+        open,
+        onClose: () => {
+          setOpen(false);
+          if (onDecline) {
+            onDecline();
+          } else {
+            window.location.reload();
+          }
+        },
+        itemName: assetName
+      });
+    }
+
+    if (shouldShowUnifiedPurchaseCompletionModal && !isPrivateServer) {
+      return (
+        <UnifiedPurchaseCompletionModal
+          open={open}
+          onClose={() => {
+            setOpen(false);
+            if (onDecline) {
+              onDecline();
+            } else {
+              window.location.reload();
+            }
+          }}
+          itemName={assetName}
+          currentRobuxBalance={currentRobuxBalance - expectedPrice}
+        />
+      );
+    }
+
     return (
       <Modal
         {...{
@@ -116,7 +181,8 @@ export default function createPurchaseConfirmationModal() {
     onAccept: null,
     onDecline: null,
     itemDelayed: false,
-    currentRobuxBalance: undefined
+    currentRobuxBalance: undefined,
+    shouldShowUnifiedPurchaseCompletionModal: false
   };
 
   PurchaseConfirmationModal.propTypes = {
@@ -134,7 +200,8 @@ export default function createPurchaseConfirmationModal() {
     onAccept: PropTypes.func,
     onDecline: PropTypes.func,
     itemDelayed: PropTypes.bool,
-    currentRobuxBalance: PropTypes.number
+    currentRobuxBalance: PropTypes.number,
+    shouldShowUnifiedPurchaseCompletionModal: PropTypes.bool
   };
   return [
     withTranslations(PurchaseConfirmationModal, translationConfig.purchasingResources),

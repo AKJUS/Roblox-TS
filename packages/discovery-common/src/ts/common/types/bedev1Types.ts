@@ -182,6 +182,7 @@ export type TGameData = {
   defaultLayoutData?: TLayoutMetadata;
   layoutDataBySort?: TLayoutDataBySort;
   navigationUid?: string;
+  canonicalUrlPath?: string;
 };
 
 export type TPresence = {
@@ -243,13 +244,6 @@ export type TRefundPolicy = {
   locale: string;
   articleId: string;
 };
-
-// GetGameList
-export type TGetGamesListResponse = {
-  games: TGameData[];
-  metaData: TMetaData;
-};
-
 // GetPlaceDetails
 export type TGetPlaceDetails = {
   placeId: number;

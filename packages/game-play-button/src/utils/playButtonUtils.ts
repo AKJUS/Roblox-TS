@@ -13,11 +13,10 @@ import {
   deviceMeta as DeviceMeta,
   jsClientDeviceIdentifier,
 } from "@rbx/core-scripts/legacy/header-scripts";
-import playButtonConstants, { PlayabilityStatus } from "../constants/playButtonConstants";
+import playButtonConstants from "../constants/playButtonConstants";
+import { PlayabilityStatus } from "../constants/playabilityStatus";
 import {
-  TAgeGuidelinesResponse,
   TAppsFlyerReferralProperties,
-  TContentMaturityRating,
   TPlayabilityStatus,
   TPlayabilityStatusWithUnplayableError,
 } from "../types/playButtonTypes";
@@ -259,14 +258,6 @@ export const handleShareLinkEventLogging = (placeId: string, universeId: string)
     // ignore
   }
 };
-
-/**
- * Extract contentMaturity rating from the AgeRecommendation API response.
- */
-export const getContentMaturityRatingFromAgeRecommendationResponse = (
-  response: TAgeGuidelinesResponse,
-): TContentMaturityRating | undefined =>
-  response.ageRecommendationDetails.summary.ageRecommendation.contentMaturity;
 
 export const shouldShowUnplayableButton = (
   playabilityStatus: TPlayabilityStatus | undefined,

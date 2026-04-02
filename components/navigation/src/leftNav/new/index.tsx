@@ -39,8 +39,8 @@ const LeftNavigation = ({ user }: { user: AuthenticatedUser }) => {
         isOpen ? "visible" : "invisible [transform:translateX(-100%)]",
       )}
     >
-      <div className="flex width-[216px] height-full scroll-y">
-        <div className="width-[215px]">
+      <div className="flex width-[289px] height-full scroll-y">
+        <div className="width-[288px]">
           <div className="padding-x-large padding-y-medium flex flex-col gap-large">
             <NavLinks user={user} />
           </div>

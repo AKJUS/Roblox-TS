@@ -115,7 +115,7 @@ const useUpdateSettingsModal: TCreateSettingsModal = (
           className='modal-half-width-button modal-primary-button'
           variant='Emphasis'
           size='Medium'
-          disabled={!isChecked}
+          isDisabled={!isChecked}
           onClick={() => {
             getConfirmEvent(settingsRecourseMetadata.settingName, context);
             modalService.close();

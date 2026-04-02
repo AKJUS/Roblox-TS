@@ -57,6 +57,18 @@ export const FINISH_REGISTRATION_CONFIG: UrlConfig = {
   timeout: AUTH_API_TIMEOUT
 };
 
+export type FinishARPreAuthRegistrationReturnType = void;
+
+/**
+ * Request Type: `POST`.
+ * Finishes account recovery pre-auth passkey registration and deactivates password.
+ */
+export const FINISH_AR_PRE_AUTH_REGISTRATION_CONFIG: UrlConfig = {
+  withCredentials: true,
+  url: `${authApiUrl}/v1/passkey/finish-ar-preauth-registration`,
+  timeout: AUTH_API_TIMEOUT
+};
+
 export type DeleteCredentialBatchReturnType = void;
 
 export const DELETE_CREDENTIAL_BATCH_CONFIG: UrlConfig = {
@@ -79,6 +91,8 @@ export type ResetPasswordReturnType = {
   shouldUpdateEmail: boolean;
   recoveryEmail: string;
   passkeyRegistrationSucceeded?: boolean;
+  shouldPrompt2svRemoval?: boolean;
+  shouldPromptPasskeyAddition?: boolean;
 };
 
 /**

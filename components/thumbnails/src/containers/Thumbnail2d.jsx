@@ -25,6 +25,7 @@ function Thumbnail2d({
   onLoad,
   getThumbnail,
   version,
+  headShape,
 }) {
   const [startTime] = useState(new Date().getTime());
   const [thumbnailStatus, setImageStatus] = useState(null);
@@ -101,6 +102,7 @@ function Thumbnail2d({
       targetId,
       token,
       version,
+      headShape,
     );
     if (getThumbnail) {
       requestThumbnail = customThumbnailRequester.processThumbnailBatchRequest(
@@ -136,7 +138,7 @@ function Thumbnail2d({
       isUnmounted = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [type, targetId, token, size, imgClassName, getThumbnail, version]);
+  }, [type, targetId, token, size, imgClassName, getThumbnail, version, headShape]);
 
   return (
     <Thumbnail
@@ -178,6 +180,7 @@ Thumbnail2d.propTypes = {
   onLoad: PropTypes.func,
   getThumbnail: PropTypes.func,
   version: PropTypes.string,
+  headShape: PropTypes.string,
 };
 
 export default Thumbnail2d;

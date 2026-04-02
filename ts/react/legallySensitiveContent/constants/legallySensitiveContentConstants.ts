@@ -1,5 +1,11 @@
 import ConsentName from '../enums/ConsentName';
 
+/** Translation keys for phone discoverability when `web-rename-friends` is on (keep in sync with auditUtils). */
+export const PHONE_DISCOVERABILITY_CONSENT_FRIENDS_RENAME_KEY =
+  'Description.PhoneNumberDiscoverabilityConsent.FriendsRename';
+export const PHONE_DISCOVERABILITY_PARENT_SIDE_CONSENT_FRIENDS_RENAME_KEY =
+  'Description.ParentSide.PhoneNumberDiscoverabilityConsent.FriendsRename';
+
 // source content ids are generated from translations hub
 const legallySensitiveContentConstants = {
   [ConsentName.phoneNumberDiscoverabilitySetting]: {

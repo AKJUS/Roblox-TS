@@ -22,7 +22,13 @@ export default class TranslationResource {
     if (typeof params !== "undefined") {
       // need to check for null
       if (params && typeof params === "object" && !Array.isArray(params)) {
-        translatedText = translatedText ? this.intl.f(translatedText, params) : "";
+        try {
+          translatedText = translatedText ? this.intl.f(translatedText, params) : "";
+        } catch (e) {
+          console.warn(
+            `Failed to format translation key '${key}': ${e?.message ?? e}. Check that the provided parameters match the translation string.`,
+          );
+        }
       } else {
         new window.RobloxError(
           "Second parameter must be either a plain object when provided",

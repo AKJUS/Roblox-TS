@@ -6,6 +6,7 @@ import * as AccountRecovery from '../types/accountRecovery';
 export const requestRecovery = (
   identifier: string,
   identifierType: AccountRecovery.IdentifierType,
+  requestedRecoveryTypes: AccountRecovery.RequestedRecoveryType[],
   recoverySessionId?: string
 ): Promise<
   Result<AccountRecovery.RequestRecoveryReturnType, AccountRecovery.AccountRecoveryError | null>
@@ -14,7 +15,8 @@ export const requestRecovery = (
     httpService.post(AccountRecovery.REQUEST_RECOVERY_CONFIG, {
       identifier,
       identifierType,
-      recoverySessionId
+      recoverySessionId,
+      requestedRecoveryTypes
     }),
     AccountRecovery.AccountRecoveryError
   );
@@ -22,7 +24,8 @@ export const requestRecovery = (
 export const sendCode = (
   contactMethod: string,
   contactMethodType: AccountRecovery.ContactMethodType,
-  recoverySessionId: string
+  recoverySessionId: string,
+  contactMethodNumber?: number,
 ): Promise<
   Result<AccountRecovery.SendCodeReturnType, AccountRecovery.AccountRecoveryError | null>
 > =>
@@ -30,33 +33,38 @@ export const sendCode = (
     httpService.post(AccountRecovery.SEND_CODE_CONFIG, {
       contactMethod,
       contactMethodType,
-      recoverySessionId
+      recoverySessionId,
+      contactMethodNumber
     }),
     AccountRecovery.AccountRecoveryError
   );
 
 export const resendCode = (
-  recoverySessionId: string
+  recoverySessionId: string,
+  contactMethodNumber?: number,
 ): Promise<
   Result<AccountRecovery.ResendCodeReturnType, AccountRecovery.AccountRecoveryError | null>
 > =>
   toResult(
     httpService.post(AccountRecovery.RESEND_CODE_CONFIG, {
-      recoverySessionId
+      recoverySessionId,
+      contactMethodNumber
     }),
     AccountRecovery.AccountRecoveryError
   );
 
 export const verifyCode = (
   recoverySessionId: string,
-  code: string
+  code: string,
+  contactMethodNumber?: number,
 ): Promise<
   Result<AccountRecovery.VerifyCodeReturnType, AccountRecovery.AccountRecoveryError | null>
 > =>
   toResult(
     httpService.post(AccountRecovery.VERIFY_CODE_CONFIG, {
       recoverySessionId,
-      code
+      code,
+      contactMethodNumber
     }),
     AccountRecovery.AccountRecoveryError
   );
@@ -104,6 +112,32 @@ export const setEmail = (
   toResult(
     httpService.post(AccountRecovery.SET_EMAIL_CONFIG, {
       recoverySessionId
+    }),
+    AccountRecovery.AccountRecoveryError
+  );
+
+export const getCurrentTwoStepMethod = (
+  recoverySessionId: string
+): Promise<
+  Result<AccountRecovery.GetCurrentTwoStepMethodReturnType, AccountRecovery.AccountRecoveryError | null>
+> =>
+  toResult(
+    httpService.get(AccountRecovery.GET_CURRENT_TWO_STEP_METHOD_CONFIG, {
+      recoverySessionId
+    }),
+    AccountRecovery.AccountRecoveryError
+  );
+
+export const disableTwoStepMethod = (
+  recoverySessionId: string,
+  twoStepMethod: string
+): Promise<
+  Result<AccountRecovery.DisableTwoStepMethodReturnType, AccountRecovery.AccountRecoveryError | null>
+> =>
+  toResult(
+    httpService.post(AccountRecovery.DISABLE_TWO_STEP_METHOD_CONFIG, {
+      recoverySessionId,
+      twoStepMethod
     }),
     AccountRecovery.AccountRecoveryError
   );

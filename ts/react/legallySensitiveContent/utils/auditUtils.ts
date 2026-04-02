@@ -1,7 +1,9 @@
 import { cryptoUtil } from 'core-roblox-utilities';
 import { TranslateFunction } from 'react-utilities';
 import { TAuditData, TAuditHeaderPayload } from '../types/legallySensitiveContentTypes';
-import legallySensitiveContentConstants from '../constants/legallySensitiveContentConstants';
+import legallySensitiveContentConstants, {
+  PHONE_DISCOVERABILITY_CONSENT_FRIENDS_RENAME_KEY
+} from '../constants/legallySensitiveContentConstants';
 import ConsentName from '../enums/ConsentName';
 
 /**
@@ -35,6 +37,20 @@ export const getAuditDataForConsent = (
               .consentSourceContentId
         }
       ];
+    case ConsentName.phoneNumberDiscoverabilitySettingFriendsRename: {
+      const phoneDiscoverabilityBase =
+        legallySensitiveContentConstants.phoneNumberDiscoverabilitySetting;
+      return [
+        {
+          consentStringTemplate: translate(phoneDiscoverabilityBase.titleTranslationKey),
+          sourceContentId: phoneDiscoverabilityBase.titleSourceContentId
+        },
+        {
+          consentStringTemplate: translate(PHONE_DISCOVERABILITY_CONSENT_FRIENDS_RENAME_KEY),
+          sourceContentId: phoneDiscoverabilityBase.consentSourceContentId
+        }
+      ];
+    }
     case ConsentName.phoneNumberDiscoverabilitySettingParentSide:
       return [
         {
@@ -223,7 +239,7 @@ export const getAuditDataForConsent = (
 export const getAuditHeaderPayload = (
   auditData: TAuditData[],
   surface: string,
-  additionalContextualData?: Record<string, any>
+  additionalContextualData?: Record<string, unknown>
 ): TAuditHeaderPayload => {
   const auditHeaderPayload = {
     content: auditData.reduce(
@@ -253,7 +269,7 @@ export const getAuditHeaderPayload = (
 export const getEncodedAuditHeader = (
   auditData: TAuditData[],
   surface: string,
-  additionalContextualData?: Record<string, any>
+  additionalContextualData?: Record<string, unknown>
 ): string => {
   const auditHeaderPayload = getAuditHeaderPayload(auditData, surface, additionalContextualData);
   const json = JSON.stringify(auditHeaderPayload);

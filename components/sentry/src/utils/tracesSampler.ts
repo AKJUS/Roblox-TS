@@ -10,6 +10,7 @@ const COMMUNITIES_RE = /^\/communities\/[^/]+\/[^/]+/i;
 const MOBILE_APP_UPGRADES_RE = /^\/mobile-app-upgrades\/.*/i;
 const UPGRADES_RE = /^\/upgrades\/.*/i;
 const LOGIN_REDIRECT_RE = /^\/login-redirect(?:\/[^?]*)?(?:\?.*)?$/i;
+const DOWNLOAD_LANDING_RE = /^\/(?:[^/]+\/)?download$/i; // matches /download and /[any locale]/download
 
 const clamp01 = (x: number) => (x < 0 ? 0 : x > 1 ? 1 : x);
 
@@ -36,7 +37,7 @@ export function buildTracesSampler(perfBase: number) {
     if (MOBILE_APP_UPGRADES_RE.test(path)) traceSampleRate = 0.005; // 10x current
     if (UPGRADES_RE.test(path)) traceSampleRate = 0.005; // 10x current
     if (LOGIN_REDIRECT_RE.test(path)) traceSampleRate = 1; // 100%
-
+    if (DOWNLOAD_LANDING_RE.test(path)) traceSampleRate = 1; // 100%
     return traceSampleRate ?? base;
   };
 }

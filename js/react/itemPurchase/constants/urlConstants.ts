@@ -49,5 +49,9 @@ export default {
     `${apiGatewayUrl}/developer-products/v1/developer-products/${productId}/purchase?requestLocationType=ExperienceDetailPage` as const,
   /** @param productId NOT game pass id */
   postPurchaseGamePassUrl: (productId: string | number) =>
-    `${apiGatewayUrl}/game-passes/v1/game-passes/${productId}/purchase` as const
+    `${apiGatewayUrl}/game-passes/v1/game-passes/${productId}/purchase` as const,
+  postPurchaseSubscriptionWithRobuxUrl: (subscriptionTargetKey: string) =>
+    `${apiGatewayUrl}/v1/subscriptions/purchase-with-robux/${subscriptionTargetKey}`,
+  postPrepareFiatSubscriptionPurchaseUrl: (subscriptionTargetKey: string) =>
+    `${apiGatewayUrl}/v1/subscriptions/prepare-purchase/${subscriptionTargetKey}/web`
 };

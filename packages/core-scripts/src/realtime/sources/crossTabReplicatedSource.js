@@ -20,9 +20,11 @@ const crossTabReplicatedSource = function (_settings, logger) {
   let onNotificationHandler;
   let onConnectionEventHandler;
 
-  // Topic notification handlers (set by TopicManager)
+  // Topic handlers (set by TopicManager)
   let topicNotificationHandler = null;
   let topicReadyHandler = null;
+  let topicSubscriptionErrorHandler = null;
+  let topicTokenExpiryHandler = null;
 
   const log = (message, isVerbose) => {
     if (logger) {
@@ -85,6 +87,30 @@ const crossTabReplicatedSource = function (_settings, logger) {
         topicReadyHandler();
       }
     });
+
+    // Subscribe to topic subscription errors from leader
+    pubSub.subscribe(topicChannels.SubscriptionError, subscriberNamespace, message => {
+      if (!message) return;
+      try {
+        const { token, errorCode, shouldRetry } = JSON.parse(message);
+        log(`Topic subscription error from leader: ${errorCode}`);
+        topicSubscriptionErrorHandler?.(token, errorCode, shouldRetry);
+      } catch (e) {
+        log(`Failed to parse topic subscription error: ${e}`);
+      }
+    });
+
+    // Subscribe to topic token expiry from leader
+    pubSub.subscribe(topicChannels.TokenExpiry, subscriberNamespace, message => {
+      if (!message) return;
+      try {
+        const { token, shouldExchange, isSubscribable, subscriptionActive } = JSON.parse(message);
+        log(`Topic token expiry from leader: isSubscribable=${isSubscribable}`);
+        topicTokenExpiryHandler?.(token, shouldExchange, isSubscribable, subscriptionActive);
+      } catch (e) {
+        log(`Failed to parse topic token expiry: ${e}`);
+      }
+    });
   };
 
   const requestConnectionStatus = () => {
@@ -101,6 +127,8 @@ const crossTabReplicatedSource = function (_settings, logger) {
     pubSub.unsubscribe(realtimeEvents.ConnectionEvent, subscriberNamespace);
     pubSub.unsubscribe(topicChannels.Notification, subscriberNamespace);
     pubSub.unsubscribe(topicChannels.LeaderReconnected, subscriberNamespace);
+    pubSub.unsubscribe(topicChannels.SubscriptionError, subscriberNamespace);
+    pubSub.unsubscribe(topicChannels.TokenExpiry, subscriberNamespace);
   };
 
   const start = (onSourceExpired, onNotification, onConnectionEvent) => {
@@ -138,6 +166,18 @@ const crossTabReplicatedSource = function (_settings, logger) {
     pubSub.publish(topicChannels.SubscribeRequest, JSON.stringify(request));
   };
 
+  const unsubscribeTopic = token => {
+    if (!pubSub?.isAvailable?.()) {
+      log("Topic unsubscribe: pubSub not available");
+      return;
+    }
+    log(`Topic unsubscribe: Sending request to leader for: ${token}`);
+    pubSub.publish(
+      topicChannels.UnsubscribeRequest,
+      JSON.stringify({ token, timestamp: Date.now() }),
+    );
+  };
+
   const setTopicNotificationHandler = handler => {
     topicNotificationHandler = handler;
   };
@@ -146,16 +186,27 @@ const crossTabReplicatedSource = function (_settings, logger) {
     topicReadyHandler = handler;
   };
 
+  const setTopicSubscriptionErrorHandler = handler => {
+    topicSubscriptionErrorHandler = handler;
+  };
+
+  const setTopicTokenExpiryHandler = handler => {
+    topicTokenExpiryHandler = handler;
+  };
+
   // Public API
   this.IsAvailable = available;
   this.Start = start;
   this.Stop = stop;
   this.Name = "CrossTabReplicatedSource";
 
-  // Topic notification support
+  // Topic support
   this.SubscribeTopic = subscribeTopic;
+  this.UnsubscribeTopic = unsubscribeTopic;
   this.SetTopicNotificationHandler = setTopicNotificationHandler;
   this.SetTopicReadyHandler = setTopicReadyHandler;
+  this.SetTopicSubscriptionErrorHandler = setTopicSubscriptionErrorHandler;
+  this.SetTopicTokenExpiryHandler = setTopicTokenExpiryHandler;
 };
 
 export default crossTabReplicatedSource;

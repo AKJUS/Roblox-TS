@@ -25,7 +25,6 @@ export type UserInfo = {
   name: string;
   displayName: string;
 };
-
 /**
  * Request Type: `GET`.
  */
@@ -34,3 +33,17 @@ export const GET_USER_BY_ID_CONFIG: (userId: string) => UrlConfig = userId => ({
   url: `${usersApiUrl}/v1/users/${userId}`,
   timeout: USERS_API_TIMEOUT
 });
+
+export type UserInfoListResponse = {
+  data: UserInfo[];
+};
+
+
+/**
+ * Request Type: `POST`.
+ */
+export const GET_USER_BY_USERNAME_CONFIG: UrlConfig = {
+  withCredentials: true,
+  url: `${usersApiUrl}/v1/usernames/users`,
+  timeout: USERS_API_TIMEOUT
+};

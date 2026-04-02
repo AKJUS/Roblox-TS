@@ -29,9 +29,11 @@ const signalRSource = function (settings, logger) {
   let onNotificationHandler;
   let onConnectionEventHandler;
 
-  // Topic notification handlers (set by TopicManager)
+  // Topic handlers (set by TopicManager)
   let topicNotificationHandler = null;
   let topicReadyHandler = null;
+  let topicSubscriptionErrorHandler = null;
+  let topicTokenExpiryHandler = null;
 
   // State
   let isCurrentlyConnected = false;
@@ -66,6 +68,18 @@ const signalRSource = function (settings, logger) {
     log(`Topic subscribe: ${token}`);
     connection.invoke("SubscribeTopic", token, replaceToken).catch(e => {
       log(`Topic subscribe failed: ${e}`);
+    });
+  };
+
+  const unsubscribeTopic = token => {
+    const connection = getConnection();
+    if (!connection?.invoke) {
+      log("Topic unsubscribe: connection not available");
+      return;
+    }
+    log(`Topic unsubscribe: ${token}`);
+    connection.invoke("UnsubscribeTopic", token).catch(e => {
+      log(`Topic unsubscribe failed: ${e}`);
     });
   };
 
@@ -108,6 +122,22 @@ const signalRSource = function (settings, logger) {
         }
       },
     );
+
+    // Listen for topic unsubscribe requests from follower tabs
+    pubSub.subscribe(
+      topicChannels.UnsubscribeRequest,
+      "Roblox.RealTime.Sources.SignalRSource",
+      message => {
+        if (!isReplicationEnabled || !message) return;
+        try {
+          const { token } = JSON.parse(message);
+          log(`Topic unsubscribe request from follower: ${token}`);
+          unsubscribeTopic(token);
+        } catch (e) {
+          log(`Failed to parse topic unsubscribe request: ${e}`);
+        }
+      },
+    );
   };
 
   const handleNotificationMessage = (namespace, detail, sequenceNumber) => {
@@ -138,6 +168,39 @@ const signalRSource = function (settings, logger) {
     if (isReplicationEnabled) {
       log("Replicating topic notification to followers");
       pubSub.publish(topicChannels.Notification, JSON.stringify({ topicId, detail }));
+    }
+  };
+
+  const handleTopicSubscriptionErrorMessage = (token, errorCode, shouldRetry) => {
+    log(`Topic subscription error: ${errorCode} (shouldRetry=${shouldRetry}) for token: ${token}`);
+    if (topicSubscriptionErrorHandler) {
+      topicSubscriptionErrorHandler(token, errorCode, shouldRetry);
+    }
+    if (isReplicationEnabled) {
+      pubSub.publish(
+        topicChannels.SubscriptionError,
+        JSON.stringify({ token, errorCode, shouldRetry }),
+      );
+    }
+  };
+
+  const handleTopicTokenExpiryMessage = (
+    token,
+    shouldExchange,
+    isSubscribable,
+    subscriptionActive,
+  ) => {
+    log(
+      `Topic token expiry: shouldExchange=${shouldExchange} isSubscribable=${isSubscribable} subscriptionActive=${subscriptionActive}`,
+    );
+    if (topicTokenExpiryHandler) {
+      topicTokenExpiryHandler(token, shouldExchange, isSubscribable, subscriptionActive);
+    }
+    if (isReplicationEnabled) {
+      pubSub.publish(
+        topicChannels.TokenExpiry,
+        JSON.stringify({ token, shouldExchange, isSubscribable, subscriptionActive }),
+      );
     }
   };
 
@@ -368,6 +431,8 @@ const signalRSource = function (settings, logger) {
         handleSubscriptionStatusUpdateMessage,
         handleTopicNotificationMessage,
         sendConnectionEventToDataLake,
+        handleTopicSubscriptionErrorMessage,
+        handleTopicTokenExpiryMessage,
       );
       log("Started Core SignalR connection");
     } else {
@@ -378,6 +443,8 @@ const signalRSource = function (settings, logger) {
         handleNotificationMessage,
         handleSubscriptionStatusUpdateMessage,
         handleTopicNotificationMessage,
+        handleTopicSubscriptionErrorMessage,
+        handleTopicTokenExpiryMessage,
       );
       log("Started Legacy SignalR connection");
     }
@@ -396,7 +463,7 @@ const signalRSource = function (settings, logger) {
   };
 
   // ============================================================================
-  // TOPIC NOTIFICATION SUPPORT
+  // TOPIC SUPPORT
   // ============================================================================
 
   const setTopicNotificationHandler = handler => {
@@ -407,16 +474,27 @@ const signalRSource = function (settings, logger) {
     topicReadyHandler = handler;
   };
 
+  const setTopicSubscriptionErrorHandler = handler => {
+    topicSubscriptionErrorHandler = handler;
+  };
+
+  const setTopicTokenExpiryHandler = handler => {
+    topicTokenExpiryHandler = handler;
+  };
+
   // Public API
   this.IsAvailable = isAvailable;
   this.Start = start;
   this.Stop = stop;
   this.Name = "SignalRSource";
 
-  // Topic notification support
+  // Topic support
   this.SubscribeTopic = subscribeTopic;
+  this.UnsubscribeTopic = unsubscribeTopic;
   this.SetTopicNotificationHandler = setTopicNotificationHandler;
   this.SetTopicReadyHandler = setTopicReadyHandler;
+  this.SetTopicSubscriptionErrorHandler = setTopicSubscriptionErrorHandler;
+  this.SetTopicTokenExpiryHandler = setTopicTokenExpiryHandler;
 };
 
 export default signalRSource;

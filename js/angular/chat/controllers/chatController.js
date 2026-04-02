@@ -357,12 +357,25 @@ function chatController(
     }
   };
 
-  const isGroupDialogUnacknowledged = function (conversation) {
+  $scope.isConversationDialogBlockedByOptIn = function (conversation) {
     return (
-      $scope.chatLibrary.groupPartyOsaEnabled &&
+      $scope.chatLibrary.expandedChatEnabled &&
+      conversation?.user_opted_into_chat_messages ===
+        chatUtility.userChatMessageOptInStatus.NOT_OPTED_IN
+    );
+  };
+  $scope.isConversationDialogBlockedByOsa = function (conversation) {
+    return (
       conversation?.osaAcknowledgementStatus ===
-        dialogAttributes.osaAcknowledgementStatus.UNACKNOWLEDGED &&
+        chatUtility.osaAcknowledgementStatus.UNACKNOWLEDGED &&
       conversation?.type === chatUtility.conversationType.multiUserConversation
+    );
+  };
+
+  const isConversationDialogUnacknowledged = function (conversation) {
+    return (
+      $scope.isConversationDialogBlockedByOsa(conversation) ||
+      $scope.isConversationDialogBlockedByOptIn(conversation)
     );
   };
 
@@ -393,7 +406,7 @@ function chatController(
       angular.forEach(dialogIdList, function (dialogId, idx) {
         const conversation = $scope.chatUserDict[dialogId];
         const dialogMissing = dialogId !== chatUtility.newGroup.layoutId && !conversation;
-        const groupDialogUnacknowledged = isGroupDialogUnacknowledged(conversation);
+        const groupDialogUnacknowledged = isConversationDialogUnacknowledged(conversation);
 
         if (dialogMissing || groupDialogUnacknowledged) {
           $scope.preSetChatLibrary.dialogIdList.splice(idx, 1);
@@ -2272,12 +2285,13 @@ function chatController(
     $scope.launchDialog(layoutId, false);
   };
 
-  const openGroupInviteDialog = function (layoutId) {
-    $scope.chatViewModel.groupInviteDialogLayoutId = layoutId;
+  const openConversationInviteDialog = function (layoutId) {
+    $scope.chatViewModel.conversationInviteDialogLayoutId = layoutId;
+    $scope.$applyAsync();
   };
 
-  $scope.closeGroupInviteDialog = function () {
-    $scope.chatViewModel.groupInviteDialogLayoutId = null;
+  $scope.closeConversationInviteDialog = function () {
+    $scope.chatViewModel.conversationInviteDialogLayoutId = null;
   };
 
   // autoPop will be true when the dialog generation is not from user click interaction
@@ -2293,10 +2307,10 @@ function chatController(
       $scope.updateDialogList(layoutId, autoPop);
       $scope.chatUserDict[chatUtility.newGroup.layoutId] = $scope.newGroup;
     } else if ($scope.chatLibrary.dialogIdList.indexOf(layoutId) < 0 && conversation) {
-      if (isGroupDialogUnacknowledged(conversation)) {
+      if (isConversationDialogUnacknowledged(conversation)) {
         // only want to navigate to OSA dialog if a user's interaction opened the conversation
         if (!autoPop) {
-          openGroupInviteDialog(layoutId);
+          openConversationInviteDialog(layoutId);
         }
         return;
       }
@@ -2812,6 +2826,9 @@ function chatController(
       $scope.chatLibrary.userId % 100 <= (chatUiPoliciesResponse.useOneToOneOsaContextCards ?? 0);
     $scope.chatLibrary.renameFriendsToConnections =
       renameFriendsPoliciesResponse.renameFriendsToConnections ?? false;
+    $scope.chatLibrary.connectionsToFriendsRenameEnabled =
+      renameFriendsPoliciesResponse.connectionsToFriendsRenameEnabled ??
+      !$scope.chatLibrary.renameFriendsToConnections;
     $scope.chatLibrary.rtnFetchConversationDelayMs =
       chatUiPoliciesResponse.rtnFetchConversationDelayMs ?? 3000;
     $scope.chatLibrary.username = CurrentUser.name;
@@ -2823,7 +2840,7 @@ function chatController(
     };
     $scope.chatLibrary.isWebChatAutotranslationEnabled =
       chatUiPoliciesResponse.isWebChatAutotranslationEnabled ?? false;
-    $scope.chatLibrary.groupPartyOsaEnabled = chatUiPoliciesResponse.groupPartyOsaEnabled ?? false;
+    $scope.chatLibrary.expandedChatEnabled = chatUiPoliciesResponse.expandedChatEnabled ?? false;
 
     // initialize eventstream variable
     $scope.chatLibrary.eventStreamParams = { ...chatUtility.eventStreamParams };
@@ -2865,7 +2882,7 @@ function chatController(
   $scope.initializeChatViewModel = function () {
     $scope.chatViewModel = { ...libraryInitialization.chatViewModel };
     // Initialize group invite dialog state
-    $scope.chatViewModel.groupInviteDialogLayoutId = null;
+    $scope.chatViewModel.conversationInviteDialogLayoutId = null;
   };
   $scope.bootstrapAllInitialization = function (data) {
     const { metadataResponse } = data;
@@ -2936,7 +2953,7 @@ function chatController(
       // Safely check each dialog and close any that shouldn't be open
       dialogIds.forEach(layoutId => {
         const conversation = $scope.chatUserDict[layoutId];
-        if (isGroupDialogUnacknowledged(conversation)) {
+        if (isConversationDialogUnacknowledged(conversation)) {
           $log.debug(`Closing unacknowledged group dialog: ${layoutId}`);
           $scope.closeDialog(layoutId);
         }

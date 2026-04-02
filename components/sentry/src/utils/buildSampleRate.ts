@@ -1,0 +1,21 @@
+const LOCALE_PREFIX_RE = /^\/[a-z]{2}(?:-[a-z]{2})\//i;
+
+const RegexBasedTraceSamplerSettings: Record<string, { pattern: RegExp; sampleRate: number }> = {
+  PaymentTeamPagesRegex: { pattern: /^\/upgrades(?:\/|$)/i, sampleRate: 1 },
+};
+
+const clamp01 = (x: number) => (x < 0 ? 0 : x > 1 ? 1 : x);
+
+export function buildSampleRate(baseRate: number) {
+  const base = clamp01(baseRate);
+  const currrentPathname = window.location.pathname.replace(LOCALE_PREFIX_RE, "/");
+  const regexSampleRate = Object.values(RegexBasedTraceSamplerSettings).find(setting =>
+    setting.pattern.test(currrentPathname),
+  )?.sampleRate;
+
+  if (regexSampleRate !== undefined) {
+    return regexSampleRate;
+  }
+
+  return base;
+}

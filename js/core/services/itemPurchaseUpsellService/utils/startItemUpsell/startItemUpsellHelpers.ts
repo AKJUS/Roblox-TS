@@ -16,6 +16,9 @@ const PreProcessThumbnailUrl = (
       throw new Error('button data not exist');
     }
     reportCounter(UPSELL_COUNTER_NAMES.UpsellFromGamesPage, buyButtonElementDataset.assetType);
+    if (buyButtonElementDataset.assetType === 'Subscription') {
+      return itemPurchaseAjaxData.imageurl;
+    }
     const thumbnailUrl = getGamePassThumbnailUrl(buyButtonElementDataset);
     if (!thumbnailUrl) {
       reportCounter(

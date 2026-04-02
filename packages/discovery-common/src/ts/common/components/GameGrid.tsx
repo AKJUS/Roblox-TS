@@ -1,6 +1,6 @@
 import React, { forwardRef, MutableRefObject, useCallback } from "react";
-import { WithTranslationsProps } from "@rbx/core-scripts/react";
 import classNames from "classnames";
+import { WithTranslationsProps } from "@rbx/core-scripts/react";
 import { TGameData, TGetFriendsResponse } from "../types/bedev1Types";
 import { SentinelTile } from "./SentinelTile";
 import { TBuildEventProperties } from "./GameTileUtils";
@@ -44,6 +44,9 @@ export type TGameGridProps = {
   enableSponsoredFeedback?: boolean;
   sponsoredUserCohort?: string;
   enableReportAd?: boolean;
+  sponsoredFooterAdLabelText?: string;
+  sponsoredFooterAdLabelFirst?: boolean;
+  sponsoredFooterIncludeRatingContent?: boolean;
 };
 
 export const GameGrid = forwardRef<HTMLDivElement, TGameGridProps>(
@@ -77,6 +80,9 @@ export const GameGrid = forwardRef<HTMLDivElement, TGameGridProps>(
       enableSponsoredFeedback,
       sponsoredUserCohort,
       enableReportAd,
+      sponsoredFooterAdLabelText,
+      sponsoredFooterAdLabelFirst,
+      sponsoredFooterIncludeRatingContent,
     }: TGameGridProps,
     forwardedRef,
   ) => {
@@ -175,6 +181,9 @@ export const GameGrid = forwardRef<HTMLDivElement, TGameGridProps>(
             enableSponsoredFeedback={enableSponsoredFeedback}
             sponsoredUserCohort={sponsoredUserCohort}
             enableReportAd={enableReportAd}
+            sponsoredFooterAdLabelText={sponsoredFooterAdLabelText}
+            sponsoredFooterAdLabelFirst={sponsoredFooterAdLabelFirst}
+            sponsoredFooterIncludeRatingContent={sponsoredFooterIncludeRatingContent}
           />
         ))}
         {shouldUseSentinelTile && <SentinelTile loadData={loadData} />}
@@ -193,6 +202,9 @@ GameGrid.defaultProps = {
   isSponsoredFooterAllowed: undefined,
   isSponsoredRatingFooterAllowed: undefined,
   hideTileMetadata: undefined,
+  sponsoredFooterAdLabelText: undefined,
+  sponsoredFooterAdLabelFirst: undefined,
+  sponsoredFooterIncludeRatingContent: undefined,
   hoverStyle: undefined,
   topicId: undefined,
   isDynamicLayoutSizingEnabled: undefined,

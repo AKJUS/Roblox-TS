@@ -29,6 +29,7 @@ import HomePageUpsellCardContainerEntry from "../../js/homePageUpsellCard/App";
 import InterestCatcher from "./interestCatcher/InterestCatcher";
 import { isGameSortFromOmniRecommendations } from "../omniFeed/utils/gameSortUtils";
 import FriendsCarousel from "./FriendsCarousel";
+import useIsHigherResolutionWideGameTileThumbnailEnabled from "../common/hooks/useIsHigherResolutionWideGameTileThumbnailEnabled";
 
 const { maxTilesPerCarouselPage } = homePage;
 
@@ -47,6 +48,9 @@ export const HomePageOmniFeed = ({ translate }: WithTranslationsProps): JSX.Elem
   const deviceFeatures = useMemo(() => {
     return getDeviceFeatures();
   }, []);
+  // initiate request to get IXP data in parallel with fetching recommendations
+  // to minimize impact on time to display the thumbnails
+  useIsHigherResolutionWideGameTileThumbnailEnabled();
 
   const authIntentFeatures = useMemo(() => {
     try {
@@ -125,12 +129,17 @@ export const HomePageOmniFeed = ({ translate }: WithTranslationsProps): JSX.Elem
     [],
   );
 
-  const { homeFeedRef, gridRecommendationsMap, itemsPerRowMap, startingRowNumbersMap } =
-    useApportionGridRecommendationsWithResize(
-      recommendations,
-      isDynamicLayoutSizingEnabled,
-      isCarouselHorizontalScrollEnabled,
-    );
+  const {
+    homeFeedRef,
+    gridRecommendationsMap,
+    itemsPerRowMap,
+    startingRowNumbersMap,
+    topicPositionOffsetsMap,
+  } = useApportionGridRecommendationsWithResize(
+    recommendations,
+    isDynamicLayoutSizingEnabled,
+    isCarouselHorizontalScrollEnabled,
+  );
 
   useVerticalScrollTracker(PageContext.HomePage);
 
@@ -227,6 +236,7 @@ export const HomePageOmniFeed = ({ translate }: WithTranslationsProps): JSX.Elem
                 startingRow={startingRowNumbersMap.get(positionId)}
                 currentPage={PageContext.HomePage}
                 itemsPerRow={itemsPerRowMap.get(positionId)}
+                topicPositionOffset={topicPositionOffsetsMap.get(positionId) ?? 0}
                 gridRecommendations={gridRecommendationsMap.get(positionId) ?? []}
                 friendsPresenceData={friendsPresenceData}
                 isDynamicLayoutSizingEnabled={isDynamicLayoutSizingEnabled}

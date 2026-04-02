@@ -52,6 +52,9 @@ type THomePageGridDiscoveryApiProps = {
   enableSponsoredFeedback?: boolean;
   sponsoredUserCohort?: string;
   enableReportAd?: boolean;
+  sponsoredFooterAdLabelText?: string;
+  sponsoredFooterAdLabelFirst?: boolean;
+  sponsoredFooterIncludeRatingContent?: boolean;
 };
 
 export const HomePageGrid = ({
@@ -76,6 +79,9 @@ export const HomePageGrid = ({
   enableSponsoredFeedback,
   sponsoredUserCohort,
   enableReportAd,
+  sponsoredFooterAdLabelText,
+  sponsoredFooterAdLabelFirst,
+  sponsoredFooterIncludeRatingContent,
   translate,
 }: THomePageGridDiscoveryApiProps): JSX.Element => {
   const gridRef = useRef<HTMLDivElement>(null);
@@ -221,6 +227,9 @@ export const HomePageGrid = ({
         enableSponsoredFeedback={enableSponsoredFeedback}
         sponsoredUserCohort={sponsoredUserCohort}
         enableReportAd={enableReportAd}
+        sponsoredFooterAdLabelText={sponsoredFooterAdLabelText}
+        sponsoredFooterAdLabelFirst={sponsoredFooterAdLabelFirst}
+        sponsoredFooterIncludeRatingContent={sponsoredFooterIncludeRatingContent}
       />
     </div>
   );
@@ -235,6 +244,9 @@ HomePageGrid.defaultProps = {
   isSponsoredFooterAllowed: undefined,
   isSponsoredRatingFooterAllowed: undefined,
   hideTileMetadata: undefined,
+  sponsoredFooterAdLabelText: undefined,
+  sponsoredFooterAdLabelFirst: undefined,
+  sponsoredFooterIncludeRatingContent: undefined,
   isDynamicLayoutSizingEnabled: undefined,
   isNewSortHeaderEnabled: undefined,
 };

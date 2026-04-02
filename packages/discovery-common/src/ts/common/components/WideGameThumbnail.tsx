@@ -8,6 +8,7 @@ import {
 import { getThumbnailOverrideAssetId } from "../utils/parsingUtils";
 import { TGameData } from "../types/bedev1Types";
 import { TComponentType } from "../types/bedev2Types";
+import useIsHigherResolutionWideGameTileThumbnailEnabled from "../hooks/useIsHigherResolutionWideGameTileThumbnailEnabled";
 
 type TWideGameThumbnailProps = {
   gameData: TGameData;
@@ -22,19 +23,43 @@ const WideGameThumbnail = ({
   wideTileType,
   sizeOverride,
 }: TWideGameThumbnailProps): JSX.Element => {
+  const { isHigherResolutionWideThumbnailEnabled, isIxpLoading } =
+    useIsHigherResolutionWideGameTileThumbnailEnabled();
+
   const thumbnailAssetId: number | null = useMemo(() => {
     return getThumbnailOverrideAssetId(gameData, topicId);
   }, [gameData, topicId]);
 
-  const thumbnailSize: string = useMemo(() => {
+  const thumbnailSize = useMemo<ThumbnailGameThumbnailSize | undefined>(() => {
     if (sizeOverride) {
       return sizeOverride;
     }
     if (wideTileType === TComponentType.EventTile) {
       return ThumbnailGameThumbnailSize.width576;
     }
+    // Only GridTile without a sizeOverride is affected by IXP; other tile types
+    // and overridden sizes are independent of the experiment and render immediately.
+    if (wideTileType === TComponentType.GridTile) {
+      // Defer until the IXP size is known to prevent a fetch at the wrong size
+      // followed by an immediate re-fetch once the flag resolves.
+      if (isIxpLoading) {
+        return undefined;
+      }
+      if (isHigherResolutionWideThumbnailEnabled) {
+        return ThumbnailGameThumbnailSize.width480;
+      }
+    }
     return ThumbnailGameThumbnailSize.width384;
-  }, [sizeOverride, wideTileType]);
+  }, [sizeOverride, wideTileType, isIxpLoading, isHigherResolutionWideThumbnailEnabled]);
+
+  if (thumbnailSize === undefined) {
+    return (
+      <span
+        data-testid="wide-game-thumbnail-shimmer"
+        className="thumbnail-2d-container brief-game-icon shimmer"
+      />
+    );
+  }
 
   if (thumbnailAssetId !== null) {
     return (

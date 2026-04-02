@@ -27,6 +27,8 @@ enum ShareLinksType {
 
 enum ShareLinksTypeV2 {
   EXPERIENCE_V2 = "ExperienceV2",
+  USER_TRUSTED_CONNECTION = "UserTrustedConnection",
+  STUDIO_TRUSTED_CONNECTION = "StudioTrustedConnection",
 }
 
 type ExperienceInviteData = {

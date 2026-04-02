@@ -6,18 +6,22 @@ const FriendsCarouselHeader = ({
   profileUserId,
   isOwnUser,
   translate,
+  connectionsToFriendsRenameEnabled,
 }: {
   friendsCount: number | null;
   profileUserId: number;
   isOwnUser: boolean;
   translate: (key: string) => string;
+  connectionsToFriendsRenameEnabled?: boolean;
 }): JSX.Element => {
   const friendsCountString = `(${friendsCount ?? 0})`;
   const friendsUrl = isOwnUser
     ? `${environmentUrls.websiteUrl}/users/friends#!/friends`
     : `${environmentUrls.websiteUrl}/users/${profileUserId}/friends#!/friends`;
 
-  const carouselHeaderText = "Label.Connections";
+  const carouselHeaderText = connectionsToFriendsRenameEnabled
+    ? "Label.Friends"
+    : "Label.Connections";
 
   return (
     <div className="container-header people-list-header">

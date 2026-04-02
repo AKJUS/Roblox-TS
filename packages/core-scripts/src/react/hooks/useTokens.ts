@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { FoundationDark, FoundationLight } from "@rbx/design-foundations/lib/index";
+import { FoundationDark, FoundationLight } from "@rbx/design-foundations";
 import useTheme from "./useTheme";
 
 export type FoundationTokens = typeof FoundationDark | typeof FoundationLight;

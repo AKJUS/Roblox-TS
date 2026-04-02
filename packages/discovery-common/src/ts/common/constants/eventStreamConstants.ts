@@ -349,7 +349,8 @@ export type TCommonReferralParams = {
     | PageContext.GameDetailPage
     | PageContext.PeopleListInHomePage
     | PageContext.SearchLandingPage
-    | PageContext.SpotlightPage;
+    | PageContext.SpotlightPage
+    | PageContext.UserProfilePage;
   [EventStreamMetadata.PlaceIdOverride]?: number;
   [EventStreamMetadata.LaunchData]?: string;
 };
@@ -377,7 +378,8 @@ export type TGameDetailReferral =
         | PageContext.GameDetailPage
         | PageContext.PeopleListInHomePage
         | PageContext.SearchLandingPage
-        | PageContext.SpotlightPage;
+        | PageContext.SpotlightPage
+        | PageContext.UserProfilePage;
       [EventStreamMetadata.ShareLinkType]?: string;
       [EventStreamMetadata.ShareLinkId]?: string;
     })

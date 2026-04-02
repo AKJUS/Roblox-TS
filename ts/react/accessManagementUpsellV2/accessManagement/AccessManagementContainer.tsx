@@ -161,6 +161,7 @@ function AccessManagementContainer({
   // Close right away without calling featureCheck again
   function asyncOnHide() {
     dispatch(resetAccessManagementStore());
+    // This is intentional as async flows (where we need to wait for additional user actions to complete) are always denied access
     onHidecallback(Access.Denied);
   }
 

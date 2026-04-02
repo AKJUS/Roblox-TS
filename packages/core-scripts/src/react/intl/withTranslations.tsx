@@ -17,9 +17,9 @@ const withTranslations = <P,>(
 ): typeof React.Component<P, State> => {
   const validatedConfig = validateTranslationConfig(translationConfig);
   // TODO: old, migrated code
-  // eslint-disable-next-line react/display-name
+  // eslint-disable-next-line react/display-name, import-x/no-named-as-default-member
   return class extends React.Component<P, State> {
-    private intl: Intl;
+    private readonly intl: Intl;
 
     constructor(props: P) {
       super(props);
@@ -54,4 +54,5 @@ const withTranslations = <P,>(
   };
 };
 
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 export default amendHOCDebuggingInfo(withTranslations, "withTranslations");

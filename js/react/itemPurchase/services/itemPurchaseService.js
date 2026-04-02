@@ -7,7 +7,9 @@ const {
   getPurchaseCollectibleItemInstanceUrl,
   postBulkPurchaseUrl,
   postPurchaseDeveloperProductUrl,
-  postPurchaseGamePassUrl
+  postPurchaseGamePassUrl,
+  postPurchaseSubscriptionWithRobuxUrl,
+  postPrepareFiatSubscriptionPurchaseUrl
 } = urlConstants;
 
 export default {
@@ -49,6 +51,20 @@ export default {
       withCredentials: true
     };
     return httpService.post(urlConfig, params);
+  },
+  purchaseSubscriptionWithRobux: (subscriptionTargetKey, request) => {
+    const urlConfig = {
+      url: postPurchaseSubscriptionWithRobuxUrl(subscriptionTargetKey),
+      withCredentials: true
+    };
+    return httpService.post(urlConfig, request);
+  },
+  prepareFiatSubscriptionPurchase: (subscriptionTargetKey, request) => {
+    const urlConfig = {
+      url: postPrepareFiatSubscriptionPurchaseUrl(subscriptionTargetKey),
+      withCredentials: true
+    };
+    return httpService.post(urlConfig, request);
   },
   bulkPurchaseItem: (userId, productSurface, fulfillmentGroups, idempotencyKey) => {
     const urlConfig = {

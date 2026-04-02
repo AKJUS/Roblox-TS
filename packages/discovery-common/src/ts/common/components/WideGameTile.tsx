@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import React, { Ref, useCallback, useEffect, useMemo, useState } from "react";
+import React, { Ref, useCallback, useMemo, useState } from "react";
 import { Button, Link } from "@rbx/core-ui";
 import { TranslateFunction } from "@rbx/core-scripts/react";
 import { sendEvent } from "@rbx/core-scripts/event-stream";
@@ -42,6 +42,7 @@ import {
   WideGameTileFacepileFooter,
 } from "./GameTileUtils";
 import WideGameTileSponsoredFooter from "./WideGameTileSponsoredFooter";
+import { SponsoredFooterAdLabelText } from "../types/sponsoredTileTypes";
 import WideGameThumbnail from "./WideGameThumbnail";
 import GameTileVideoPlayer from "./GameTileVideoPlayer";
 import useGetGameLayoutData from "../hooks/useGetGameLayoutData";
@@ -97,6 +98,9 @@ export type TWideGameTileProps = {
   enableSponsoredFeedback?: boolean;
   sponsoredUserCohort?: string;
   enableReportAd?: boolean;
+  sponsoredFooterAdLabelText?: string;
+  sponsoredFooterAdLabelFirst?: boolean;
+  sponsoredFooterIncludeRatingContent?: boolean;
   translate: TranslateFunction;
 };
 
@@ -126,6 +130,9 @@ const WideGameTile = React.forwardRef(
       enableSponsoredFeedback = false,
       sponsoredUserCohort,
       enableReportAd = false,
+      sponsoredFooterAdLabelText,
+      sponsoredFooterAdLabelFirst = true,
+      sponsoredFooterIncludeRatingContent = false,
       translate,
     }: TWideGameTileProps,
     ref: Ref<HTMLDivElement>,
@@ -232,12 +239,22 @@ const WideGameTile = React.forwardRef(
       );
 
       if (gameData.isShowSponsoredLabel || (gameData.isSponsored && isSponsoredFooterAllowed)) {
+        // isSponsoredRatingFooterAllowed is a legacy flag with override priority
+        // that corresponds to "Ad" text followed by rating content. If
+        // false, we pass through the values of sponsoredFooterAdLabelText,
+        // sponsoredFooterAdLabelFirst, and sponsoredFooterIncludeRatingContent.
+        const derivedAdLabelText = isSponsoredRatingFooterAllowed
+          ? SponsoredFooterAdLabelText.Ad
+          : sponsoredFooterAdLabelText;
+        const derivedAdLabelFirst = isSponsoredRatingFooterAllowed || sponsoredFooterAdLabelFirst;
+        const derivedIncludeRating =
+          isSponsoredRatingFooterAllowed || sponsoredFooterIncludeRatingContent;
+
         return (
           <WideGameTileSponsoredFooter
-            enableSponsoredFeedback={enableSponsoredFeedback}
-            trailingContent={
-              isSponsoredRatingFooterAllowed && enableSponsoredFeedback ? ratingElement : undefined
-            }
+            sponsoredFooterAdLabelText={derivedAdLabelText}
+            sponsoredFooterAdLabelFirst={derivedAdLabelFirst}
+            secondaryContent={derivedIncludeRating ? ratingElement : undefined}
             translate={translate}
           />
         );

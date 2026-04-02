@@ -29,6 +29,8 @@ const withComponentStatus = WrappedComponent => {
       };
     }
 
+    // TODO: old, migrated code
+    // eslint-disable-next-line class-methods-use-this
     componentDidCatch(error, info) {
       errorBoundaryLogUtil.log(error, info);
     }
@@ -53,7 +55,7 @@ const withComponentStatus = WrappedComponent => {
     }
 
     render() {
-      const { showAppOnInit, defaultMessage, errorStates, ...otherProps } = this.props;
+      const { defaultMessage, errorStates, ...otherProps } = this.props;
       const { isLoading, hasError, errorState } = this.state;
 
       let statusContent;

@@ -8,6 +8,8 @@ const coreSignalRConnectionWrapper = function (
   onSubscriptionStatusCallback,
   onTopicNotificationCallback,
   connectionEventCallback,
+  onTopicSubscriptionErrorCallback,
+  onTopicTokenExpiryCallback,
 ) {
   // TODO: old, migrated code
   // eslint-disable-next-line no-invalid-this
@@ -117,10 +119,11 @@ const coreSignalRConnectionWrapper = function (
       })
       .build();
 
-    // Subscribe to the notification and subscriptionStatus methods which the server will call
     userNotificationConnection.on("notification", onNotificationCallback);
     userNotificationConnection.on("subscriptionStatus", onSubscriptionStatusCallback);
     userNotificationConnection.on("topicNotification", onTopicNotificationCallback);
+    userNotificationConnection.on("topicSubscriptionError", onTopicSubscriptionErrorCallback);
+    userNotificationConnection.on("topicTokenExpiry", onTopicTokenExpiryCallback);
 
     // Connect to handleSignalRDisconnected when connection closes (disconnects)
     // Since our Core Signal R does not reconnect, we do not need a callback on reconnect

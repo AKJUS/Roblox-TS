@@ -100,6 +100,11 @@ export const GameGridFeedItem = ({
       enableSponsoredFeedback={sort.topicLayoutData?.enableSponsoredFeedback === "true"}
       sponsoredUserCohort={sort.topicLayoutData?.sponsoredUserCohort}
       enableReportAd={sort.topicLayoutData?.enableReportAd === "true"}
+      sponsoredFooterAdLabelText={sort.topicLayoutData?.sponsoredFooterAdLabelText}
+      sponsoredFooterAdLabelFirst={sort.topicLayoutData?.sponsoredFooterAdLabelFirst !== "false"}
+      sponsoredFooterIncludeRatingContent={
+        sort.topicLayoutData?.sponsoredFooterIncludeRatingContent === "true"
+      }
     />
   );
 };

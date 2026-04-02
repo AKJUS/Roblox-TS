@@ -45,7 +45,11 @@ function contactCardController(
     friendsService
       .removeTrustedConnection($scope.getOneToOneFriendId())
       .then(() => {
-        $scope.showAlert('TrustedConnection.Toast.TrustedConnectionRemoved');
+        $scope.showAlert(
+          $scope.chatLibrary.connectionsToFriendsRenameEnabled
+            ? 'TrustedFriend.Toast.TrustedFriendRemoved'
+            : 'TrustedConnection.Toast.TrustedConnectionRemoved'
+        );
       })
       .catch(() => {
         $scope.showAlert('Message.Error');
@@ -71,17 +75,26 @@ function contactCardController(
       if (insight.mutualFriendInsight) {
         const numMutualFriends = Object.keys(insight.mutualFriendInsight.mutualFriends ?? {})
           .length;
+        const useFriendsNaming =
+          $scope.chatLibrary.connectionsToFriendsRenameEnabled ||
+          !$scope.chatLibrary.renameFriendsToConnections;
         if (numMutualFriends === 1) {
           processedInsights.push({
             iconClass: 'icon-friends',
-            text: languageResource.get('Label.MutualConnection')
+            text: languageResource.get(
+              useFriendsNaming ? 'Label.MutualFriendTitle' : 'Label.MutualConnection'
+            )
           });
         } else {
           processedInsights.push({
             iconClass: 'icon-friends',
-            text: languageResource.get('Label.MutualConnections', {
-              numConnections: numMutualFriends
-            })
+            text: languageResource.get(
+              useFriendsNaming ? 'Label.MutualFriendsTitle' : 'Label.MutualConnections',
+
+              {
+                numConnections: numMutualFriends
+              }
+            )
           });
         }
       }
@@ -117,7 +130,11 @@ function contactCardController(
             });
           }
         } else {
-          processedInsight.text = languageResource.get('Label.NewConnection');
+          processedInsight.text = languageResource.get(
+            $scope.chatLibrary.connectionsToFriendsRenameEnabled
+              ? 'Label.NewFriend'
+              : 'Label.NewConnection'
+          );
         }
         processedInsights.push(processedInsight);
       }

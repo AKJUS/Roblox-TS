@@ -18,6 +18,7 @@ export default function createPurchaseVerificationModal() {
     translate,
     title,
     expectedPrice,
+    displayPrice,
     thumbnail,
     assetName,
     assetType,
@@ -28,13 +29,17 @@ export default function createPurchaseVerificationModal() {
     loading,
     currentRobuxBalance
   }) {
+    const isFiatSubscription = !!(assetType === 'Subscription' && displayPrice);
+
     let defaultTitle;
     let actionButtonText;
     const assetInfo = {
       assetName: renderToString(<AssetName name={assetName} />),
       assetType: assetTypeDisplayName || assetType,
       seller: escapeHtml()(sellerName),
-      robux: renderToString(<PriceLabel {...{ price: expectedPrice }} />)
+      robux: isFiatSubscription
+        ? `<span class="text-robux">${escapeHtml()(displayPrice)}</span>`
+        : renderToString(<PriceLabel {...{ price: expectedPrice }} />)
     };
     let bodyMessageResource = isPlace
       ? resources.promptBuyAccessMessage
@@ -43,10 +48,15 @@ export default function createPurchaseVerificationModal() {
       bodyMessageResource = resources.promptBuySimplifiedMessage;
     }
 
-    if (expectedPrice === 0) {
+    if (isFiatSubscription || expectedPrice === 0) {
       defaultTitle = translate(resources.getItemHeading);
       actionButtonText = translate(resources.getNowAction);
     } else {
+      defaultTitle = translate(resources.buyItemHeading);
+      actionButtonText = translate(resources.buyNowAction);
+    }
+
+    if (isFiatSubscription) {
       defaultTitle = translate(resources.buyItemHeading);
       actionButtonText = translate(resources.buyNowAction);
     }
@@ -73,7 +83,7 @@ export default function createPurchaseVerificationModal() {
           neutralButtonText: translate(resources.cancelAction),
           actionButtonText,
           onAction,
-          footerText: (
+          footerText: isFiatSubscription ? null : (
             <BalanceAfterSaleText
               expectedPrice={expectedPrice}
               currentRobuxBalance={currentRobuxBalance}
@@ -91,13 +101,15 @@ export default function createPurchaseVerificationModal() {
     assetTypeDisplayName: '',
     title: '',
     loading: false,
-    currentRobuxBalance: undefined
+    currentRobuxBalance: undefined,
+    displayPrice: ''
   };
 
   PurchaseVerificationModal.propTypes = {
     translate: PropTypes.func.isRequired,
     title: PropTypes.string,
     expectedPrice: PropTypes.number.isRequired,
+    displayPrice: PropTypes.string,
     thumbnail: PropTypes.node.isRequired,
     assetName: PropTypes.string.isRequired,
     assetType: PropTypes.string.isRequired,

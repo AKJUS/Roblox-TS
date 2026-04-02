@@ -4,6 +4,7 @@
  * Responsibilities:
  * - Subscribe/unsubscribe to topic notifications
  * - Maintain callback registry (topicId → Set<callback>)
+ * - Handle subscription errors and token expiry from server
  * - Delegate subscription and notification handling to source
  *
  * Does NOT know about:
@@ -23,7 +24,7 @@ const createTopicManager = ({ log }) => {
   // STATE
   // ============================================================================
 
-  // Subscriptions: topicId → { token, callbacks: Set<fn> }
+  // Subscriptions: topicId → { token, callbacks: Set<fn>, onError }
   const subscriptions = {};
 
   // Reference to current source (set via onSourceChanged)
@@ -43,7 +44,6 @@ const createTopicManager = ({ log }) => {
       return null;
     }
 
-    // Find first '.' separator - everything before it is the topicId
     const dotIndex = token.indexOf(".");
     if (dotIndex < 0) {
       return null;
@@ -51,12 +51,24 @@ const createTopicManager = ({ log }) => {
 
     const topicId = token.substring(0, dotIndex);
 
-    // Validate topicId contains '!' delimiter
     if (!topicId.includes("!")) {
       return null;
     }
 
     return topicId;
+  };
+
+  const findSubscriptionByToken = token => {
+    const topicId = extractTopicId(token);
+    if (!topicId || !subscriptions[topicId]) {
+      return null;
+    }
+    // Reject stale tokens: after rotation, late events for the old token must not affect the current subscription
+    if (subscriptions[topicId].token !== token) {
+      log(`Topic notifications: Ignoring event for stale token on ${topicId}`, true);
+      return null;
+    }
+    return { topicId, sub: subscriptions[topicId] };
   };
 
   /**
@@ -73,7 +85,6 @@ const createTopicManager = ({ log }) => {
       true,
     );
 
-    // Spread to avoid issues if callback unsubscribes during iteration
     for (const callback of [...sub.callbacks]) {
       try {
         callback(detail);
@@ -83,9 +94,25 @@ const createTopicManager = ({ log }) => {
     }
   };
 
+  const dispatchError = (topicId, error) => {
+    const sub = subscriptions[topicId];
+    if (!sub?.onError) {
+      return;
+    }
+    try {
+      sub.onError(error);
+    } catch (e) {
+      log(`Topic notifications: Error in onError callback for ${topicId}: ${e}`);
+    }
+  };
+
+  const removeSubscription = topicId => {
+    delete subscriptions[topicId];
+  };
+
   /**
-   * Re-subscribe all current subscriptions via the source
-   * Called when source becomes ready (connect/reconnect)
+   * Re-subscribe all current subscriptions via the source.
+   * Called when source becomes ready (connect/reconnect).
    */
   const resubscribeAll = () => {
     const subs = Object.values(subscriptions);
@@ -103,6 +130,44 @@ const createTopicManager = ({ log }) => {
   };
 
   // ============================================================================
+  // SERVER EVENT HANDLERS
+  // ============================================================================
+
+  const handleSubscriptionError = (token, errorCode, shouldRetry) => {
+    const match = findSubscriptionByToken(token);
+    if (!match) {
+      return;
+    }
+    const { topicId } = match;
+
+    log(
+      `Topic notifications: Subscription error for ${topicId}: ${errorCode} (shouldRetry=${shouldRetry})`,
+    );
+    dispatchError(topicId, { type: "error", errorCode, shouldRetry });
+    removeSubscription(topicId);
+  };
+
+  // _subscriptionActive: sent by server but not needed client-side (server uses it to distinguish warning vs expiry)
+  const handleTokenExpiry = (token, shouldExchange, isSubscribable, _subscriptionActive) => {
+    const match = findSubscriptionByToken(token);
+    if (!match) {
+      return;
+    }
+    const { topicId, sub } = match;
+
+    if (isSubscribable) {
+      log(`Topic notifications: Auto-resubscribing ${topicId} (still subscribable)`);
+      currentSource?.SubscribeTopic?.(sub.token, null);
+      return;
+    }
+
+    // Token is no longer subscribable -- notify consumer and clean up
+    log(`Topic notifications: Token expired for ${topicId} (shouldExchange=${shouldExchange})`);
+    dispatchError(topicId, { type: "expired", shouldExchange });
+    removeSubscription(topicId);
+  };
+
+  // ============================================================================
   // PUBLIC API
   // ============================================================================
 
@@ -110,9 +175,11 @@ const createTopicManager = ({ log }) => {
    * Subscribe to topic notifications
    * @param {string} token - Topic token (format: "{namespace}!{topic}.body.sig")
    * @param {function} callback - Called when notification received
+   * @param {object} [options] - Optional settings
+   * @param {function} [options.onError] - Called on subscription error or token expiry
    * @returns {object} Handle with unsubscribe() method
    */
-  const subscribe = (token, callback) => {
+  const subscribe = (token, callback, { onError } = {}) => {
     const topicId = extractTopicId(token);
     if (!topicId) {
       log(`Topic notifications: Failed to extract topicId from token`);
@@ -122,49 +189,47 @@ const createTopicManager = ({ log }) => {
 
     log(`Topic notifications: Subscribing to topicId: ${topicId}`);
 
-    // Get or create subscription
     if (!subscriptions[topicId]) {
       subscriptions[topicId] = {
         token,
         callbacks: new Set(),
+        onError: null,
       };
     }
 
     const sub = subscriptions[topicId];
 
-    // Save old token before updating (for replaceToken parameter)
     const oldToken = sub.token !== token ? sub.token : null;
     sub.token = token;
 
-    // Add callback to subscription (Set deduplicates same reference)
     sub.callbacks.add(callback);
 
-    // Delegate to source (source handles SignalR/pubSub based on its type)
+    if (onError) {
+      sub.onError = onError;
+    }
+
     currentSource?.SubscribeTopic?.(token, oldToken);
 
-    // Return unsubscribe handle
     return {
       unsubscribe: () => {
         log(`Topic notifications: Unsubscribing callback from topicId: ${topicId}`);
         const subscription = subscriptions[topicId];
         if (subscription) {
           subscription.callbacks.delete(callback);
-          // Clean up entry when no callbacks remain to avoid
-          // unnecessary SubscribeTopic calls on reconnect/election
           if (subscription.callbacks.size === 0) {
-            delete subscriptions[topicId];
+            const tokenToUnsub = subscription.token;
+            removeSubscription(topicId);
+            currentSource?.UnsubscribeTopic?.(tokenToUnsub);
           }
         }
-        // Note: Phase 1 doesn't call UnsubscribeTopic on server
-        // Tokens naturally expire, avoiding server-side state management
       },
     };
   };
 
   /**
-   * Called by client when source changes
-   * Registers handlers with the source for notifications and readiness
-   * @param {object} newSource - The source instance (implements IRealtimeSource)
+   * Called by client when source changes.
+   * Registers handlers with the source for notifications, readiness, errors, and expiry.
+   * @param {object} newSource - The source instance
    */
   const onSourceChanged = newSource => {
     currentSource = newSource;
@@ -173,24 +238,29 @@ const createTopicManager = ({ log }) => {
       return;
     }
 
-    // Register notification handler with source
-    // Source will call this when it receives a topic notification
     currentSource.SetTopicNotificationHandler?.((topicId, detail) => {
       log(`Topic notifications: Received notification for topic: ${topicId}`, true);
       dispatchToCallbacks(topicId, detail);
     });
 
-    // Register ready handler with source
-    // Source will call this when connection is ready (connect/reconnect/leader elected)
     // Resubscription is deferred to this handler to avoid sending SubscribeTopic
     // before the connection is established (which would fail with "Cannot send data")
     currentSource.SetTopicReadyHandler?.(() => {
       log("Topic notifications: Source ready, re-subscribing all topics");
       resubscribeAll();
     });
+
+    currentSource.SetTopicSubscriptionErrorHandler?.((token, errorCode, shouldRetry) => {
+      handleSubscriptionError(token, errorCode, shouldRetry);
+    });
+
+    currentSource.SetTopicTokenExpiryHandler?.(
+      (token, shouldExchange, isSubscribable, subscriptionActive) => {
+        handleTokenExpiry(token, shouldExchange, isSubscribable, subscriptionActive);
+      },
+    );
   };
 
-  // Return public API
   return {
     subscribe,
     onSourceChanged,

@@ -165,6 +165,11 @@ function dialogAttributes(languageResource) {
       UNACKNOWLEDGED: 'unacknowledged',
       NOT_APPLICABLE: 'not_applicable'
     },
+    userChatMessageOptInStatus: {
+      OPTED_IN: 'opted_in',
+      NOT_OPTED_IN: 'not_opted_in',
+      NOT_APPLICABLE: 'not_applicable'
+    },
     messageSenderType: {
       SYSTEM: 'system',
       USER: 'user'
@@ -205,6 +210,7 @@ function dialogAttributes(languageResource) {
     },
     modalVariant: {
       OSA_CONTEXT_CARD: 'osa_context_card',
+      CHAT_OPT_IN_INFO_CARD: 'chat_opt_in_info_card',
       TRUSTED_CONNECTION_UPSELL_O18: 'conversation_trusted_connection_upsell18_plus',
       TRUSTED_CONNECTION_UPSELL_U18: 'conversation_trusted_connection_upsell_non18_plus',
       TRUSTED_CONNECTION_CREATED: 'conversation_trusted_connection_created'

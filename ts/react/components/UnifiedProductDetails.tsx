@@ -13,6 +13,8 @@ export type UnifiedProductDetailsProps = {
   thumbnail: React.ReactNode;
   assetName: string;
   expectedPrice: number;
+  displayPrice?: string;
+  priceSuffix?: string;
   thumbnailSizePx?: number;
   rentalOptionDays?: number | null;
 };
@@ -22,20 +24,27 @@ const UnifiedProductDetails: React.FC<UnifiedProductDetailsProps> = ({
   thumbnail,
   assetName,
   expectedPrice,
+  displayPrice,
+  priceSuffix,
   thumbnailSizePx = 150,
   rentalOptionDays = null
 }) => {
+  const thumbnailContainerStyle: React.CSSProperties = {
+    maxWidth: '40vw',
+    maxHeight: '40vw'
+  };
+
   return (
     <div className='flex flex-row items-center gap-large'>
       <div
-        className='relative shrink-0'
-        style={{ width: thumbnailSizePx, height: thumbnailSizePx }}>
+        className='relative shrink-0 unified-modal-thumbnail-container'
+        style={thumbnailContainerStyle}>
         <div
           className='rounded'
           style={{ width: '100%', height: '100%', backgroundColor: 'rgba(255,255,255,0.06)' }}
         />
         <div
-          className='absolute'
+          className='absolute unified-modal-thumbnail'
           style={{
             inset: 0,
             display: 'flex',
@@ -61,7 +70,22 @@ const UnifiedProductDetails: React.FC<UnifiedProductDetailsProps> = ({
           </div>
         )}
         <div className='flex flex-row items-center'>
-          <PriceLabel translate={translate} price={expectedPrice} color='' useFreeText={false} />
+          {displayPrice ? (
+            <span className='text-robux'>
+              {displayPrice}
+              {priceSuffix}
+            </span>
+          ) : (
+            <React.Fragment>
+              <PriceLabel
+                translate={translate}
+                price={expectedPrice}
+                color=''
+                useFreeText={false}
+              />
+              {priceSuffix && <span className='text-robux'>{priceSuffix}</span>}
+            </React.Fragment>
+          )}
         </div>
       </div>
     </div>

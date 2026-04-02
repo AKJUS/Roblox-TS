@@ -17,9 +17,9 @@ const validateLegacyTranslationConfig = (config: LegacyTranslationConfig) => {
     !isStringArray(common) ||
     // Only one of feature or features should be defined.
     (feature !== undefined && features !== undefined) ||
-    (!!feature && typeof feature !== "string") ||
+    (feature != null && typeof feature !== "string") ||
     // features should be an array
-    (!!features && !isStringArray(features))
+    (features != null && !isStringArray(features))
   ) {
     throw new Error("Invalid namespaces config!");
   }

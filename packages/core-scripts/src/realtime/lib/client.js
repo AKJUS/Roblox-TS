@@ -428,19 +428,21 @@ const RealtimeClient = function (sourceConstructors) {
   };
 
   // ============================================================================
-  // TOPIC-BASED NOTIFICATIONS (Phase 1)
+  // TOPIC-BASED NOTIFICATIONS
   // ============================================================================
-  // Delegated to TopicManager for separation of concerns
-  // See: topicManager.js and ../ARCHITECTURE.md
 
   /**
-   * PUBLIC API: Subscribe to topic-based notifications
+   * Subscribe to topic-based notifications
    *
-   * @param {string} token - Topic token with topicId prefix (format: "{namespace}!{topic}.body.sig")
-   * @param {function} callback - Function to call when notification received
+   * @param {string} token - Topic token (format: "{namespace}!{topic}.body.sig")
+   * @param {function} callback - Called when notification received
+   * @param {object} [options] - Optional settings
+   * @param {function} [options.onError] - Called on subscription error or token expiry.
+   *   Receives { type: 'error', errorCode, shouldRetry } or { type: 'expired', shouldExchange }.
    * @returns {object} Handle with unsubscribe() method
    */
-  const subscribeToTopicNotification = (token, callback) => topicManager.subscribe(token, callback);
+  const subscribeToTopicNotification = (token, callback, options) =>
+    topicManager.subscribe(token, callback, options);
 
   // ============================================================================
   // END TOPIC-BASED NOTIFICATIONS

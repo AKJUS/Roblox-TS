@@ -1,10 +1,13 @@
 import { JSX, createContext } from "react";
 import Intl from "@rbx/core-scripts/intl";
 import { TranslationResourceProvider } from "@rbx/core-scripts/intl/translation";
-import { TranslationConfig, WithTranslationsProps } from "../../intl";
+import { OnEmptyString, TranslationConfig, WithTranslationsProps } from "../../intl";
 import { validateTranslationConfig } from "../validateTranslationConfig";
 
-const createTranslationContext = (translationConfig: TranslationConfig) => {
+const createTranslationContext = (
+  translationConfig: TranslationConfig,
+  onEmptyString?: OnEmptyString,
+) => {
   const validatedConfig = validateTranslationConfig(translationConfig);
   const intl = new Intl();
   const translationProvider = new TranslationResourceProvider(intl);
@@ -13,8 +16,18 @@ const createTranslationContext = (translationConfig: TranslationConfig) => {
   );
   const languageResources = translationProvider.mergeTranslationResources(...translationResources);
 
-  const translate = (key: string, parameters?: Record<string, unknown>): string =>
-    languageResources.get(key, parameters);
+  const translate = (
+    key: string,
+    parameters?: Record<string, unknown>,
+    fallbackString?: string,
+  ): string => {
+    const result = languageResources.get(key, parameters) as string | undefined;
+    if (!result && onEmptyString) {
+      onEmptyString(key, intl.locale);
+    }
+
+    return result && result.length > 0 ? result : (fallbackString ?? "");
+  };
 
   return { translate, intl };
 };
@@ -29,12 +42,14 @@ export const TranslationContext = createContext<WithTranslationsProps | undefine
 export function TranslationProvider({
   config,
   children,
+  onEmptyString,
 }: {
   config: TranslationConfig;
   children: React.ReactNode;
+  onEmptyString?: OnEmptyString;
 }): JSX.Element {
   return (
-    <TranslationContext.Provider value={createTranslationContext(config)}>
+    <TranslationContext.Provider value={createTranslationContext(config, onEmptyString)}>
       {children}
     </TranslationContext.Provider>
   );

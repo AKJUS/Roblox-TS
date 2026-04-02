@@ -102,6 +102,8 @@ export enum VIEW_NAME {
   NUVEI = "Nuvei",
   ROBUX_GIFT = "RobuxGift",
   ROBUX_GIFT_MODAL = "RobuxGiftModal",
+  POST_PURCHASE = "PostPurchase",
+  FIRST_TIME_PURCHASE_CONSENT_MODAL = "FirstTimePurchaseConsentModal",
 }
 
 export enum PURCHASE_EVENT_TYPE {
@@ -172,6 +174,9 @@ export enum VIEW_MESSAGE {
   SHOW_LESS = "Show less",
   TOGGLE_ON = "Toggle (on)",
   TOGGLE_OFF = "Toggle (off)",
+  BUY = "Buy",
+  PURCHASE_SUCCESS = "Purchase Success",
+  CONFIRM = "Confirm",
 }
 
 export enum PURCHASE_STATUS {

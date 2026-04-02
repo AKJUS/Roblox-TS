@@ -176,6 +176,7 @@ export interface ThumbnailQueueItem {
   format: ThumbnailFormat;
   isCircular?: boolean;
   version?: number;
+  headShape?: string;
 }
 
 export interface CustomThumbnailQueueItem {

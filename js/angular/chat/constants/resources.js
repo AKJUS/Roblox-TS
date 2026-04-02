@@ -30,7 +30,7 @@ const resources = {
     contactCardTemplate: 'contact-card',
     osaContextCardTemplate: 'osa-context-card',
     dialogAlertTemplate: 'dialog-alert',
-    groupInviteDialogTemplate: 'group-invite-dialog'
+    conversationInviteDialogTemplate: 'conversation-invite-dialog'
   },
   eventStreamParams: {
     actions: {

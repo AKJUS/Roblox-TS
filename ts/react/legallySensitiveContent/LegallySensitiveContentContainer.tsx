@@ -16,7 +16,7 @@ export const LegallySensitiveContentContainer = ({
       useLegallySensitiveContentAndActions: (consentName: ConsentName, surface: string) =>
         useTranslatedLegallySensitiveContentAndActions(translate, consentName, surface)
     };
-  }, []);
+  }, [translate]);
 
   return <div id='legally-sensitive-content-component' />;
 };

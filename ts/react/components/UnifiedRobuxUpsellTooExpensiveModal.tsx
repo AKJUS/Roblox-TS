@@ -4,6 +4,7 @@ import { TranslateFunction } from 'react-utilities';
 import UnifiedPurchaseHeading from './UnifiedPurchaseHeading';
 import UnifiedProductDetails from './UnifiedProductDetails';
 import { LANG_KEYS } from '../../../js/core/services/itemPurchaseUpsellService/constants/upsellConstants';
+import useModalShownTracking from '../hooks/useModalShownTracking';
 
 export type UnifiedRobuxUpsellTooExpensiveModalProps = {
   translate: TranslateFunction;
@@ -27,6 +28,8 @@ const UnifiedRobuxUpsellTooExpensiveModal: React.FC<UnifiedRobuxUpsellTooExpensi
   currentRobuxBalance,
   open = false
 }) => {
+  useModalShownTracking('UnifiedRobuxUpsellTooExpensiveModal', open);
+
   return (
     <Dialog
       open={open}
@@ -64,7 +67,8 @@ const UnifiedRobuxUpsellTooExpensiveModal: React.FC<UnifiedRobuxUpsellTooExpensi
               variant='Emphasis'
               className=' fill'
               onClick={onAction}
-              isDisabled={loading}>
+              isDisabled={loading}
+              data-testid='purchase-confirm-button'>
               <div className='fill basis-0 inline-flex items-center gap-medium leading-none'>
                 <Icon name='icon-filled-arrow-up-right-from-square' className='align-middle' />
                 {translate(LANG_KEYS.buyRobux)}

@@ -1,5 +1,25 @@
 import { arrayBufferToBase64String, base64StringToArrayBuffer } from "./crypto";
 
+type CredentialDescriptorJSON = Omit<PublicKeyCredentialDescriptor, "id"> & { id: string };
+type UserEntityJSON = Omit<PublicKeyCredentialUserEntity, "id"> & { id: string };
+
+/**
+ * Mirrors `PublicKeyCredentialCreationOptions` but with base64-encoded strings in place of
+ * `BufferSource` fields, as returned by the server before the browser API conversion step.
+ */
+export type PublicKeyCredentialCreationOptionsJSON = {
+  publicKey: Omit<
+    PublicKeyCredentialCreationOptions,
+    "challenge" | "user" | "excludeCredentials"
+  > & {
+    challenge: string;
+    user: UserEntityJSON;
+    excludeCredentials?: CredentialDescriptorJSON[];
+    /** Non-standard field sometimes included by the server. */
+    allowCredentials?: CredentialDescriptorJSON[];
+  };
+};
+
 export const base64StringToBase64UrlString = (rawString: string): string =>
   rawString.replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
 
@@ -8,9 +28,9 @@ export const base64UrlStringToBase64String = (rawString: string): string => {
   return rawString.replace(/-/g, "+").replace(/_/g, "/") + "=".repeat(padding);
 };
 
-// TODO: old, migrated code
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export const convertPublicKeyParametersToStandardBase64 = (options: string) => {
+export const convertPublicKeyParametersToStandardBase64 = (
+  options: string,
+): PublicKeyCredentialCreationOptionsJSON => {
   // TODO: old, migrated code
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const makeOptions = JSON.parse(options);
@@ -58,9 +78,8 @@ export const convertPublicKeyParametersToStandardBase64 = (options: string) => {
     }
   }
 
-  // TODO: old, migrated code
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-  return makeOptions;
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+  return makeOptions as PublicKeyCredentialCreationOptionsJSON;
 };
 
 export const formatCredentialAuthenticationResponseApp = (credentialString: string): string => {
@@ -164,9 +183,7 @@ export const formatCredentialRegistrationResponseApp = (credentialString: string
   });
 };
 
-// TODO: old, migrated code
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export const formatCredentialRequestWeb = (options: string) => {
+export const formatCredentialRequestWeb = (options: string): PublicKeyCredentialCreationOptions => {
   // TODO: old, migrated code
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const makeAssertionOptions = JSON.parse(options);
@@ -212,9 +229,8 @@ export const formatCredentialRequestWeb = (options: string) => {
       excludeCredentials.id = base64StringToArrayBuffer(excludeCredentials.id as unknown as string);
     }
   }
-  // TODO: old, migrated code
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
-  return makeAssertionOptions.publicKey;
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion, @typescript-eslint/no-unsafe-member-access
+  return makeAssertionOptions.publicKey as PublicKeyCredentialCreationOptions;
 };
 
 export const formatCredentialAuthenticationResponseWeb = (

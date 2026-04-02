@@ -246,6 +246,7 @@ export const HomePageCarousel = ({
             : undefined
         }
         isNewSortHeaderEnabled={isNewSortHeaderEnabled}
+        permitLinkClickPropagation // Let clicks bubble to the click interceptor in routing/helpers.tsx for client-side page transitions
         translate={translate}
       />
 

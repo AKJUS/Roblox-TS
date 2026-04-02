@@ -11,7 +11,8 @@ import {
   startAccessManagementUpsellFlow,
   sendUnlockPlayIntentEvent,
 } from "../utils/playButtonUtils";
-import playButtonConstants, { PlayabilityStatus } from "../constants/playButtonConstants";
+import playButtonConstants from "../constants/playButtonConstants";
+import { PlayabilityStatus } from "../constants/playabilityStatus";
 
 const { counterEvents, unlockPlayIntentConstants } = playButtonConstants;
 

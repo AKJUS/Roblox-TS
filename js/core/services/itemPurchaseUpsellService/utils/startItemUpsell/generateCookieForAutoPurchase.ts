@@ -50,6 +50,7 @@ export default function generateCookieForAutoPurchase(
   autoPurchaseRequiredData += `,${itemPurchaseObj.collectibleItemId || ''}`;
   autoPurchaseRequiredData += `,${itemPurchaseObj.collectibleItemInstanceId || ''}`;
   autoPurchaseRequiredData += `,${itemPurchaseObj.collectibleProductId || ''}`;
+  autoPurchaseRequiredData += `,${itemPurchaseObj.subscriptionTargetKey || ''}`;
   const cookieData = `${upsellUuid},${assetUrl},${CurrentUser.userId},${purchaseMetadata},${autoPurchaseRequiredData}`;
   const expires = new Date();
   expires.setHours(expires.getHours() + 1);

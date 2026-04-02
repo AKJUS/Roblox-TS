@@ -16,9 +16,11 @@ const hybridSource = function (_settings, logger) {
   let onNotificationHandler;
   let onConnectionEventHandler;
 
-  // Topic notification handlers (set by TopicManager)
+  // Topic handlers (set by TopicManager)
   let topicNotificationHandler = null;
   let topicReadyHandler = null;
+  let topicSubscriptionErrorHandler = null;
+  let topicTokenExpiryHandler = null;
   let connectionReady = false;
 
   let heartbeatTriggerTime;
@@ -153,6 +155,28 @@ const hybridSource = function (_settings, logger) {
     topicNotificationHandler?.(topicId, detail);
   };
 
+  const hybridOnTopicSubscriptionErrorHandler = result => {
+    if (!result || !result.params) {
+      log("onTopicSubscriptionError event without sufficient data");
+      return;
+    }
+    const { token, errorCode, shouldRetry } = result.params;
+    log(`Topic subscription error: ${errorCode} (shouldRetry=${shouldRetry})`);
+    topicSubscriptionErrorHandler?.(token, errorCode, shouldRetry);
+  };
+
+  const hybridOnTopicTokenExpiryHandler = result => {
+    if (!result || !result.params) {
+      log("onTopicTokenExpiry event without sufficient data");
+      return;
+    }
+    const { token, shouldExchange, isSubscribable, subscriptionActive } = result.params;
+    log(
+      `Topic token expiry: shouldExchange=${shouldExchange} isSubscribable=${isSubscribable} subscriptionActive=${subscriptionActive}`,
+    );
+    topicTokenExpiryHandler?.(token, shouldExchange, isSubscribable, subscriptionActive);
+  };
+
   const subscribeTopic = (token, replaceToken) => {
     if (!Hybrid?.RealTime?.subscribeTopic) {
       log("subscribeTopic not available on bridge, skipping");
@@ -170,6 +194,19 @@ const hybridSource = function (_settings, logger) {
     );
   };
 
+  const unsubscribeTopic = token => {
+    if (!Hybrid?.RealTime?.unsubscribeTopic) {
+      log("unsubscribeTopic not available on bridge, skipping");
+      return;
+    }
+    log(`Topic unsubscribe: ${token}`);
+    Hybrid.RealTime.unsubscribeTopic(token, (success, result) => {
+      if (!success) {
+        log(`Topic unsubscribe failed: ${JSON.stringify(result)}`);
+      }
+    });
+  };
+
   const subscribeToHybridEvents = () => {
     Hybrid.RealTime.supports("isConnected", isSupported => {
       if (isSupported) {
@@ -178,6 +215,8 @@ const hybridSource = function (_settings, logger) {
         Hybrid.RealTime.onNotification.subscribe(hybridOnNotificationHandler);
         Hybrid.RealTime.onConnectionEvent.subscribe(hybridOnConnectionEventHandler);
         Hybrid.RealTime.onTopicNotification?.subscribe(hybridOnTopicNotificationHandler);
+        Hybrid.RealTime.onTopicSubscriptionError?.subscribe(hybridOnTopicSubscriptionErrorHandler);
+        Hybrid.RealTime.onTopicTokenExpiry?.subscribe(hybridOnTopicTokenExpiryHandler);
 
         // Query the current state
         requestConnectionStatus();
@@ -199,6 +238,8 @@ const hybridSource = function (_settings, logger) {
     Hybrid.RealTime.onNotification.unsubscribe(hybridOnNotificationHandler);
     Hybrid.RealTime.onConnectionEvent.unsubscribe(hybridOnConnectionEventHandler);
     Hybrid.RealTime.onTopicNotification?.unsubscribe(hybridOnTopicNotificationHandler);
+    Hybrid.RealTime.onTopicSubscriptionError?.unsubscribe(hybridOnTopicSubscriptionErrorHandler);
+    Hybrid.RealTime.onTopicTokenExpiry?.unsubscribe(hybridOnTopicTokenExpiryHandler);
   };
 
   const stop = () => {
@@ -234,16 +275,27 @@ const hybridSource = function (_settings, logger) {
     }
   };
 
+  const setTopicSubscriptionErrorHandler = handler => {
+    topicSubscriptionErrorHandler = handler;
+  };
+
+  const setTopicTokenExpiryHandler = handler => {
+    topicTokenExpiryHandler = handler;
+  };
+
   // Public API
   this.IsAvailable = isAvailable;
   this.Start = start;
   this.Stop = stop;
   this.Name = "HybridSource";
 
-  // Topic notification support
+  // Topic support
   this.SubscribeTopic = subscribeTopic;
+  this.UnsubscribeTopic = unsubscribeTopic;
   this.SetTopicNotificationHandler = setTopicNotificationHandler;
   this.SetTopicReadyHandler = setTopicReadyHandler;
+  this.SetTopicSubscriptionErrorHandler = setTopicSubscriptionErrorHandler;
+  this.SetTopicTokenExpiryHandler = setTopicTokenExpiryHandler;
 };
 
 export default hybridSource;

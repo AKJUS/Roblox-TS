@@ -238,14 +238,21 @@ export default class ItemPurchaseUpsellService {
       UPSELL_COUNTER_NO_TYPE_PARSED_PLACEHOLDER // it will record as catalog, but this metric would serve the purpose of finding how many users redirected back
     );
 
-    // Step 1. Process and collect pre-existing data from HTML element
-    validateEnvSettings(itemAbsolutePath); // basic validation
-    const itemPurchaseObj = await preProcessData(
-      itemContainerElement,
-      itemContainerElement?.dataset,
-      itemPurchaseDataElement?.dataset,
-      itemAbsolutePath
-    );
+    let itemPurchaseObj;
+    try {
+      // Step 1. Process and collect pre-existing data from HTML element
+      validateEnvSettings(itemAbsolutePath); // basic validation
+      itemPurchaseObj = await preProcessData(
+        itemContainerElement,
+        itemContainerElement?.dataset,
+        itemPurchaseDataElement?.dataset,
+        itemAbsolutePath
+      );
+    } catch (e) {
+      this.loadingOverlay.hide();
+      invalidateCurrentAutoPurchaseFlow();
+      return Promise.resolve();
+    }
     const purchasingItemLabel = this.translationResource.get(LANG_KEYS.purchasingTheItemLabel, {});
     const currentBalance = itemPurchaseObj.userBalance;
     const expectedItemPrice = itemPurchaseObj.expectedPrice;
@@ -273,6 +280,7 @@ export default class ItemPurchaseUpsellService {
       // initiate periodical checking using recursive calls
       await this._checkBalanceAndPurchase(itemPurchaseObj, purchaseCallback);
     } catch (e) {
+      this.loadingOverlay.hide();
       reportCounter(UPSELL_COUNTER_NAMES.AutoPurchaseFailed, itemPurchaseObj?.assetType);
       sendEvent(ITEM_UPSELL_EVENTS.CONTEXT_NAME.UPSELL_FAILED, {
         itemPurchaseObj,

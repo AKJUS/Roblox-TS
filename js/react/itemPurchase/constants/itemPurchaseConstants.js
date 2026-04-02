@@ -100,7 +100,8 @@ export default {
     additionalRobuxNeeded: 'Message.AdditionalRobux',
     economicRestrictionsErrorHeading: 'Heading.EconomicRestrictionsError',
     timedOptionDaysAbbreviation: 'Label.TimedOptionDaysAbbreviation',
-    timedOptionDaysTimerStartsWhenYouBuy: 'Label.TimedOptionDaysTimerStartsWhenYouBuy'
+    timedOptionDaysTimerStartsWhenYouBuy: 'Label.TimedOptionDaysTimerStartsWhenYouBuy',
+    unifiedPurchaseCompletionMessage: 'Message.UnifiedPurchaseCompletion'
   },
   assetTypes: {
     // library catagory type

@@ -58,6 +58,24 @@ export const finishPasskeyRegistration = (
     AuthApi.AuthApiError
   );
 
+export const finishARPreAuthPasskeyRegistration = (
+  recoverySession: string,
+  userId: number,
+  passkeySessionId: string,
+  passkeyRegistrationResponse: string,
+  isPostRecovery?: boolean
+): Promise<Result<AuthApi.FinishARPreAuthRegistrationReturnType, AuthApi.AuthApiError | null>> =>
+  toResult(
+    httpService.post(AuthApi.FINISH_AR_PRE_AUTH_REGISTRATION_CONFIG, {
+      recoverySession,
+      passkeySessionId,
+      passkeyRegistrationResponse,
+      userId,
+      isPostRecovery
+    }),
+    AuthApi.AuthApiError
+  );
+
 export const deletePasskeyBatch = (
   credentialNicknames: string[],
   passkeyCount: number

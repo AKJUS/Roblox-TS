@@ -3,7 +3,7 @@ import { ValidHttpUrl } from "@rbx/core-scripts/util/url";
 import { Button, Loading } from "@rbx/core-ui/legacy/react-style-guide";
 import { TranslateFunction, withTranslations } from "@rbx/core-scripts/legacy/react-utilities";
 import { translations } from "../constants/translations";
-import { PlayabilityStatus } from "../constants/playButtonConstants";
+import { PlayabilityStatus } from "../constants/playabilityStatus";
 import playButtonService from "../services/playButtonService";
 import {
   TGetProductDetails,

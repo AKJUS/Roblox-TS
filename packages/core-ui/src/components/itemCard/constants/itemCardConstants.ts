@@ -11,7 +11,7 @@ export default {
   itemRestrictionIcons: {
     limited: "icon-limited-label",
     limitedUnique: "icon-limited-unique-label",
-    dynamicHead: "icon-default-dynamichead",
+    dynamicHead: "",
     collectible: "icon-limited-unique-label",
     // NOTE (10/08/21, jpark):
     // Disabling rthro and thirteen plus here to preserve the feature until it is completely removed

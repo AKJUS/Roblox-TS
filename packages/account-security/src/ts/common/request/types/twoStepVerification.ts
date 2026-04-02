@@ -72,6 +72,7 @@ export type GetMetadataReturnType = {
   maskedUserEmail: string;
   isDelayedUiEnabled: boolean;
   is2svRecoveryEnabled: boolean;
+  isEppRecoveryCodesEnabled: boolean;
 };
 
 /**
@@ -225,6 +226,17 @@ export type GetRecoveryCodesStatusReturnType = {
 export const GET_RECOVERY_CODES_STATUS_CONFIG: (userId: string) => UrlConfig = userId => ({
   withCredentials: true,
   url: `${twoStepVerificationApiUrl}/v1/users/${userId}/recovery-codes`,
+  timeout: TwoStepVerificationTimeout
+});
+
+export type ClearRecoveryCodesReturnType = void;
+
+/**
+ * Request Type: `POST`.
+ */
+export const CLEAR_RECOVERY_CODES_CONFIG: (userId: string) => UrlConfig = userId => ({
+  withCredentials: true,
+  url: `${twoStepVerificationApiUrl}/v1/users/${userId}/recovery-codes/clear`,
   timeout: TwoStepVerificationTimeout
 });
 

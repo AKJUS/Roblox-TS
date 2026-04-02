@@ -4,7 +4,8 @@ import {
   sendUnlockPlayIntentEvent,
 } from "../utils/playButtonUtils";
 import ActionNeededButton from "./ActionNeededButton";
-import playButtonConstants, { PlayabilityStatus } from "../constants/playButtonConstants";
+import playButtonConstants from "../constants/playButtonConstants";
+import { PlayabilityStatus } from "../constants/playabilityStatus";
 
 const { unlockPlayIntentConstants } = playButtonConstants;
 

@@ -21,6 +21,7 @@ const RestrictedUnplayableModal = ({
     titleText={translate("RestrictedUnplayableModal.Label.Title")}
     bodyText={translate("RestrictedUnplayableModal.Label.Body")}
     secondaryButtonText={translate("RestrictedUnplayableModal.Action.Ok")}
+    closeLabelText={translate("Action.Close")}
     onSecondaryButtonClick={closeModal}
     isModalOpen={isModalOpen}
     onCloseModal={closeModal}

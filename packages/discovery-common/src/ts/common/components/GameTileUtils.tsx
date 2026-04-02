@@ -77,6 +77,7 @@ export const GameTileBase = ({
         gameData.placeId,
         gameData.name,
         buildEventProperties(gameData, id),
+        gameData.canonicalUrlPath,
       )}
       tabIndex={isOnScreen ? 0 : -1}
       aria-hidden={!isOnScreen}
@@ -89,7 +90,10 @@ export const GameTileBase = ({
           type={ThumbnailTypes.gameIcon}
           size={iconSize}
           targetId={gameData.universeId}
-          containerClass="game-card-thumb"
+          // The Games Page relies on staticly defined heights for the thumbnail
+          // so it needs to use "game-card-thumb" whereas other pages rely on
+          // the height being filled
+          containerClass={page === PageContext.GamesPage ? "game-card-thumb" : "game-tile-thumb"}
           format={ThumbnailFormat.jpeg}
           altName={gameData.name}
         />

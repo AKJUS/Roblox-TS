@@ -16,6 +16,7 @@ import { isWideTileComponentType } from "../../common/utils/parsingUtils";
 type TGridRecommendationsMap = Map<number, TOmniRecommendationGame[]>;
 type TItemsPerRowMap = Map<number, number>;
 type TStartingRowNumbersMap = Map<number, number>;
+type TTopicPositionOffsetsMap = Map<number, number>;
 
 const useApportionGridRecommendationsWithResize = (
   recommendations: TGetOmniRecommendationsResponse | undefined,
@@ -26,12 +27,18 @@ const useApportionGridRecommendationsWithResize = (
   gridRecommendationsMap: TGridRecommendationsMap;
   itemsPerRowMap: TItemsPerRowMap;
   startingRowNumbersMap: TStartingRowNumbersMap;
+  // For each sort position, stores the first tile's index out of all tiles with the same topicId
+  // e.g. for an RFY grid chunk, topicPositionOffset is the number of tiles in the previous chunks combined
+  topicPositionOffsetsMap: TTopicPositionOffsetsMap;
 } => {
   const [gridRecommendationsMap, setGridRecommendationsMap] = useState<TGridRecommendationsMap>(
     new Map(),
   );
 
   const [itemsPerRowMap, setItemsPerRowMap] = useState<TItemsPerRowMap>(new Map());
+  const [topicPositionOffsetsMap, setTopicPositionOffsetsMap] = useState<TTopicPositionOffsetsMap>(
+    new Map(),
+  );
 
   const previousItemsPerRowMap = usePrevious(itemsPerRowMap);
 
@@ -52,11 +59,13 @@ const useApportionGridRecommendationsWithResize = (
       });
 
       const gridRecsByPositionId: TGridRecommendationsMap = new Map();
+      const topicPositionOffsetsByPositionId: TTopicPositionOffsetsMap = new Map();
 
       recommendations?.sorts.forEach((sort, positionId) => {
         if (sort.treatmentType === TTreatmentType.SortlessGrid) {
           const gridRecs = gridRecsByTopic.get(sort.topicId) ?? [];
           const nextGridRecIndex = nextGridRecIndexByTopic.get(sort.topicId) ?? 0;
+          topicPositionOffsetsByPositionId.set(positionId, nextGridRecIndex);
 
           if (sort.numberOfRows !== undefined && sort.numberOfRows >= 0) {
             const itemsPerRow = itemsPerRowMap.get(positionId) ?? 0;
@@ -76,6 +85,7 @@ const useApportionGridRecommendationsWithResize = (
         }
       });
       setGridRecommendationsMap(gridRecsByPositionId);
+      setTopicPositionOffsetsMap(topicPositionOffsetsByPositionId);
     };
 
     if (
@@ -216,7 +226,13 @@ const useApportionGridRecommendationsWithResize = (
     };
   }, [updateItemsPerRow]);
 
-  return { homeFeedRef, gridRecommendationsMap, itemsPerRowMap, startingRowNumbersMap };
+  return {
+    homeFeedRef,
+    gridRecommendationsMap,
+    itemsPerRowMap,
+    startingRowNumbersMap,
+    topicPositionOffsetsMap,
+  };
 };
 
 export default useApportionGridRecommendationsWithResize;

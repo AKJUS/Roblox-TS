@@ -1,19 +1,27 @@
 import { useMemo } from "react";
 import { isVideoPlayerSupportedByBrowser } from "@rbx/video-player";
 import { authenticatedUser } from "@rbx/core-scripts/meta/user";
-import { usePlayabilityStatus, PlayabilityStatus } from "@rbx/game-play-button";
+import {
+  usePlayabilityStatus,
+  PlayabilityStatus,
+  useAgeRecommendationDataForUniverseId,
+} from "@rbx/game-play-button";
 import useExperimentValues from "../../common/hooks/useExperimentValues";
 import experimentConstants from "../../common/constants/experimentConstants";
 
 const { layerNames, defaultValues } = experimentConstants;
 
 /**
- * Verify that the user:
- * - is authenticated
- * - is enrolled in the IXP experiment for Game Preview Video (unless bypassed)
- * - can play this experience (experience is playable or the unplayable reason is not in the ineligible list)
+ * Determines whether an experience is eligible to show a game preview video.
  *
- * All of these conditions must be true for the user to see the Video Preview.
+ * Authenticated users must:
+ * - be in a browser that supports the video player
+ * - be enrolled in the IXP experiment (or bypassed)
+ * - have a playability response that is eligible for video
+ *
+ * Unauthenticated users must:
+ * - be in a browser that supports the video player
+ * - be on an experience with a content maturity rating of "minimal"
  *
  * @param universeId - The universe ID of the experience
  * @param shouldBypassIxpCheck - If true, skip the IXP experiment check (used for tile video
@@ -50,6 +58,15 @@ const useIsEligibleForVideoPreview = (
 
   const { playabilityStatus, isPlayable, isFetchingPlayability } = usePlayabilityStatus(universeId);
 
+  const isAuthenticated = Boolean(authenticatedUser()?.isAuthenticated);
+
+  const { ageRecommendationData, isLoading: isLoadingAgeRecommendationData } =
+    useAgeRecommendationDataForUniverseId(
+      universeId,
+      // Disable fetch for authenticated users and for unsupported browsers (maturity rating is not used)
+      isAuthenticated || !browserCompatibilityResult.isSupported,
+    );
+
   const { ixpData, isLoading } = useExperimentValues(
     layerNames.gameDetails,
     defaultValues.gameDetails,
@@ -58,6 +75,39 @@ const useIsEligibleForVideoPreview = (
   const isGamePreviewVideoEnabledIxp = shouldBypassIxpCheck || ixpData.IsGamePreviewVideoEnabled;
 
   return useMemo(() => {
+    if (!browserCompatibilityResult.isSupported) {
+      return {
+        isEligibleForVideoPreview: false,
+        isLoadingEligibility: false,
+      };
+    }
+
+    if (!isAuthenticated) {
+      // Unauthenticated users are eligible for video if the experience maturity rating is minimal (ignore IXP and playability)
+      if (isLoadingAgeRecommendationData) {
+        return {
+          isEligibleForVideoPreview: false,
+          isLoadingEligibility: true,
+        };
+      }
+
+      const contentMaturityRating =
+        ageRecommendationData?.ageRecommendationDetails?.summary.ageRecommendation?.contentMaturity;
+
+      if (contentMaturityRating === "minimal") {
+        return {
+          isEligibleForVideoPreview: true,
+          isLoadingEligibility: false,
+        };
+      }
+
+      return {
+        isEligibleForVideoPreview: false,
+        isLoadingEligibility: false,
+      };
+    }
+
+    // Authenticated users are eligible for video if IXP is enabled (or bypassed) and playability is valid
     if (isLoadingIxp || isFetchingPlayability) {
       return {
         isEligibleForVideoPreview: false,
@@ -71,11 +121,7 @@ const useIsEligibleForVideoPreview = (
       (playabilityStatus !== undefined &&
         !ineligibleVideoPlayabilityStatuses.has(playabilityStatus));
 
-    const isEligible =
-      Boolean(authenticatedUser()?.isAuthenticated) &&
-      isGamePreviewVideoEnabledIxp &&
-      isEligibleFromPlayabilityStatus &&
-      browserCompatibilityResult.isSupported;
+    const isEligible = isGamePreviewVideoEnabledIxp && isEligibleFromPlayabilityStatus;
 
     return {
       isEligibleForVideoPreview: isEligible,
@@ -84,9 +130,12 @@ const useIsEligibleForVideoPreview = (
   }, [
     isGamePreviewVideoEnabledIxp,
     isLoadingIxp,
+    isAuthenticated,
     playabilityStatus,
     isPlayable,
     isFetchingPlayability,
+    ageRecommendationData,
+    isLoadingAgeRecommendationData,
     ineligibleVideoPlayabilityStatuses,
     browserCompatibilityResult.isSupported,
   ]);

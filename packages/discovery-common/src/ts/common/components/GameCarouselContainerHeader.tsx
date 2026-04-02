@@ -1,7 +1,8 @@
-import React, { useCallback, useMemo } from "react";
+import React, { ComponentType, useCallback, useMemo } from "react";
 import { Link } from "@rbx/core-ui";
 import { Link as RouterLink } from "react-router-dom";
 import { TranslateFunction } from "@rbx/core-scripts/react";
+import { TLinkComponentProps } from "@rbx/discovery-sdui-components";
 import { sendEvent } from "@rbx/core-scripts/event-stream";
 import GamesInfoTooltip from "./GamesInfoTooltip";
 import {
@@ -32,6 +33,7 @@ type TGameCarouselContainerHeaderProps = {
   backgroundImageAssetId?: number;
   isNewSortHeaderEnabled?: boolean;
   useRouterLink?: boolean;
+  permitLinkClickPropagation?: boolean;
   translate: TranslateFunction;
 };
 
@@ -52,6 +54,7 @@ const GameCarouselContainerHeader = ({
   backgroundImageAssetId,
   isNewSortHeaderEnabled,
   useRouterLink,
+  permitLinkClickPropagation,
   translate,
 }: TGameCarouselContainerHeaderProps): JSX.Element => {
   const tooltipText = useMemo(() => {
@@ -131,6 +134,10 @@ const GameCarouselContainerHeader = ({
         hasBackgroundMural={!!backgroundImageAssetId}
         tooltipText={tooltipText}
         hideSeeAll={hideSeeAll}
+        linkComponent={
+          useRouterLink ? (RouterLink as ComponentType<TLinkComponentProps>) : undefined
+        }
+        permitLinkClickPropagation={permitLinkClickPropagation}
       />
     );
   }

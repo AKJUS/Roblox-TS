@@ -8,7 +8,8 @@ function chatAvatarHeadshot(resources) {
     scope: {
       userId: '@',
       className: '@',
-      layoutLibrary: '='
+      layoutLibrary: '=',
+      friendsDict: '=?'
     },
     templateUrl: resources.templates.chatAvatarHeadshot
   };

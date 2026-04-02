@@ -9,6 +9,7 @@ export enum PageContext {
   InterestCatcher = "interestCatcher",
   SearchLandingPage = "searchLandingPage",
   SpotlightPage = "spotlightPage",
+  UserProfilePage = "userProfilePage",
 }
 
 export default {

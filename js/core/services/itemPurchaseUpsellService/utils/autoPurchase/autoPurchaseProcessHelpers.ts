@@ -104,6 +104,20 @@ async function validateAndGetDataObject(
     stopAndRedirectDueToSuspiciousBehavior(itemPath);
   }
 
+  // Subscriptions use their own purchase API keyed by subscriptionTargetKey, not productId
+  if (cookieData.subscriptionTargetKey) {
+    const itemDetailData = {
+      expectedPrice: cookieData.expectedPrice || '0',
+      expectedCurrency: cookieData.expectedCurrency || '1',
+      expectedSellerId: cookieData.expectedSellerId || '',
+      assetType: 'Subscription',
+      productId: cookieData.productId || '0',
+      itemName: String(itemDetailDataElementMap?.itemName ?? ''),
+      subscriptionTargetKey: String(cookieData.subscriptionTargetKey ?? '')
+    } as ItemDetailElementDataset;
+    return [itemPurchaseAjaxData!, itemDetailData];
+  }
+
   let productInfo;
   try {
     // It is a known issue that Item-Hydration service returns incorrect productId for collectible items which is propogated to the cookie.

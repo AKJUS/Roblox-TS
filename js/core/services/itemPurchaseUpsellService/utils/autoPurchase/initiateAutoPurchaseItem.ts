@@ -25,6 +25,7 @@ import {
   COLLECTIBLE_ITEM_PURCHASE_API,
   GAME_PASS_PURCHASE_API,
   ORIGINAL_PURCHASE_API,
+  SUBSCRIPTION_PURCHASE_WITH_ROBUX_API,
   UPSELL_COUNTER_NAMES
 } from '../../constants/upsellConstants';
 import { invalidateCurrentAutoPurchaseFlow } from '../common/invalidationHelpers';
@@ -140,6 +141,37 @@ async function purchaseWithUrl(
   }
 }
 
+async function purchaseSubscriptionWithRobux(
+  urlString: string,
+  itemPurchaseObj: ItemPurchaseObject,
+  loadingOverlay: LoadingOverlay,
+  translationResource: RobloxTranslationResource
+): Promise<void> {
+  const urlConfig = {
+    url: urlString,
+    withCredentials: true,
+    retryable: false,
+    noCache: true,
+    noPragma: true
+  };
+  try {
+    await httpService.post(urlConfig, {
+      priceInRobux: itemPurchaseObj.expectedPrice
+    });
+
+    reportCounter(UPSELL_COUNTER_NAMES.AutoPurchaseSucceed, itemPurchaseObj.assetType);
+    loadingOverlay.hide();
+    const robuxLeft = itemPurchaseObj.userBalance - itemPurchaseObj.expectedPrice;
+    openNewPurchaseSucceededModal(itemPurchaseObj, robuxLeft, translationResource, loadingOverlay);
+    return Promise.resolve();
+  } catch (purchaseErr) {
+    loadingOverlay.hide();
+    reportCounter(UPSELL_COUNTER_NAMES.AutoPurchaseFailed, itemPurchaseObj.assetType);
+    openTryAgainLaterErrorModal(itemPurchaseObj, translationResource);
+    return Promise.reject(purchaseErr);
+  }
+}
+
 export default async function initiateAutoPurchaseItem(
   itemPurchaseObj: ItemPurchaseObject,
   purchaseCallback:
@@ -186,6 +218,21 @@ export default async function initiateAutoPurchaseItem(
   }
 
   reportCounter(UPSELL_COUNTER_NAMES.AutoPurchaseStarted, itemPurchaseObj.assetType);
+
+  if (itemPurchaseObj.itemDetail?.subscriptionTargetKey) {
+    const subscriptionPurchaseUrl = `${
+      EnvironmentUrls.apiGatewayUrl
+    }${SUBSCRIPTION_PURCHASE_WITH_ROBUX_API.replace(
+      '{subscriptionTargetKey}',
+      itemPurchaseObj.itemDetail.subscriptionTargetKey
+    )}`;
+    return purchaseSubscriptionWithRobux(
+      subscriptionPurchaseUrl,
+      itemPurchaseObj,
+      loadingOverlay,
+      translationResource
+    );
+  }
 
   if (itemPurchaseObj.assetType === ASSET_TYPE_ENUM.GAME_PASS) {
     return purchaseWithUrl(

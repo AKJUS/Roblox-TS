@@ -8,6 +8,8 @@ const signalRConnectionWrapper = function (
   onNotificationCallback,
   onSubscriptionStatusCallback,
   onTopicNotificationCallback,
+  onTopicSubscriptionErrorCallback,
+  onTopicTokenExpiryCallback,
 ) {
   // TODO: old, migrated code
   // eslint-disable-next-line no-invalid-this
@@ -157,10 +159,11 @@ const signalRConnectionWrapper = function (
     });
     userNotificationsHub = connection.createHubProxy("userNotificationHub");
 
-    // Subscribe to events raised by the server(magikx)
     userNotificationsHub.on("notification", onNotificationCallback);
     userNotificationsHub.on("subscriptionStatus", onSubscriptionStatusCallback);
     userNotificationsHub.on("topicNotification", onTopicNotificationCallback);
+    userNotificationsHub.on("topicSubscriptionError", onTopicSubscriptionErrorCallback);
+    userNotificationsHub.on("topicTokenExpiry", onTopicTokenExpiryCallback);
 
     // Wire up signalR connection state change events
     connection.stateChanged(handleSignalRStateChange);

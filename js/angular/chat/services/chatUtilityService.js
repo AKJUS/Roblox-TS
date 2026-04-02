@@ -88,6 +88,8 @@ function chatUtility(
 
     osaAcknowledgementStatus: angular.copy(dialogAttributes.osaAcknowledgementStatus),
 
+    userChatMessageOptInStatus: angular.copy(dialogAttributes.userChatMessageOptInStatus),
+
     dialogInitValue: angular.copy(dialogAttributes.dialogInitValue),
 
     dialogStatus: angular.copy(dialogAttributes.dialogStatus),

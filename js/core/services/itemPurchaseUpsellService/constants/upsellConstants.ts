@@ -24,6 +24,8 @@ export const COLLECTIBLE_ITEM_PURCHASE_API =
   '/marketplace-sales/v1/item/{collectibleItemId}/purchase-item';
 export const COLLECTIBLE_ITEM_INSTANCE_PURCHASE_API =
   '/marketplace-sales/v1/item/{collectibleItemId}/purchase-resale';
+export const SUBSCRIPTION_PURCHASE_WITH_ROBUX_API =
+  '/v1/subscriptions/purchase-with-robux/{subscriptionTargetKey}';
 export const PRODUCT_INFO_API_SUCCESS_REASON = 'Success';
 export const PURCHASE_WARNING_REQUEST_TIMEOUT = 5000;
 
@@ -34,7 +36,8 @@ export const ASSET_TYPE_ENUM = {
   GAME_PASS: 'Game Pass',
   BUNDLE: 'Bundle',
   BUNDLE_ALIAS: 'Package',
-  PRIVATE_SERVER: 'Private Server'
+  PRIVATE_SERVER: 'Private Server',
+  DEVELOPER_PRODUCT: 'Product'
   // the itemType of bundle item is Bundle, the assetType is Package in the cshtml
   // but in the product API, the asset type of bundle item is Bundle...
   // not gonna dig into it why, just check both for the bundle items whenever it's a package
@@ -55,6 +58,7 @@ export const THUMBNAIL_DEFAULT_REQUEST_PARAMS = {
 export const LANG_KEYS = {
   backToShopAction: 'Action.BackToShop',
   buyRobuxAndItemAction: 'Action.BuyRobuxAndItem',
+  buyRobuxAndSubscriptionAction: 'Action.BuyRobuxAndSubscription',
   buyRobux: 'Action.BuyRobux',
   buy: 'Action.Buy',
   cancelAction: 'Action.Cancel',

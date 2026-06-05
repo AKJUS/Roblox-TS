@@ -34,9 +34,11 @@ const FiltersFeedItem = ({
 
   return (
     <div ref={filtersContainerRef} className="filters-container">
-      <div className="filters-header-container">
-        <span className="filters-header">{sort.topic}</span>
-      </div>
+      {sort.topic && (
+        <div className="filters-header-container">
+          <span className="filters-header">{sort.topic}</span>
+        </div>
+      )}
       <div className="filter-items-container">
         {sort.filters.map(filter => (
           <GamesFilter

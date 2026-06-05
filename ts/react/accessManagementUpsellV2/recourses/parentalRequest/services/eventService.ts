@@ -53,6 +53,9 @@ const getContext = (requestType: RequestType, details: Record<string, unknown>) 
     case RequestType.UpdateUserSetting:
       context = events.updateUserSettingContext;
       break;
+    case RequestType.AddTrustedConnection:
+      context = events.addTrustedFriendVpcContext;
+      break;
     default:
       context = events.chargebackContext;
   }

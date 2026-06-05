@@ -58,7 +58,7 @@ const getProfiles = async (userIds: number[]): Promise<TGetProfilesResponse> => 
 
   const requestData = {
     userIds,
-    fields: ["names.combinedName", "isVerified"],
+    fields: ["names.combinedName", "isVerified", "hasRobloxSubscription"],
   };
 
   const { data } = await http.post<TGetProfilesResponse>(urlConfig, requestData);
@@ -108,6 +108,7 @@ const getFriends = async (userId: number, isOwnUser: boolean): Promise<TFriend[]
       combinedName: friend?.names.combinedName,
       presence,
       hasVerifiedBadge: friend?.isVerified ?? false,
+      isRobloxPlus: friend?.hasRobloxSubscription === true,
     });
   });
 

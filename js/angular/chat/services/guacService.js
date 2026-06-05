@@ -14,10 +14,8 @@ function guacService($q, httpService, $log) {
     getAbuseReportRevampPolicies() {
       return Guac.callBehaviour('abuse-reporting-revamp');
     },
-    getRenameFriendsPolicies() {
-      return Guac.callBehaviour('web-rename-friends')
-        .then(data => ({ renameFriendsToConnections: !(data?.connectionsToFriendsRenameEnabled ?? false) }))
-        .catch(() => ({ renameFriendsToConnections: true }));
+    getPlusIdentityBadgePolicies() {
+      return Guac.callBehaviour('web-plus-identity-badge');
     }
   };
 }

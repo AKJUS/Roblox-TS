@@ -133,6 +133,60 @@ export class PaymentFlowAnalyticsService {
   }
 
   /**
+   * Helper method for the Roblox Plus upsell process to start a new flow
+   * using asset type info.
+   *
+   * @param assetType
+   * @param isReseller
+   * @param isPrivateServer
+   * @param isPlace
+   * @param itemId
+   */
+  public startRobloxPlusUpsellFlow(
+    // TODO: remove string from here
+    assetType: ASSET_TYPE | string,
+    isReseller = false,
+    // TODO: old, migrated code
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    isPrivateServer = false,
+    // TODO: old, migrated code
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    isPlace = false,
+    itemId = "",
+  ): void {
+    this.eventMetadata.item_type = assetType;
+    this.eventMetadata.item_id = itemId;
+
+    if (isReseller) {
+      this.triggerContext = TRIGGERING_CONTEXT.WEB_CATALOG_COLLECTIVE_ITEM_PLUS_UPSELL;
+    } else {
+      switch (assetType) {
+        case ASSET_TYPE.GAME_PASS.valueOf():
+          this.triggerContext = TRIGGERING_CONTEXT.WEB_GAME_PASS_PLUS_UPSELL;
+          break;
+        case ASSET_TYPE.DEVELOPER_PRODUCT.valueOf():
+          this.triggerContext = TRIGGERING_CONTEXT.WEB_DEVELOPER_PRODUCT_PLUS_UPSELL;
+          break;
+        case ASSET_TYPE.PRIVATE_SERVER.valueOf():
+          this.triggerContext = TRIGGERING_CONTEXT.WEB_PRIVATE_SERVER_PLUS_UPSELL;
+          break;
+        case ASSET_TYPE.BUNDLE.valueOf():
+        case ASSET_TYPE.PACKAGE.valueOf():
+          this.triggerContext = TRIGGERING_CONTEXT.WEB_CATALOG_BUNDLE_ITEM_PLUS_UPSELL;
+          break;
+        case ASSET_TYPE.SUBSCRIPTION.valueOf():
+          this.triggerContext = TRIGGERING_CONTEXT.WEB_DEVELOPER_SUBSCRIPTION_PLUS_UPSELL;
+          break;
+        default:
+          this.triggerContext = TRIGGERING_CONTEXT.WEB_CATALOG_SINGLE_ITEM_PLUS_UPSELL;
+          break;
+      }
+    }
+
+    this.writePaymentFlowContextIntoCookie();
+  }
+
+  /**
    * Send a user purchase flow event
    * This method could used to generate a new flow, or continue the existing flow
    *
@@ -377,6 +431,15 @@ export class PaymentFlowAnalyticsService {
         return isInApp
           ? TRIGGERING_CONTEXT.WEBVIEW_PREMIUM_PURCHASE
           : TRIGGERING_CONTEXT.MOBILE_WEB_PREMIUM_PURCHASE;
+      case TRIGGERING_CONTEXT.WEB_ROBLOX_PLUS_PURCHASE:
+      case TRIGGERING_CONTEXT.WEBVIEW_ROBLOX_PLUS_PURCHASE:
+        return isInApp
+          ? TRIGGERING_CONTEXT.WEBVIEW_ROBLOX_PLUS_PURCHASE
+          : TRIGGERING_CONTEXT.WEB_ROBLOX_PLUS_PURCHASE;
+      case TRIGGERING_CONTEXT.MOBILE_WEB_ROBLOX_PLUS_PURCHASE:
+        return isInApp
+          ? TRIGGERING_CONTEXT.WEBVIEW_ROBLOX_PLUS_PURCHASE
+          : TRIGGERING_CONTEXT.MOBILE_WEB_ROBLOX_PLUS_PURCHASE;
       case TRIGGERING_CONTEXT.WEB_CATALOG_ROBUX_UPSELL:
       case TRIGGERING_CONTEXT.WEB_CATALOG_PREMIUM_UPSELL:
       case TRIGGERING_CONTEXT.WEB_CATALOG_COLLECTIVE_ITEM_ROBUX_UPSELL:
@@ -391,6 +454,13 @@ export class PaymentFlowAnalyticsService {
       case TRIGGERING_CONTEXT.WEB_GIFT_CARD_PURCHASE:
       case TRIGGERING_CONTEXT.WEB_REDEEM_PAGE:
       case TRIGGERING_CONTEXT.WEB_PAYMENT_METHODS_SETTING:
+      case TRIGGERING_CONTEXT.WEB_CATALOG_SINGLE_ITEM_PLUS_UPSELL:
+      case TRIGGERING_CONTEXT.WEB_CATALOG_COLLECTIVE_ITEM_PLUS_UPSELL:
+      case TRIGGERING_CONTEXT.WEB_CATALOG_BUNDLE_ITEM_PLUS_UPSELL:
+      case TRIGGERING_CONTEXT.WEB_GAME_PASS_PLUS_UPSELL:
+      case TRIGGERING_CONTEXT.WEB_DEVELOPER_PRODUCT_PLUS_UPSELL:
+      case TRIGGERING_CONTEXT.WEB_PRIVATE_SERVER_PLUS_UPSELL:
+      case TRIGGERING_CONTEXT.WEB_DEVELOPER_SUBSCRIPTION_PLUS_UPSELL:
       default:
         return triggerContext;
     }

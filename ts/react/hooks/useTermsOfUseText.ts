@@ -1,7 +1,9 @@
+import React, { useState, useEffect } from 'react';
 import { RobloxIntlInstance } from 'Roblox';
-import { useState, useEffect } from 'react';
 import { TranslateFunction } from 'react-utilities';
 import { urlService } from 'core-utilities';
+import { translateHtml } from '@rbx/translation-utils';
+import type { TranslateHtmlTag } from '@rbx/translation-utils';
 import {
   ROBLOX_TERMS_OF_USE_URL,
   ROBLOX_TERMS_OF_USE_ANCHOR_FOR_DMCCA,
@@ -9,8 +11,10 @@ import {
 } from '../../../js/core/services/itemPurchaseUpsellService/constants/upsellConstants';
 import ampFeatureService from '../services/ampFeatureService';
 
-export default function useTermsOfUseText(translate: TranslateFunction, intl: RobloxIntlInstance) {
-  const [termsOfUseText, setTermsOfUseText] = useState('');
+export default function useTermsOfUseText(
+  translate: TranslateFunction,
+  intl: RobloxIntlInstance
+): React.ReactNode {
   const [isDmccaLegalTextFeature, setIsDmccaLegalTextFeature] = useState(false);
 
   useEffect(() => {
@@ -18,30 +22,29 @@ export default function useTermsOfUseText(translate: TranslateFunction, intl: Ro
     ampFeatureService()
       .getDmccaLegalTextFeature()
       .then(isShowDmcca => {
-        if (isShowDmcca) {
-          setIsDmccaLegalTextFeature(true);
-        }
+        if (isShowDmcca) setIsDmccaLegalTextFeature(true);
       })
       .catch(err => {
         console.warn('Failed to fetch DMCCA feature', err);
       });
   }, []);
 
-  useEffect(() => {
-    let url = urlService.getUrlWithLocale(ROBLOX_TERMS_OF_USE_URL, intl.getRobloxLocale());
-    if (isDmccaLegalTextFeature) {
-      url += ROBLOX_TERMS_OF_USE_ANCHOR_FOR_DMCCA;
+  const url =
+    urlService.getUrlWithLocale(ROBLOX_TERMS_OF_USE_URL, intl.getRobloxLocale()) +
+    (isDmccaLegalTextFeature ? ROBLOX_TERMS_OF_USE_ANCHOR_FOR_DMCCA : '');
+
+  const tags: TranslateHtmlTag[] = [
+    {
+      opening: 'aTagStart',
+      closing: 'aTagEnd',
+      render: text =>
+        React.createElement(
+          'a',
+          { href: url, target: '_blank', rel: 'noreferrer', className: 'underline' },
+          text
+        )
     }
+  ];
 
-    const termsOfUseTag = `<a style='text-decoration: underline;' target='_blank' href='${url}'>`;
-
-    const formattedTermsOfUseText = translate(LANG_KEYS.termsOfUseText, {
-      aTagStart: termsOfUseTag,
-      aTagEnd: '</a>'
-    });
-
-    setTermsOfUseText(formattedTermsOfUseText);
-  }, [isDmccaLegalTextFeature, intl, translate]);
-
-  return termsOfUseText;
+  return translateHtml(translate, LANG_KEYS.termsOfUseText, tags);
 }

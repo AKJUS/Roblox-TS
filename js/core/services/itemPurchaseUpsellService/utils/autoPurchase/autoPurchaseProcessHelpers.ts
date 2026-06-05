@@ -112,7 +112,7 @@ async function validateAndGetDataObject(
       expectedSellerId: cookieData.expectedSellerId || '',
       assetType: 'Subscription',
       productId: cookieData.productId || '0',
-      itemName: String(itemDetailDataElementMap?.itemName ?? ''),
+      itemName: String(cookieData.itemName || itemDetailDataElementMap?.itemName || ''),
       subscriptionTargetKey: String(cookieData.subscriptionTargetKey ?? '')
     } as ItemDetailElementDataset;
     return [itemPurchaseAjaxData!, itemDetailData];

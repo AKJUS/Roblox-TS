@@ -20,6 +20,7 @@ const FriendsList = ({
   sortPosition,
   badgeCount,
   isAddFriendsTileEnabled,
+  isIARCJoinCardRedesignEnabled,
 }: {
   friendsList: TFriend[] | null;
   isOwnUser: boolean;
@@ -32,6 +33,7 @@ const FriendsList = ({
   sortPosition: number | undefined;
   badgeCount: number;
   isAddFriendsTileEnabled: boolean;
+  isIARCJoinCardRedesignEnabled: boolean;
 }): JSX.Element => {
   const parentRef = useRef<HTMLElement | null>(null);
   const [visibleFriendsList, setVisibleFriendsList] = useState(friendsList);
@@ -111,6 +113,7 @@ const FriendsList = ({
                   sortId={sortId}
                   sortPosition={sortPosition}
                   totalNumberOfFriends={friendsList?.length ?? 0}
+                  isIARCJoinCardRedesignEnabled={isIARCJoinCardRedesignEnabled}
                 />
               </div>
             ))}

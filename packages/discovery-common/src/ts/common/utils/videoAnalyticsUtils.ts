@@ -1,4 +1,4 @@
-import { VideoEventPageContext } from "@rbx/video-player";
+import { CmcdInstanceType, VideoEventPageContext } from "@rbx/video-player";
 import { PageContext } from "../types/pageContext";
 import { common } from "../constants/configConstants";
 
@@ -22,5 +22,20 @@ export const getVideoEventPageContext = (
     default:
       window.EventTracker?.fireEvent(common.NoMatchingVideoEventPageContextFoundCounterEvent);
       return undefined;
+  }
+};
+
+/**
+ * Converts a PageContext to the corresponding CmcdInstanceType for video cost to serve telemetry.
+ */
+export const getVideoCmcdInstanceType = (pageContext?: PageContext): CmcdInstanceType => {
+  switch (pageContext) {
+    case PageContext.HomePage:
+      return CmcdInstanceType.Home;
+    case PageContext.GameDetailPage:
+      return CmcdInstanceType.ExperiencePage;
+    default:
+      window.EventTracker?.fireEvent(common.NoMatchingVideoCmcdInstanceTypeFoundCounterEvent);
+      return CmcdInstanceType.Home;
   }
 };

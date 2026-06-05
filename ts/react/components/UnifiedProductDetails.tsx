@@ -5,6 +5,7 @@ import { Icon } from '@rbx/foundation-ui';
 import AssetName from '../../../js/react/itemPurchase/components/AssetName';
 import PriceLabel from '../../../js/react/itemPurchase/components/PriceLabel';
 import itemPurchaseConstants from '../../../js/react/itemPurchase/constants/itemPurchaseConstants';
+import type { DiscountInformation } from './discountInformation';
 
 const { resources } = itemPurchaseConstants;
 
@@ -17,6 +18,7 @@ export type UnifiedProductDetailsProps = {
   priceSuffix?: string;
   thumbnailSizePx?: number;
   rentalOptionDays?: number | null;
+  discountInformation?: DiscountInformation | null;
 };
 
 const UnifiedProductDetails: React.FC<UnifiedProductDetailsProps> = ({
@@ -27,11 +29,57 @@ const UnifiedProductDetails: React.FC<UnifiedProductDetailsProps> = ({
   displayPrice,
   priceSuffix,
   thumbnailSizePx = 150,
-  rentalOptionDays = null
+  rentalOptionDays = null,
+  discountInformation
 }) => {
   const thumbnailContainerStyle: React.CSSProperties = {
     maxWidth: '40vw',
     maxHeight: '40vw'
+  };
+
+  const hasDiscount =
+    discountInformation?.originalPrice != null && discountInformation.originalPrice > expectedPrice;
+
+  const renderPrice = () => {
+    if (hasDiscount) {
+      return (
+        <div className='flex flex-row items-center flex-wrap gap-x-small'>
+          <span className='flex flex-row items-center'>
+            <PriceLabel translate={translate} price={expectedPrice} color='' useFreeText={false} />
+            {priceSuffix && <span className='text-robux'>{priceSuffix}</span>}
+          </span>
+          <span
+            className='flex flex-row items-center'
+            style={{ textDecoration: 'line-through', opacity: 0.6 }}>
+            <PriceLabel
+              translate={translate}
+              price={discountInformation.originalPrice}
+              color=''
+              useFreeText={false}
+            />
+            {priceSuffix && <span className='text-robux'>{priceSuffix}</span>}
+          </span>
+        </div>
+      );
+    }
+
+    if (displayPrice) {
+      return (
+        <div className='flex flex-row items-center'>
+          <span className='text-robux'>
+            {displayPrice}
+            {priceSuffix}
+          </span>
+        </div>
+      );
+    }
+
+    return (
+      <div className='flex flex-row items-center'>
+        <PriceLabel translate={translate} price={expectedPrice} color='' useFreeText={false} />
+        {priceSuffix && <span className='text-robux'>{priceSuffix}</span>}
+      </div>
+    );
   };
 
   return (
@@ -59,7 +107,7 @@ const UnifiedProductDetails: React.FC<UnifiedProductDetailsProps> = ({
         <span className='text-body-large break-words'>
           <AssetName name={assetName} />
         </span>
-        {rentalOptionDays != null && (
+        {rentalOptionDays != null && rentalOptionDays > 0 && (
           <div className='flex flex-row items-center gap-small'>
             <Icon name='icon-regular-clock' />
             <span>
@@ -69,24 +117,7 @@ const UnifiedProductDetails: React.FC<UnifiedProductDetailsProps> = ({
             </span>
           </div>
         )}
-        <div className='flex flex-row items-center'>
-          {displayPrice ? (
-            <span className='text-robux'>
-              {displayPrice}
-              {priceSuffix}
-            </span>
-          ) : (
-            <React.Fragment>
-              <PriceLabel
-                translate={translate}
-                price={expectedPrice}
-                color=''
-                useFreeText={false}
-              />
-              {priceSuffix && <span className='text-robux'>{priceSuffix}</span>}
-            </React.Fragment>
-          )}
-        </div>
+        {renderPrice()}
       </div>
     </div>
   );

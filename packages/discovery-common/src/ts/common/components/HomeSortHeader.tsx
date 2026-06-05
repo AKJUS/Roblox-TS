@@ -27,6 +27,9 @@ type THomeSortHeaderProps = {
   // Whether the subtitle link is separate from the title link
   shouldShowSeparateSubtitleLink: boolean;
 
+  // Optional callback for when the subtitle is activated. If provided, takes precedence over subtitle link navigation
+  subtitleAction?: () => void;
+
   // Whether there is a background mural on the sort
   hasBackgroundMural: boolean;
 
@@ -36,8 +39,11 @@ type THomeSortHeaderProps = {
   // Whether to hide the See All button and seeAllLink
   hideSeeAll: boolean | undefined;
 
-  // Custom link component (e.g. React Router's Link) that is renderred instead of a plain <a> tag when provided
-  linkComponent?: ComponentType<TLinkComponentProps>;
+  // Custom title link component (e.g. React Router's Link) that is rendered instead of plain <a> tags
+  titleLinkComponent?: ComponentType<TLinkComponentProps>;
+
+  // Custom subtitle link component (e.g. React Router's Link) that is rendered instead of plain <a> tags
+  subtitleLinkComponent?: ComponentType<TLinkComponentProps>;
 
   // When true, allows click event to bubble up from both title and subtitle links
   permitLinkClickPropagation?: boolean;
@@ -56,16 +62,21 @@ const HomeSortHeader = ({
   subtitleText,
   subtitleLink,
   shouldShowSeparateSubtitleLink,
+  subtitleAction,
   hasBackgroundMural,
   tooltipText,
   hideSeeAll,
-  linkComponent,
+  titleLinkComponent,
+  subtitleLinkComponent,
   permitLinkClickPropagation,
 }: THomeSortHeaderProps): JSX.Element => {
   const tokens = useTokens();
 
   const hasSubtitleLink =
-    (isSortLinkOverrideEnabled || shouldShowSeparateSubtitleLink) && subtitleLink && subtitleText;
+    !subtitleAction &&
+    (isSortLinkOverrideEnabled || shouldShowSeparateSubtitleLink) &&
+    subtitleLink &&
+    subtitleText;
 
   const subtitleTextColor = useMemo(() => {
     if (subtitleText) {
@@ -91,6 +102,16 @@ const HomeSortHeader = ({
     return undefined;
   }, [hasSubtitleLink, hasBackgroundMural]);
 
+  const onSubtitleActivated = useMemo(() => {
+    if (subtitleAction) {
+      return subtitleAction;
+    }
+    if (hasSubtitleLink) {
+      return sendNavigateToSortLinkEvent;
+    }
+    return undefined;
+  }, [subtitleAction, hasSubtitleLink, sendNavigateToSortLinkEvent]);
+
   return (
     <div className="home-sort-header-container" style={{ marginBottom: tokens.Gap.Large }}>
       <SectionHeader
@@ -98,7 +119,7 @@ const HomeSortHeader = ({
         onTitleActivated={hideSeeAll ? undefined : sendNavigateToSortLinkEvent}
         titleLinkPath={hideSeeAll ? undefined : titleLink}
         permitLinkClickPropagation={permitLinkClickPropagation}
-        linkComponent={linkComponent}
+        titleLinkComponent={titleLinkComponent}
         // Force text color to dark mode token (white) if there is a background mural
         titleTextColor={
           hasBackgroundMural ? tokens.Color.Extended.Gray.Gray_100 : tokens.Color.Content.Emphasis
@@ -113,8 +134,9 @@ const HomeSortHeader = ({
         subtitleTextColor={subtitleTextColor}
         subtitleFontStyle={subtitleText ? tokens.Typography.BodyMedium : undefined}
         subtitleGap={hasSubtitleLink ? tokens.Gap.XXSmall : undefined}
-        onSubtitleActivated={hasSubtitleLink ? sendNavigateToSortLinkEvent : undefined}
+        onSubtitleActivated={onSubtitleActivated}
         subtitleLinkPath={hasSubtitleLink ? subtitleLink : undefined}
+        subtitleLinkComponent={subtitleLinkComponent}
         subtitleIconClassName={hasSubtitleLink ? subtitleIconClassName : undefined}
         subtitleIconWidth={hasSubtitleLink ? 22 : undefined}
         subtitleIconFirst={false}

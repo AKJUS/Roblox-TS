@@ -30,7 +30,8 @@ const resources = {
     contactCardTemplate: 'contact-card',
     osaContextCardTemplate: 'osa-context-card',
     dialogAlertTemplate: 'dialog-alert',
-    conversationInviteDialogTemplate: 'conversation-invite-dialog'
+    conversationInviteDialogTemplate: 'conversation-invite-dialog',
+    displayNameBadgesTemplate: 'display-name-badges'
   },
   eventStreamParams: {
     actions: {

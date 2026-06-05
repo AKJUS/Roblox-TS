@@ -2,10 +2,7 @@ import React, { JSX } from "react";
 import classNames from "classnames";
 import { authenticatedUser } from "@rbx/core-scripts/meta/user";
 import { formatNumber } from "@rbx/core-scripts/format/number";
-import { TranslateFunction } from "@rbx/core-scripts/react";
-import { Icon } from "@rbx/foundation-ui";
 import itemCardConstants from "../constants/itemCardConstants";
-import { TTimedOption } from "../constants/itemCardTypes";
 
 function ItemCardPrice({
   creatorTargetId,
@@ -15,8 +12,6 @@ function ItemCardPrice({
   premiumPricing,
   unitsAvailableForConsumption,
   enableThumbnailPrice,
-  timedOptions,
-  translate,
 }: {
   creatorTargetId: number;
   price: number | undefined;
@@ -25,10 +20,7 @@ function ItemCardPrice({
   premiumPricing: number | undefined;
   unitsAvailableForConsumption: number | undefined;
   enableThumbnailPrice: boolean;
-  timedOptions?: TTimedOption[];
-  translate: TranslateFunction;
 }): JSX.Element {
-  const selectedTimedOption = timedOptions?.find(option => option.selected);
   const hasSecondaryInfo = () =>
     creatorTargetId !== itemCardConstants.robloxSystemUserId ||
     (unitsAvailableForConsumption !== undefined && unitsAvailableForConsumption > 0) ||
@@ -59,16 +51,6 @@ function ItemCardPrice({
         <React.Fragment>
           <span className="icon-robux-16x16" />
           <span className="text-robux-tile">{formatNumber(getPriceForItem())}</span>
-          {selectedTimedOption && selectedTimedOption.days > 0 && (
-            <span className="timed-option-label">
-              <Icon name="icon-regular-clock" size="Small" />
-              <span>
-                {translate("Label.TimedOptionDaysAbbreviation", {
-                  days: selectedTimedOption.days,
-                })}
-              </span>
-            </span>
-          )}
         </React.Fragment>
       )}
     </div>

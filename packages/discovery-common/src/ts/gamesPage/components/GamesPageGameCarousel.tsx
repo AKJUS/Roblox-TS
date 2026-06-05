@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useRef, useEffect } from "react";
-import { WithTranslationsProps } from "@rbx/core-scripts/react";
 import classNames from "classnames";
+import { WithTranslationsProps } from "@rbx/core-scripts/react";
 import {
   EventStreamMetadata,
   SessionInfoType,
@@ -21,6 +21,7 @@ import useGameImpressionsIntersectionTracker, {
 } from "../../common/hooks/useGameImpressionsIntersectionTracker";
 import {
   getSponsoredAdImpressionsData,
+  getTileBadgeContextsImpressionsData,
   isWideTileComponentType,
 } from "../../common/utils/parsingUtils";
 import {
@@ -109,6 +110,7 @@ export const GamesPageGameCarousel = ({
           [EventStreamMetadata.GameSetTypeId]: sort.topicId,
           ...getSortTargetIdMetadata(sort),
           ...getSortAppliedFiltersMetadata(sort),
+          ...getTileBadgeContextsImpressionsData(gameData, sort.topicId, filteredViewedIndexes),
           [EventStreamMetadata.Page]: page,
           [EventStreamMetadata.NumberOfLoadedTiles]: (gameData || []).length,
           [SessionInfoType.DiscoverPageSessionInfo]: discoverPageSessionInfo,

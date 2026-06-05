@@ -6,18 +6,15 @@ import { getCookie } from "../cookie";
 export const themes = ["light", "dark", "system"] as const;
 export type Theme = (typeof themes)[number];
 
-// Using this data format to save local storage space:
-// [user id, theme index]
-type ThemeData = [number, number][];
+// [user id, theme index, flags?] — flags is optional for entries written before it existed.
+type ThemeEntry = [number, number] | [number, number, number];
+type ThemeData = ThemeEntry[];
 
-type LocalStorageData =
-  | {
-      version: 0;
-      data: ThemeData;
-    }
-  | { version: 1; data: unknown };
+type LocalStorageData = { version: 0; data: ThemeData } | { version: 1; data: unknown };
 
 const maxUsers = 100;
+
+export const FLAG_DEFAULT_APPLIED = 1 << 0;
 
 let userId = -1;
 let currentTheme: Theme | undefined;
@@ -89,24 +86,34 @@ const getThemeData = (): ThemeData | null | undefined => {
   }
 };
 
+const findUserEntry = (themeData: ThemeData): ThemeEntry | undefined =>
+  themeData.find(([id]) => id === userId);
+
+const getUserFlags = (themeData: ThemeData): number => findUserEntry(themeData)?.[2] ?? 0;
+
 const getUserTheme = (themeData: ThemeData): Theme | null | undefined => {
-  const [, themeIndex] = themeData.find(([id]) => id === userId) ?? [];
+  const entry = findUserEntry(themeData);
+  const themeIndex = entry?.[1];
   return themeIndex == null ? null : themes[themeIndex];
 };
 
 // Note: last write to local storage wins which should suffice.
-const setThemeWithLocalStorage = (theme: Theme): void => {
+const setThemeWithLocalStorage = (theme: Theme, extraFlags = 0): void => {
   setThemeWithoutLocalStorage(theme);
 
   const themeData = getThemeData();
   if (themeData === undefined) {
     return;
   }
+  const existingFlags = themeData == null ? 0 : getUserFlags(themeData);
   const newThemeData = themeData?.filter(([id]) => id !== userId) ?? [];
   if (newThemeData.length >= maxUsers) {
     newThemeData.shift();
   }
-  newThemeData.push([userId, themes.indexOf(theme)]);
+  const flags = existingFlags | extraFlags;
+  newThemeData.push(
+    flags === 0 ? [userId, themes.indexOf(theme)] : [userId, themes.indexOf(theme), flags],
+  );
   try {
     const localStorageData: LocalStorageData = { version: 0, data: newThemeData };
     localStorage.setItem("theme", JSON.stringify(localStorageData));
@@ -165,7 +172,11 @@ const initializeUsingOverride = (theme: string) => {
   }
 };
 
-export const initialize = (currentUserId: number): void => {
+export type InitializeOptions = {
+  defaultTheme?: Theme;
+};
+
+export const initialize = (currentUserId: number, options: InitializeOptions = {}): void => {
   const override = getCookie("RBXThemeOverride");
   if (override != null) {
     initializeUsingOverride(override);
@@ -179,7 +190,9 @@ export const initialize = (currentUserId: number): void => {
     arrayIncludes(
       [
         "Login",
+        "CreateAccount",
         "Landing",
+        "MobileAppCreateAccount",
         "MobileAppLanding",
         "DownloadV2",
         "ForgotCredentials",
@@ -199,6 +212,20 @@ export const initialize = (currentUserId: number): void => {
 
   const themeData = getThemeData();
   const theme = themeData == null ? themeData : getUserTheme(themeData);
+
+  // Apply `defaultTheme` once per (user, browser), tracked via FLAG_DEFAULT_APPLIED.
+  // This intentionally takes precedence over any server-rendered body-class theme:
+  // e.g. kids pages render light by default, but we want to flip them to dark on
+  // first visit. Subsequent visits fall through to the normal localStorage path.
+  if (options.defaultTheme != null && themeData !== undefined) {
+    const userFlags = themeData == null ? 0 : getUserFlags(themeData);
+    if ((userFlags & FLAG_DEFAULT_APPLIED) === 0) {
+      setThemeWithLocalStorage(options.defaultTheme, FLAG_DEFAULT_APPLIED);
+      window.addEventListener("storage", storageEventListener);
+      return;
+    }
+  }
+
   if (theme === null) {
     const { classList } = document.body;
     if (classList.contains("system-theme")) {

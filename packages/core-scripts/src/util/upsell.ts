@@ -32,6 +32,7 @@ export type UpsellCookieData = {
   collectibleItemInstanceId: string;
   collectibleProductId: string;
   subscriptionTargetKey: string;
+  itemName: string;
 };
 
 export const parseUpsellCookie = (): Partial<UpsellCookieData> => {
@@ -57,6 +58,7 @@ export const parseUpsellCookie = (): Partial<UpsellCookieData> => {
       collectibleItemInstanceId,
       collectibleProductId,
       subscriptionTargetKey,
+      encodedItemName,
     ] = upsellData;
 
     const itemUrlValid = UPSELL_TARGET_ITEM_URL_COOKIE_DATA_REGEX.exec(targetItemUrl);
@@ -86,6 +88,7 @@ export const parseUpsellCookie = (): Partial<UpsellCookieData> => {
         collectibleItemInstanceId,
         collectibleProductId,
         subscriptionTargetKey: subscriptionTargetKey ?? "",
+        itemName: encodedItemName ? decodeURIComponent(encodedItemName) : "",
       };
     }
   }

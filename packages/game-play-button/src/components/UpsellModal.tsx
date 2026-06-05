@@ -6,6 +6,7 @@ import {
   DialogFooter,
   Button,
 } from "@rbx/foundation-ui";
+import useSanitizedHtmlLinkText from "../hooks/useSanitizedHtmlLinkText";
 
 type TUpsellModalProps = {
   titleText: string;
@@ -37,6 +38,10 @@ const UpsellModal = ({
   isModalOpen,
   onCloseModal,
 }: TUpsellModalProps): React.JSX.Element => {
+  const sanitizedBodyLinkText = useSanitizedHtmlLinkText(bodyText, {
+    shouldOpenLinksInNewTab: true,
+  });
+
   return (
     <Dialog
       open={isModalOpen}
@@ -53,7 +58,13 @@ const UpsellModal = ({
       <DialogContent>
         <DialogBody className="flex flex-col gap-large">
           <DialogTitle>{titleText}</DialogTitle>
-          {bodyText}
+          <span
+            // Style rendered links so they visually read as links in modal body copy
+            className="[&_a]:[font-weight:700] [&_a]:underline"
+            // Sanitized via dompurify — safe to set innerHTML
+            // eslint-disable-next-line react/no-danger
+            dangerouslySetInnerHTML={{ __html: sanitizedBodyLinkText }}
+          />
         </DialogBody>
         <DialogFooter className="flex gap-x-medium">
           {secondaryButtonText && onSecondaryButtonClick && (

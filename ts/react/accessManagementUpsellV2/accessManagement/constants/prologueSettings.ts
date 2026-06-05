@@ -54,6 +54,9 @@ export function getPrologueTranslatedBodyText(
   // VPC Prologue
   if (recourses.length === 1 && recourses.includes(Recourse.ParentConsentRequest)) {
     switch (true) {
+      case featureName === featureConstants.TriggerTrustedFriendVPCRecourse:
+        prologueReasonText = translate(PrologueConstants.Description.AddFriendVpc);
+        break;
       case recourseParameters?.enablePurchases !== undefined:
         prologueReasonText = translate(PrologueConstants.Description.VpcEnablePurchase);
         break;

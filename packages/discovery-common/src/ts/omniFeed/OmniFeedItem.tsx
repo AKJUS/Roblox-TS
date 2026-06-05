@@ -1,6 +1,11 @@
 import React from "react";
 import { WithTranslationsProps } from "@rbx/core-scripts/react";
-import { TOmniRecommendationGame, TSort, TTreatmentType } from "../common/types/bedev2Types";
+import {
+  TOmniRecommendationGame,
+  TRequestIntent,
+  TSort,
+  TTreatmentType,
+} from "../common/types/bedev2Types";
 import GameCarouselFeedItem from "./GameCarouselFeedItem";
 import AvatarCarouselFeedItem from "./AvatarCarouselFeedItem";
 import GameGridFeedItem from "./GameGridFeedItem";
@@ -22,6 +27,7 @@ type TOmniFeedItemProps = {
   currentPage: PageContext.HomePage | PageContext.GamesPage | PageContext.SearchLandingPage;
   itemsPerRow: number | undefined;
   startingRow: number | undefined;
+  topicPositionOffset?: number;
   gridRecommendations?: TOmniRecommendationGame[];
   friendsPresenceData: TGetFriendsResponse[];
   loadMoreGames?: () => void;
@@ -35,6 +41,7 @@ type TOmniFeedItemProps = {
   hiddenUniverses?: Set<number>;
   setHiddenUniverses?: React.Dispatch<React.SetStateAction<Set<number>>>;
   fetchGamesPageData?: (filters: Map<string, string>) => void;
+  refreshFeed?: (requestIntent?: TRequestIntent) => void;
 };
 
 export const OmniFeedItem = ({
@@ -44,6 +51,7 @@ export const OmniFeedItem = ({
   currentPage,
   itemsPerRow,
   startingRow,
+  topicPositionOffset,
   gridRecommendations,
   friendsPresenceData,
   loadMoreGames,
@@ -57,6 +65,7 @@ export const OmniFeedItem = ({
   hiddenUniverses,
   setHiddenUniverses,
   fetchGamesPageData,
+  refreshFeed,
 }: TOmniFeedItemProps): JSX.Element | null => {
   switch (sort.treatmentType) {
     case TTreatmentType.Carousel:
@@ -68,6 +77,7 @@ export const OmniFeedItem = ({
           page={currentPage}
           itemsPerRow={itemsPerRow}
           startingRow={startingRow}
+          topicPositionOffset={topicPositionOffset}
           friendsPresenceData={friendsPresenceData}
           loadMoreGames={loadMoreGames}
           isLoadingMoreGames={isLoadingMoreGames}
@@ -75,6 +85,7 @@ export const OmniFeedItem = ({
           isCarouselHorizontalScrollEnabled={isCarouselHorizontalScrollEnabled}
           isNewSortHeaderEnabled={isNewSortHeaderEnabled}
           isNewScrollArrowsEnabled={isNewScrollArrowsEnabled}
+          refreshFeed={refreshFeed}
         />
       );
     case TTreatmentType.AvatarCarousel:
@@ -87,6 +98,7 @@ export const OmniFeedItem = ({
           positionId={positionId}
           itemsPerRow={itemsPerRow}
           startingRow={startingRow}
+          topicPositionOffset={topicPositionOffset}
           recommendations={gridRecommendations ?? []}
           friendsPresenceData={friendsPresenceData}
           isDynamicLayoutSizingEnabled={isDynamicLayoutSizingEnabled}

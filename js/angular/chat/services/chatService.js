@@ -1,7 +1,14 @@
 import { EnvironmentUrls, CurrentUser } from 'Roblox';
 import chatModule from '../chatModule';
 
-function chatService($q, chatUtility, httpService, $log, apiParamsInitialization) {
+function chatService(
+  $q,
+  chatUtility,
+  httpService,
+  $log,
+  apiParamsInitialization,
+  plusIdentityBadgeService
+) {
   'ngInject';
 
   const getConversations = function (conversationIds) {
@@ -15,6 +22,11 @@ function chatService($q, chatUtility, httpService, $log, apiParamsInitialization
       .httpPost(this.apiSets.getConversationsApi, params)
       .then(function success(data) {
         convertChannels(data.conversations);
+        // SUBS-5048: fire-and-forget so the conversation list returns
+        // immediately and Plus badges populate when the user-profile-api
+        // call resolves (the directive's two-way binding picks up the
+        // mutation on the next digest).
+        plusIdentityBadgeService.decoratePlusStatusOnConversations(data.conversations);
         return data.conversations;
       });
   };
@@ -45,7 +57,9 @@ function chatService($q, chatUtility, httpService, $log, apiParamsInitialization
         };
         participants.push(participant);
       }
-      conversation.initiator = { ...conversation.user_data[conversation.created_by] };
+      conversation.initiator = {
+        ...conversation.user_data[conversation.created_by]
+      };
       conversation.hasUnreadMessages = conversation.unread_message_count > 0;
       conversation.conversationTitle = {
         titleForViewer: conversation.name
@@ -166,7 +180,9 @@ function chatService($q, chatUtility, httpService, $log, apiParamsInitialization
       return httpService
         .httpGet(this.apiSets.getUnreadConversationCountApi, null)
         .then(function (data) {
-          return { count: data.global_unread_message_count > 0 ? 1 : 0 };
+          return {
+            count: data.global_unread_message_count > 0 ? data.global_unread_message_count : 0
+          };
         });
     },
 
@@ -181,6 +197,7 @@ function chatService($q, chatUtility, httpService, $log, apiParamsInitialization
         .httpGet(this.apiSets.userConversationsApi, paramsOfConvs)
         .then(function (data) {
           convertChannels(data.conversations);
+          plusIdentityBadgeService.decoratePlusStatusOnConversations(data.conversations);
           return data;
         });
     },
@@ -217,6 +234,7 @@ function chatService($q, chatUtility, httpService, $log, apiParamsInitialization
         .httpPost(this.apiSets.startOneToOneConversationApi, data)
         .then(function (data) {
           convertChannels(data.conversations);
+          plusIdentityBadgeService.decoratePlusStatusOnConversations(data.conversations);
           return data.conversations[0];
         });
     },
@@ -236,6 +254,7 @@ function chatService($q, chatUtility, httpService, $log, apiParamsInitialization
         .httpPost(this.apiSets.startGroupConversationApi, data)
         .then(function (data) {
           convertChannels(data.conversations);
+          plusIdentityBadgeService.decoratePlusStatusOnConversations(data.conversations);
           return data.conversations[0];
         });
     },

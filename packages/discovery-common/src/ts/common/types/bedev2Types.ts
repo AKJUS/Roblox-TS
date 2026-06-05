@@ -23,6 +23,10 @@ export enum TSduiTreatmentType {
   HeroUnit = "HeroUnit",
 }
 
+export enum TRequestIntent {
+  AmpUpsellFeatureGranted = "ampUpsellFeatureGranted",
+}
+
 export enum TSortTopic {
   Sponsored = "Sponsored",
   SponsoredGame = "SponsoredGame",
@@ -74,6 +78,7 @@ export type TCatalog = {
 };
 
 export type TOmniRecommendationGame = {
+  analyticsData: Record<string, string>;
   contentType: TContentType.Game;
   contentId: number;
   contentMetadata: Record<string, string>;
@@ -107,6 +112,8 @@ export type TTopicLayoutData = {
   sponsoredFooterAdLabelText?: string;
   sponsoredFooterAdLabelFirst?: "true" | "false";
   sponsoredFooterIncludeRatingContent?: "true" | "false";
+  ampUpsellFeatureName?: string;
+  ampUpsellNamespace?: string;
 };
 
 type TSharedGameSort = {
@@ -118,6 +125,7 @@ type TSharedGameSort = {
     | TTreatmentType.InterestGrid;
   subtitle?: string;
   topicLayoutData?: TTopicLayoutData;
+  subId?: string;
 };
 
 export type TOmniRecommendationSduiSort = {
@@ -129,6 +137,7 @@ export type TOmniRecommendationSduiSort = {
 };
 
 export type TOmniRecommendationGameSort = TSharedGameSort & {
+  analyticsData: Record<string, string>;
   recommendationList: TOmniRecommendationGame[] | null;
   numberOfRows?: number;
 };
@@ -352,6 +361,7 @@ export type TOmniSearchGameDataModel = {
   creatorId: number;
   creatorHasVerifiedBadge?: boolean;
   contentMetadata?: Record<string, string>;
+  canonicalUrlPath?: string;
 };
 
 export type TOmniSearchTextDataModel = {
@@ -391,52 +401,6 @@ export type TGetOmniSearchParsedResponse = {
   sorts: TGameSearchSortData[];
 };
 
-export type TSurvey = {
-  meta: TSurveyMeta;
-  content: TSurveyContent;
-};
-
-export type TSurveyMeta = {
-  token: string;
-};
-
-export type TSurveyContent = {
-  container: TSurveyContainer;
-  prompt: TSurveyPrompt;
-};
-
-export type TSurveyContainer = {
-  iconKey?: string;
-  responseType: string;
-  isDismissible?: boolean;
-};
-
-export type TTextWithIdentifier = {
-  text: string;
-  id: number;
-};
-
-export type TSurveyPrompt = {
-  promptText: TTextWithIdentifier;
-  subtitleText: string;
-  responseOptions: TTextWithIdentifier[];
-};
-
-export type TSurveyResponseBody = {
-  selectedText?: string[];
-  selectedIds?: number[];
-  resourceId?: string;
-  token: string;
-};
-
-export type TSendSurveyResultsResponse = {
-  success: boolean;
-};
-
-export enum TSurveyIcon {
-  helpIcon = "helpIcon",
-}
-
 export type TGuacAppPolicyBehaviorResponse = {
   EnableAggregateLikesFavoritesCount: boolean;
   experienceDetailsNoticeType: string;
@@ -471,11 +435,17 @@ export type TCanUserManagePlaceResponse = {
   }[];
 };
 
+export type TPrivateServerDiscount = {
+  source: string;
+  robux: number;
+};
+
 export type TPrivateServerResponseData = {
   isAvailable: boolean;
   price: number;
   privateServerProductId: number;
   privateServerLimit: number;
+  discounts: TPrivateServerDiscount[];
 };
 
 export type TPrivateServerSettingsResponse = {

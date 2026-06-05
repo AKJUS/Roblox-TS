@@ -1,7 +1,13 @@
 export const rootElementId = 'access-management-upsell-container';
 
 export const accessManagementUpselTranslationConfig = {
-  common: ['CommonUI.Controls', 'CommonUI.Features', 'Amp.Upsell', 'Amp.FAEUpsell'],
+  common: [
+    'CommonUI.Controls',
+    'CommonUI.Features',
+    'Amp.Upsell',
+    'Amp.FAEUpsell',
+    'Feature.Friends'
+  ],
   feature: 'Verification.Identity'
 };
 
@@ -16,11 +22,16 @@ export const updateSettingsTranslationConfig = {
 };
 
 export const legallySensitiveContentTranslationConfig = {
-  common: ['CommonUI.Controls'],
+  common: ['CommonUI.Controls', 'Feature.Parents', 'Feature.AccountSettings'],
   feature: 'Feature.LegallySensitiveContent'
 };
 
 export const parentalRequestTranslationConfig = {
   common: ['CommonUI.Controls', 'CommonUI.Features', 'Amp.Upsell'],
   feature: 'Feature.Parents'
+};
+
+export const accountSettingsRedirectTranslationConfig = {
+  common: [] as string[],
+  feature: 'Feature.AgeVerificationUpsell'
 };

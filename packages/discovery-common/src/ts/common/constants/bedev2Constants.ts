@@ -25,23 +25,15 @@ const url = {
     withCredentials: true,
   },
   getSearchLandingPage: {
-    url: `${apiGatewayUrl}/search-api/search-landing-page`,
-    withCredentials: true,
-  },
-  getSearchLandingPageV2: {
     url: `${apiGatewayUrl}/search-landing-page-api/v1`,
     withCredentials: true,
   },
-  getSurvey: (locationName: string): UrlConfig => ({
-    url: `${apiGatewayUrl}/rocap/v1/locations/${locationName}/prompts`,
-    withCredentials: true,
-  }),
-  postSurveyResults: (locationName: string): UrlConfig => ({
-    url: `${apiGatewayUrl}/rocap/v1/locations/${locationName}/annotations`,
-    withCredentials: true,
-  }),
   getLandingPageData: (): UrlConfig => ({
     url: `${apiGatewayUrl}/landing-page-api/landing-page`,
+    withCredentials: true,
+  }),
+  getSpotlightData: (): UrlConfig => ({
+    url: `${apiGatewayUrl}/landing-page-api/spotlight`,
     withCredentials: true,
   }),
   postUserSignal: (): UrlConfig => ({

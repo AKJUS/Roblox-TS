@@ -14,9 +14,6 @@ import {
   TOmniRecommendation,
   TOmniSearchContentType,
   TOmniSearchGameDataModel,
-  TSendSurveyResultsResponse,
-  TSurvey,
-  TSurveyResponseBody,
   TTreatmentType,
   TGetProfilesResponse,
   TSduiTreatmentType,
@@ -26,6 +23,7 @@ import {
   TSortIdMapping,
   TOmniRecommendationSort,
   TOmniSearchTextDataModel,
+  TRequestIntent,
 } from "../types/bedev2Types";
 import {
   TUserSignalType,
@@ -96,6 +94,7 @@ export const getOmniRecommendations = async (
   authIntentFeatures?: UserAuthIntent,
   interestedUniverses?: number[],
   sduiTreatmentTypes?: TSduiTreatmentType[],
+  requestIntent?: TRequestIntent,
 ): Promise<TGetOmniRecommendationsResponse> => {
   const params = {
     pageType,
@@ -103,6 +102,7 @@ export const getOmniRecommendations = async (
     supportedTreatmentTypes: [TTreatmentType.SortlessGrid],
     sduiTreatmentTypes,
     authIntentData: authIntentFeatures,
+    requestIntent,
     ...deviceFeatures,
     ...getInputUniverseIdsRequestParam(interestedUniverses),
   };
@@ -235,32 +235,6 @@ export const getExploreSortContents = (
     });
 };
 
-export const getSurvey = (locationName: string, resourceId?: string): Promise<TSurvey> => {
-  const params = resourceId ? { resourceId } : undefined;
-  return http.get<TSurvey>(bedev2Constants.url.getSurvey(locationName), params).then(response => {
-    return response.data;
-  });
-};
-
-const postSurveyResults = async (
-  token: string,
-  locationName: string,
-  selectedText?: string[],
-  selectedIds?: number[],
-  resourceId?: string,
-): Promise<TSendSurveyResultsResponse> => {
-  const requestBody: TSurveyResponseBody = {
-    selectedText,
-    selectedIds,
-    resourceId,
-    token,
-  };
-
-  const urlConfig = bedev2Constants.url.postSurveyResults(locationName);
-  const response = await http.post<TSendSurveyResultsResponse>(urlConfig, requestBody);
-  return response.data;
-};
-
 const postUserSignal = async (
   signalValue: TUserSignalValue,
   signalValueType: TUserSignalValueType,
@@ -325,13 +299,12 @@ const getProfiles = async (userIds: number[]): Promise<TGetProfilesResponse> => 
 
 const getSearchLandingRecommendations = async (
   sessionId: string,
-  isMigrateToNewSlpEndpointEnabled?: boolean,
 ): Promise<TExploreApiSortsResponse> => {
-  const urlConfig = isMigrateToNewSlpEndpointEnabled
-    ? bedev2Constants.url.getSearchLandingPageV2
-    : bedev2Constants.url.getSearchLandingPage;
   const params = { sessionId };
-  const { data } = await http.get<TExploreApiSortsResponse>(urlConfig, params);
+  const { data } = await http.get<TExploreApiSortsResponse>(
+    bedev2Constants.url.getSearchLandingPage,
+    params,
+  );
   return data;
 };
 
@@ -409,8 +382,6 @@ export default {
   getExploreSorts,
   getExploreSortContents,
   getLandingPageData,
-  getSurvey,
-  postSurveyResults,
   postUserSignal,
   getThumbnailForAsset,
   getGuacAppPolicyBehaviorData,

@@ -1,6 +1,8 @@
 import React from 'react';
 import { Dialog, DialogContent, DialogBody, DialogFooter, Button, Icon } from '@rbx/foundation-ui';
 import { TranslateFunction, withTranslations } from 'react-utilities';
+import { translateHtml } from '@rbx/translation-utils';
+import type { TranslateHtmlTag } from '@rbx/translation-utils';
 import itemPurchaseConstants from '../../../js/react/itemPurchase/constants/itemPurchaseConstants';
 import UnifiedPurchaseHeading from './UnifiedPurchaseHeading';
 import translationConfig from '../../../js/react/itemPurchase/translation.config';
@@ -24,6 +26,10 @@ const UnifiedPurchaseCompletionModal = ({
 }: UnifiedPurchaseCompletionModalProps): JSX.Element => {
   const completeTitle = translate(resources.purchaseCompleteHeading);
   const buttonLabel = translate(resources.okAction);
+  const renderBold = (text: React.ReactNode) => <b>{text}</b>;
+  const boldTags: TranslateHtmlTag[] = [
+    { opening: 'boldStart', closing: 'boldEnd', render: renderBold }
+  ];
 
   return (
     <Dialog
@@ -32,7 +38,7 @@ const UnifiedPurchaseCompletionModal = ({
       size='Medium'
       isModal
       hasCloseAffordance
-      ariaLabel='Purchase Complete'>
+      closeLabel={translate('Action.Close')}>
       <DialogContent
         className='relative width-full'
         aria-describedby='unified-purchase-completion-modal-body'>
@@ -56,17 +62,11 @@ const UnifiedPurchaseCompletionModal = ({
               }}
             />
           </div>
-          <div
-            id='unified-purchase-completion-modal-body'
-            className='text-center text-body-large'
-            dangerouslySetInnerHTML={{
-              __html: translate(resources.unifiedPurchaseCompletionMessage, {
-                boldStart: '<b>',
-                assetName: itemName,
-                boldEnd: '</b>'
-              })
-            }}
-          />
+          <div id='unified-purchase-completion-modal-body' className='text-center text-body-large'>
+            {translateHtml(translate, resources.unifiedPurchaseCompletionMessage, boldTags, {
+              assetName: itemName
+            })}
+          </div>
         </DialogBody>
         <DialogFooter className='gap-small flex flex-col mt-[40px]'>
           <div className='flex flex-row-reverse'>

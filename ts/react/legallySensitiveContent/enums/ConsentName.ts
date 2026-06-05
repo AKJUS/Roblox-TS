@@ -1,13 +1,33 @@
 export enum ConsentName {
   phoneNumberDiscoverabilitySetting = 'phoneNumberDiscoverabilitySetting',
-  phoneNumberDiscoverabilitySettingFriendsRename = 'phoneNumberDiscoverabilitySettingFriendsRename',
   phoneNumberDiscoverabilitySettingParentSide = 'phoneNumberDiscoverabilitySettingParentSide',
   phoneNumberDiscoverabilityUpsell = 'phoneNumberDiscoverabilityUpsell',
   personalizedAdsSetting = 'personalizedAdsSetting',
   sellShareDataSetting = 'sellShareDataSetting',
   allowMarketingEmailCheckboxEmailVerification = 'allowMarketingEmailCheckboxEmailVerification',
   voiceDataConsentSetting = 'voiceDataConsentSetting',
-  voiceDataConsentSettingParentSide = 'voiceDataConsentSettingParentSide'
+  voiceDataConsentSettingParentSide = 'voiceDataConsentSettingParentSide',
+  whoCanPartyWithMe = 'whoCanPartyWithMe',
+  whoCanPartyWithMeParentSide = 'whoCanPartyWithMeParentSide',
+  whoCanUsePartyChatWithMe = 'whoCanUsePartyChatWithMe',
+  whoCanUsePartyChatWithMeParentSide = 'whoCanUsePartyChatWithMeParentSide',
+  whoCanUsePartyVoiceWithMe = 'whoCanUsePartyVoiceWithMe',
+  whoCanUsePartyVoiceWithMeParentSide = 'whoCanUsePartyVoiceWithMeParentSide',
+  allowMarketingEmailNotifications = 'allowMarketingEmailNotifications',
+  receiveRobuxTransferConsentCard = 'receiveRobuxTransferConsentCard',
+  sendRobuxTransferConsentCard = 'sendRobuxTransferConsentCard',
+  vpcRequestLinkSubjectToPC = 'vpcRequestLinkSubjectToPC',
+  vpcRequestLinkNotSubjectToPC = 'vpcRequestLinkNotSubjectToPC',
+  vpcRequestLinkDefault = 'vpcRequestLinkDefault',
+  consentCenterAllowAction = 'consentCenterAllowAction',
+  consentCenterUpdateSettingNoValue = 'consentCenterUpdateSettingNoValue',
+  consentCenterUpdateSettingWithValue = 'consentCenterUpdateSettingWithValue',
+  whoCanPartyWithMeTrustedFriends = 'whoCanPartyWithMeTrustedFriends',
+  whoCanPartyWithMeParentSideRemovedComms = 'whoCanPartyWithMeParentSideRemovedComms',
+  whoCanUsePartyChatWithMeTrustedFriends = 'whoCanUsePartyChatWithMeTrustedFriends',
+  whoCanUsePartyChatWithMeParentSideTrustedFriends = 'whoCanUsePartyChatWithMeParentSideTrustedFriends',
+  whoCanUsePartyVoiceWithMeTrustedFriends = 'whoCanUsePartyVoiceWithMeTrustedFriends',
+  whoCanUsePartyVoiceWithMeParentSideTrustedFriends = 'whoCanUsePartyVoiceWithMeParentSideTrustedFriends'
 }
 
 export default ConsentName;

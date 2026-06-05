@@ -1,7 +1,8 @@
 import environmentUrls from "@rbx/environment-urls";
 import { isValueOf } from "@rbx/core-types";
+import { get } from "@rbx/core-lib/cookie";
+import "@rbx/www-common/global";
 import { COOKIE_NAME, COOKIE_TIMESPAN, TRIGGERING_CONTEXT } from "./constants";
-import { getCookie } from "../cookie";
 
 export default class PaymentFlowContext {
   public purchaseFlowUuid?: string;
@@ -24,12 +25,12 @@ export default class PaymentFlowContext {
 
   public static loadFromCookie(): PaymentFlowContext | null {
     // get the cookie value
-    const cookie = getCookie(COOKIE_NAME);
-    if (!cookie) {
+    const cookie = get(COOKIE_NAME);
+    if (cookie == null || cookie.value === "") {
       return null;
     }
     // split the value into uuid and context
-    const [uuid, context] = cookie.split(",");
+    const [uuid, context] = cookie.value.split(",");
     const purchaseFlowUuid = uuid ?? undefined;
     const triggerContext =
       context != null && isValueOf(TRIGGERING_CONTEXT, context) ? context : undefined;

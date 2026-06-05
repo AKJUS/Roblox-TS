@@ -37,6 +37,7 @@ import ExperienceAffiliateStatus from "./enums/ExperienceAffiliateStatus";
 import ContentPostStatus from "./enums/ContentPostStatus";
 import ExperienceEventStatus from "./enums/ExperienceEventStatus";
 import ExperienceAffiliateDeepLinkFallbackType from "./enums/ExperienceAffiliateDeepLinkFallbackType";
+import { getDeviceMeta } from "../meta/device";
 
 const fireEvent = window.EventTracker?.fireEvent;
 
@@ -127,7 +128,7 @@ const deepLinkNavigate = (target: DeepLink): Promise<boolean> => {
         return false;
       })
       .catch(() => false);
-  } else if (navigateSubPath === PathPart.Profile) {
+  } else if (navigateSubPath === PathPart.Profile || navigateSubPath === PathPart.ProfileCard) {
     if (params.userId) {
       // roblox://navigation/profile?userId=<userId>
       // Navigate to user profile
@@ -230,6 +231,10 @@ const deepLinkNavigate = (target: DeepLink): Promise<boolean> => {
               response.data.linkType === "StudioTrustedConnection") &&
             response.data.targetId
           ) {
+            if (!parseInt(response.data.targetId, 10)) {
+              return false;
+            }
+
             const linkTypeV2 =
               response.data.linkType === "UserTrustedConnection"
                 ? ShareLinksTypeV2.USER_TRUSTED_CONNECTION
@@ -244,7 +249,9 @@ const deepLinkNavigate = (target: DeepLink): Promise<boolean> => {
               resolveLinkEvent.context,
               resolveLinkEvent.params,
             );
+
             window.location.href = target.url;
+            window.location.href = `${UrlPart.Users}/${response.data.targetId}${UrlPart.Profile}?trustedFriendLinkCode=${code}`;
           }
           return true;
         })
@@ -827,6 +834,14 @@ const deepLinkNavigate = (target: DeepLink): Promise<boolean> => {
         urlTarget = `${UrlPart.Groups}/${params.groupId}`;
       }
     }
+  } else if (navigateSubPath === PathPart.SupportCenter) {
+    // roblox://navigation/support_center
+    // roblox://navigation/support_center?universeId=<universeId>&ticketId=<ticketId> → support-center#!/tickets/...
+    if (params.universeId && params.ticketId) {
+      urlTarget = `${UrlPart.SupportCenter}#!/tickets/${params.universeId}/${params.ticketId}`;
+    } else {
+      urlTarget = UrlPart.SupportCenter;
+    }
   } else if (navigateSubPath === PathPart.SecurityAlert) {
     // roblox://navigation/security_alert?payload={payload}&username={username}
     // Navigate to security alert page
@@ -848,6 +863,33 @@ const deepLinkNavigate = (target: DeepLink): Promise<boolean> => {
         .catch(() => false);
     }
     return Promise.resolve(false);
+  } else if (navigateSubPath === PathPart.CurrencyTransfer) {
+    // Pass through roblox:// unchanged for protocol / in-app handling (urlTarget = target.url).
+    // Receive: roblox://navigation/currency_transfer?direction=receive&transferrequestid=RXT-...
+    // Send: roblox://navigation/currency_transfer?direction=send&userid={id}&transferorigination=buyRobux
+    const transferRequestId =
+      params.transferrequestid ?? params.transferRequestId ?? params.transferrequestId;
+    const direction = (params.direction ?? params.Direction)?.toLowerCase();
+    const userId = params.userid ?? params.userId;
+    const transferOrigination = params.transferorigination ?? params.transferOrigination;
+    const isReceiveFlow = Boolean(transferRequestId);
+    const isSendFlow = direction === "send" && Boolean(userId) && Boolean(transferOrigination);
+    if (isReceiveFlow || isSendFlow) {
+      const deviceMeta = getDeviceMeta();
+      if (
+        deviceMeta?.isDesktop &&
+        window.Roblox.ProtocolHandlerClientInterface?.startDeepLinkFlow
+      ) {
+        window.Roblox.ProtocolHandlerClientInterface.startDeepLinkFlow(target.url);
+        return Promise.resolve(true);
+      }
+      urlTarget = target.url;
+    }
+  } else if (navigateSubPath === PathPart.AmpWizard) {
+    // Pass through roblox:// unchanged for protocol / in-app handling.
+    // amp_wizard deeplinking is mobile-only, so no desktop fallback is needed here.
+    // roblox://navigation/amp_wizard?feature_name=...&namespace=...&entry_point=...&returnpage=...
+    urlTarget = target.url;
   }
 
   if (urlTarget) {

@@ -5,8 +5,11 @@ import {
   PlayabilityStatus,
   PlayButton as PlayButtonComponent,
   PurchaseButton,
+  type TPlayButtonPageContext,
 } from "@rbx/game-play-button";
 import HoverTilePurchaseButton from "./HoverTilePurchaseButton";
+import type { PageContext } from "../types/pageContext";
+import { getEventContext } from "../constants/eventStreamConstants";
 
 export const PlayButtonLoadingShimmer = (): JSX.Element => {
   return (
@@ -17,6 +20,9 @@ export const PlayButtonLoadingShimmer = (): JSX.Element => {
   );
 };
 
+/**
+ * @deprecated - Use GameTilePlayButtonV2 instead
+ */
 export const GameTilePlayButton = ({
   universeId,
   placeId,
@@ -25,6 +31,7 @@ export const GameTilePlayButton = ({
   purchaseIconClassName,
   clientReferralUrl,
   shouldPurchaseNavigateToDetails,
+  page,
 }: {
   universeId: string;
   placeId: string;
@@ -33,7 +40,11 @@ export const GameTilePlayButton = ({
   purchaseIconClassName?: string;
   clientReferralUrl?: string;
   shouldPurchaseNavigateToDetails?: boolean;
+  page?: PageContext;
 }): JSX.Element => {
+  // This is a safe cast because `getEventContext` returns "UNKNOWN" if there's
+  // no matching event context
+  const pageContext = getEventContext(page) as TPlayButtonPageContext;
   const { playabilityStatus, refetchPlayabilityData } = usePlayabilityStatus(universeId);
 
   switch (playabilityStatus) {
@@ -50,6 +61,7 @@ export const GameTilePlayButton = ({
             buttonClassName ? classNames(buttonClassName, "regular-play-button") : undefined
           }
           disableLoadingState
+          pageContext={pageContext}
         />
       );
     case PlayabilityStatus.PurchaseRequired:
@@ -75,6 +87,7 @@ export const GameTilePlayButton = ({
           refetchPlayabilityStatus={refetchPlayabilityData}
           buttonClassName={buttonClassName}
           playabilityStatus={PlayabilityStatus.PurchaseRequired}
+          pageContext={pageContext}
         />
       );
     case PlayabilityStatus.UniverseRootPlaceIsPrivate:

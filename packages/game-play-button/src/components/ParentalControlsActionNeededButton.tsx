@@ -7,11 +7,13 @@ import { translations } from "../constants/translations";
 import RestrictedUnplayableModal from "./RestrictedUnplayableModal";
 import useFetchParentalControlsUpsellData from "../hooks/useFetchParentalControlsUpsellData";
 import useContextualParentalControlsUpsell from "../hooks/useContextualParentalControlsUpsell";
-import { TAppsFlyerReferralProperties } from "../types/playButtonTypes";
+import {
+  TAppsFlyerReferralProperties,
+  type TPlayButtonPageContext,
+} from "../types/playButtonTypes";
 
 type TParentalControlsActionNeededButtonProps = {
   universeId: string;
-  hideButtonText?: boolean;
   buttonClassName?: string;
   placeId: string;
   rootPlaceId?: string;
@@ -19,11 +21,11 @@ type TParentalControlsActionNeededButtonProps = {
   gameInstanceId?: string;
   eventProperties?: Record<string, string | number | undefined>;
   appsFlyerReferralProperties?: TAppsFlyerReferralProperties;
+  pageContext: TPlayButtonPageContext;
 };
 
 const ParentalControlsActionNeededButton = ({
   universeId,
-  hideButtonText,
   buttonClassName,
   placeId,
   rootPlaceId,
@@ -31,6 +33,7 @@ const ParentalControlsActionNeededButton = ({
   gameInstanceId,
   eventProperties,
   appsFlyerReferralProperties,
+  pageContext,
   translate,
 }: TParentalControlsActionNeededButtonProps & {
   translate: TranslateFunction;
@@ -48,6 +51,7 @@ const ParentalControlsActionNeededButton = ({
   } = useContextualParentalControlsUpsell(
     placeId,
     universeId,
+    pageContext,
     rootPlaceId,
     privateServerLinkCode,
     gameInstanceId,
@@ -71,11 +75,7 @@ const ParentalControlsActionNeededButton = ({
 
   return (
     <React.Fragment>
-      <ActionNeededButton
-        onButtonClick={onPlayButtonClick}
-        hideButtonText={hideButtonText}
-        buttonClassName={buttonClassName}
-      />
+      <ActionNeededButton onButtonClick={onPlayButtonClick} buttonClassName={buttonClassName} />
       {isSelfUpdateSettingModalOpen && (
         <SelfUpdateSettingModal
           isModalOpen={isSelfUpdateSettingModalOpen}
@@ -96,7 +96,6 @@ const ParentalControlsActionNeededButton = ({
 };
 
 ParentalControlsActionNeededButton.defaultProps = {
-  hideButtonText: undefined,
   buttonClassName: undefined,
   rootPlaceId: undefined,
   privateServerLinkCode: undefined,

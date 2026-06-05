@@ -13,6 +13,7 @@ import { unavailableFriendName } from "../constants/friendsCarouselConstants";
 
 const DROPDOWN_WIDTH = 240;
 const DROPDOWN_WIDTH_INGAME = 315;
+const DROPDOWN_WIDTH_INGAME_IARC = 260;
 
 const FriendTile = ({
   friend,
@@ -26,6 +27,7 @@ const FriendTile = ({
   sortId,
   sortPosition,
   totalNumberOfFriends,
+  isIARCJoinCardRedesignEnabled,
 }: {
   friend: TFriend;
   friendIndex: number;
@@ -38,6 +40,7 @@ const FriendTile = ({
   sortId: number | undefined;
   sortPosition: number | undefined;
   totalNumberOfFriends: number;
+  isIARCJoinCardRedesignEnabled: boolean;
 }): JSX.Element => {
   const userProfileUrl = `${environmentUrls.websiteUrl}/users/${friend.id}/profile`;
   const displayName = friend.combinedName ?? translate(unavailableFriendName);
@@ -83,6 +86,7 @@ const FriendTile = ({
               userPresence={userPresence}
               translate={translate}
               hasVerifiedBadge={friend.hasVerifiedBadge}
+              isRobloxPlus={friend.isRobloxPlus}
               sendClickEvent={sendClickEvent}
             />
           </button>
@@ -99,12 +103,19 @@ const FriendTile = ({
               translate={translate}
               gameUrl={gameUrl}
               canChat={canChat}
+              isIARCJoinCardRedesignEnabled={isIARCJoinCardRedesignEnabled}
             />
           ) : (
             <div />
           )
         }
-        dropdownWidth={userPresence == null ? DROPDOWN_WIDTH : DROPDOWN_WIDTH_INGAME}
+        dropdownWidth={
+          userPresence == null
+            ? DROPDOWN_WIDTH
+            : isIARCJoinCardRedesignEnabled
+              ? DROPDOWN_WIDTH_INGAME_IARC
+              : DROPDOWN_WIDTH_INGAME
+        }
       />
     </div>
   );

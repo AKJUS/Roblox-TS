@@ -1,5 +1,6 @@
 import $ from "jquery";
 import { GaEventSettings } from "@rbx/core-scripts/legacy/Roblox";
+import { isGoogleAnalyticsCookieConsentOptIn } from "@rbx/core-scripts/cookie";
 import GameLauncher from "./gameLauncher";
 import GamePlayEvents from "./gamePlayEvents";
 
@@ -68,6 +69,7 @@ function logToEphemeralCounters(counterName, launchMethod) {
 }
 
 function logToGA(category, name, label, value) {
+  if (!isGoogleAnalyticsCookieConsentOptIn()) return;
   if (
     typeof window.GoogleAnalyticsEvents !== "undefined" &&
     GameLaunchLogger.logToGAEnabled &&

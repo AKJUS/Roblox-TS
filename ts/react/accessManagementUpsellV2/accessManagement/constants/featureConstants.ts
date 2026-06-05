@@ -1,5 +1,6 @@
 const featureConstants = {
-  CanCorrectAge: 'CanCorrectAge'
+  CanCorrectAge: 'CanCorrectAge',
+  TriggerTrustedFriendVPCRecourse: 'TriggerTrustedFriendVPCRecourse'
 };
 
 export default featureConstants;

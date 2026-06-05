@@ -48,13 +48,17 @@ export const validatePassword = (
 };
 
 /**
+ * Returns true if the value looks like an email address.
+ */
+export const isValidEmail = (value: string): boolean => /\S+@\S+\.\S+/.test(value);
+
+/**
  * Returns null (no error) if the argument looks like an email address.
  */
 export const validateEmailAddress = (errorMessage: string): InputValidator => async (
   value: string
 ) => {
-  const re = /\S+@\S+\.\S+/;
-  if (re.test(value)) {
+  if (isValidEmail(value)) {
     return Promise.resolve(null);
   }
 

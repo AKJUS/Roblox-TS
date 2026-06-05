@@ -10,6 +10,7 @@ import {
   TGetProductInfo,
   TPlayabilityStatusPurchaseRequired,
   ValueOf,
+  type TPlayButtonPageContext,
 } from "../types/playButtonTypes";
 import FiatPurchaseButton from "./FiatPurchaseButton";
 import RobuxPurchaseButton from "./RobuxPurchaseButton";
@@ -43,6 +44,7 @@ export type TPurchaseButtonContainerProps = {
   redirectPurchaseUrl?: ValidHttpUrl;
   playabilityStatus: TPlayabilityStatusPurchaseRequired;
   showDefaultPurchaseText?: boolean;
+  pageContext: TPlayButtonPageContext;
 };
 
 export const PurchaseButtonContainer = ({
@@ -57,6 +59,7 @@ export const PurchaseButtonContainer = ({
   redirectPurchaseUrl,
   playabilityStatus,
   showDefaultPurchaseText = false,
+  pageContext,
 }: TPurchaseButtonContainerProps & {
   translate: TranslateFunction;
 }): React.JSX.Element => {
@@ -103,6 +106,7 @@ export const PurchaseButtonContainer = ({
       productDetails={productDetails}
       translate={translate}
       showDefaultPurchaseText={showDefaultPurchaseText}
+      pageContext={pageContext}
     />
   ) : (
     <RobuxPurchaseButton

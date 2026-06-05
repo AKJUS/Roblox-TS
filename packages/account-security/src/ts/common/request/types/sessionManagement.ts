@@ -4,6 +4,7 @@
 
 import { EnvironmentUrls } from 'Roblox';
 import { UrlConfig } from 'core-utilities';
+import { DelayParameters } from '../../../react/challenge/twoStepVerification/delay';
 
 const URL_NOT_FOUND = 'URL_NOT_FOUND';
 const apiGatewayUrl = EnvironmentUrls.apiGatewayUrl ?? URL_NOT_FOUND;
@@ -47,7 +48,9 @@ export type TokenMetadataItem = {
   lastAccessedIp: string | null;
   lastAccessedTimestampEpochMilliseconds: string | null;
   isCurrentSession: boolean;
+  isTrustedSession: boolean;
   parentSessionToken: string | null;
+  delayLabels: DelayParameters[] | null;
 };
 
 export type GetSessionsReturnType = {

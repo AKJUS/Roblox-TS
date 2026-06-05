@@ -40,10 +40,7 @@ function dialogAttributes(languageResource) {
       linkName: lang.get('Label.SeeMore'),
       seeMoreLink: lang.get('Label.SeeMore'),
       seeLessLink: lang.get('Label.SeeLess'),
-      toastText(renameFriendsToConnections, friendsCount) {
-        if (renameFriendsToConnections) {
-          return lang.get('Message.AddConnectionsLimit', { connectionsNum: friendsCount });
-        }
+      toastText(friendsCount) {
         return lang.get('Message.ToastText', { friendNum: friendsCount });
       },
       timeoutToast: 5000

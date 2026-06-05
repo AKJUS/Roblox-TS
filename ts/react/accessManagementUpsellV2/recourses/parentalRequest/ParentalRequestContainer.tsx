@@ -10,7 +10,6 @@ import { RecourseResponse } from '../../types/AmpTypes';
 import { sendClickRequestBroadcastConfirmEvent } from './services/eventService';
 import userSettingsService from './services/userSettingsService';
 import RequestType from './enums/RequestType';
-import ExpNewChildModal from '../../enums/ExpNewChildModal';
 import changeBirthdayUtils from './utils/changeBirthdayUtils';
 
 const ParentalRequestContainer = ({
@@ -19,7 +18,6 @@ const ParentalRequestContainer = ({
   onHidecallback,
   isPrologueUsed,
   value = null,
-  expChildModalType = null,
   source
 }: {
   translate: WithTranslationsProps['translate'];
@@ -27,7 +25,6 @@ const ParentalRequestContainer = ({
   onHidecallback: () => void;
   isPrologueUsed: boolean;
   value: Record<string, string> | null;
-  expChildModalType?: ExpNewChildModal;
   source?: string;
 }): JSX.Element => {
   const { emailSentConfirmation } = parentalRequestConstants.translationKeys;
@@ -123,7 +120,6 @@ const ParentalRequestContainer = ({
           successCallback={successCallBack}
           onHidecallback={onHidecallback}
           value={value}
-          expChildModalType={expChildModalType}
           isPrologueUsed={isPrologueUsed}
           source={source}
         />

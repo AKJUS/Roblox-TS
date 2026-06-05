@@ -1,4 +1,5 @@
 import { eventStreamService } from "@rbx/core-scripts/legacy/core-roblox-utilities";
+import AUTH_EVENT_CONSTANTS from "@rbx/authentication-common/constants/eventsConstants";
 import EVENT_CONSTANTS from "../constants/eventsConstants";
 
 /**
@@ -53,6 +54,19 @@ export const sendAuth401ModalButtonClickEvent = (): void => {
 };
 
 /**
+ * Log a generic authPageLoad event with the given context and state.
+ */
+export const sendAuthPageLoadEvent = (context: string, state: string): void => {
+  eventStreamService.sendEventWithTarget(
+    EVENT_CONSTANTS.schematizedEventTypes.authPageLoad,
+    context,
+    {
+      state,
+    },
+  );
+};
+
+/**
  * Log whether account switcher blob is present or not. Should be logged on page load.
  * @param boolean isBlobPresent
  */
@@ -62,6 +76,43 @@ export const sendAccountSwitcherBlobPresentOnPageLoadEvent = (isBlobPresent: boo
     EVENT_CONSTANTS.context.accountSwitcherStatus,
     {
       state: isBlobPresent.toString(),
+    },
+  );
+};
+
+/**
+ * Log authMsgShown event reporting the source flow that triggered a
+ * successful passkey creation (mirrors `sendPasskeyCreationSourceEvent`
+ * in account-security and account-settings).
+ */
+export const sendPasskeyCreationSourceEvent = (source: string): void => {
+  eventStreamService.sendEventWithTarget(
+    AUTH_EVENT_CONSTANTS.schematizedEventTypes.authMsgShown,
+    AUTH_EVENT_CONSTANTS.context.passkeyCreationSource,
+    {
+      state: AUTH_EVENT_CONSTANTS.state.passkeyCreation.finishRegistration,
+      field: source,
+    },
+  );
+};
+
+/**
+ * Log a passkeyRegistrationEvent (proto: eventstream.accountauth.PasskeyRegistrationEvent).
+ * `passkeyFailureReason` is omitted from the payload when not provided so the
+ * field stays unset on success-path events.
+ */
+export const sendPasskeyRegistrationEvent = (
+  source: string,
+  state: string,
+  passkeyFailureReason?: string,
+): void => {
+  eventStreamService.sendEventWithTarget(
+    EVENT_CONSTANTS.schematizedEventTypes.passkeyRegistrationEvent,
+    EVENT_CONSTANTS.context.passkeyRegistration,
+    {
+      source,
+      state,
+      ...(passkeyFailureReason ? { passkeyFailureReason } : {}),
     },
   );
 };

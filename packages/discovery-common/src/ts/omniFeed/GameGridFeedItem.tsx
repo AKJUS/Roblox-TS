@@ -2,11 +2,16 @@ import React, { useEffect, useCallback, useMemo } from "react";
 import { WithTranslationsProps } from "@rbx/core-scripts/react";
 import { TGameData, TGetFriendsResponse } from "../common/types/bedev1Types";
 import { TContentType, TGameSort, TOmniRecommendationGame } from "../common/types/bedev2Types";
+import { TOmniRecommendationAnalyticsData } from "../common/types/analyticsTypes";
 import HomePageGridDiscoveryApi from "../homePage/discoveryApi/HomePageGridDiscoveryApi";
 import bedev2Services from "../common/services/bedev2Services";
 import { homePage } from "../common/constants/configConstants";
 import { useContentMetadata } from "./utils/contentMetadataContextProvider";
-import { hydrateOmniRecommendationGames } from "./utils/gameSortUtils";
+import {
+  buildOmniRecommendationAnalyticsData,
+  hydrateOmniRecommendationGames,
+  isOmniRecommendationGameSort,
+} from "./utils/gameSortUtils";
 import { usePageSession } from "../common/utils/PageSessionContext";
 
 type THomePageDiscoveryApiProps = {
@@ -15,6 +20,7 @@ type THomePageDiscoveryApiProps = {
   positionId: number;
   itemsPerRow: number | undefined;
   startingRow: number | undefined;
+  topicPositionOffset?: number;
   recommendations: TOmniRecommendationGame[];
   friendsPresenceData: TGetFriendsResponse[];
   isDynamicLayoutSizingEnabled?: boolean;
@@ -31,6 +37,7 @@ export const GameGridFeedItem = ({
   positionId,
   itemsPerRow,
   startingRow,
+  topicPositionOffset,
   recommendations,
   friendsPresenceData,
   isDynamicLayoutSizingEnabled,
@@ -69,6 +76,13 @@ export const GameGridFeedItem = ({
     return hydrateOmniRecommendationGames(recommendations, contentMetadata);
   }, [recommendations, contentMetadata]);
 
+  const omniAnalyticsData = useMemo<TOmniRecommendationAnalyticsData>(() => {
+    if (!isOmniRecommendationGameSort(sort)) {
+      return { sortLevel: {}, itemLevel: {} };
+    }
+    return buildOmniRecommendationAnalyticsData(recommendations, sort.analyticsData);
+  }, [sort, recommendations]);
+
   if (gridData?.length === 0) {
     return null;
   }
@@ -78,10 +92,12 @@ export const GameGridFeedItem = ({
       key={sort.topic}
       sort={sort}
       gameData={gridData}
+      omniAnalyticsData={omniAnalyticsData}
       translate={translate}
       positionId={positionId}
       itemsPerRow={itemsPerRow}
       startingRow={startingRow}
+      topicPositionOffset={topicPositionOffset}
       friendsPresence={friendsPresenceData}
       componentType={sort.topicLayoutData?.componentType}
       playerCountStyle={sort.topicLayoutData?.playerCountStyle}

@@ -36,10 +36,12 @@ export default function openNewPurchaseSucceededModal(
           ${bodyUserBalanceNow}
         </div>
       </div>`;
-  const acceptText =
-    itemPurchaseObj.assetType !== ASSET_TYPE_ENUM.GAME_PASS
-      ? translationResource.get(LANG_KEYS.equipMyAvatarAction, {})
-      : translationResource.get(LANG_KEYS.okAction, {});
+  const isGamePassOrSubscription =
+    itemPurchaseObj.assetType === ASSET_TYPE_ENUM.GAME_PASS ||
+    itemPurchaseObj.assetType === ASSET_TYPE_ENUM.SUBSCRIPTION;
+  const acceptText = isGamePassOrSubscription
+    ? translationResource.get(LANG_KEYS.okAction, {})
+    : translationResource.get(LANG_KEYS.equipMyAvatarAction, {});
   Dialog.open({
     titleText: translationResource.get(LANG_KEYS.purchaseSucceededHeading, {}),
     bodyContent: dialogBody,
@@ -64,7 +66,7 @@ export default function openNewPurchaseSucceededModal(
       if (Endpoints && Endpoints.supportLocalizedUrls) {
         itemPath = Endpoints.removeUrlLocale(itemPath);
       }
-      if (itemPurchaseObj.assetType !== ASSET_TYPE_ENUM.GAME_PASS) {
+      if (!isGamePassOrSubscription) {
         redirectToCustomizeAvatar();
       } else if (itemPath.startsWith(GAMES_PAGE_PREFIX)) {
         redirectToItemPath(`${itemPurchaseObj.itemPath}?#!/store`); // ? mark to avoid same url no redirection
@@ -107,7 +109,7 @@ export default function openNewPurchaseSucceededModal(
     allowHtmlContentInBody: true,
     allowHtmlContentInFooter: false,
     fieldValidationRequired: true,
-    showDecline: itemPurchaseObj.assetType !== ASSET_TYPE_ENUM.GAME_PASS,
+    showDecline: !isGamePassOrSubscription,
     dismissable: false,
     xToCancel: true
   });

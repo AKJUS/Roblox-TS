@@ -29,6 +29,7 @@ import {
 } from "./GameTileUtils";
 import { getGameTileTextFooterData } from "../utils/gameTileLayoutUtils";
 import { TComponentType } from "../types/bedev2Types";
+import type { PageContext } from "../types/pageContext";
 
 export const FeaturedGridTile = forwardRef(
   (
@@ -39,8 +40,10 @@ export const FeaturedGridTile = forwardRef(
       translate,
       topicId,
       componentType,
+      page,
     }: TSharedGameTileProps & {
       componentType?: TComponentType;
+      page?: PageContext;
     },
     ref: Ref<HTMLDivElement>,
   ): JSX.Element => {
@@ -94,6 +97,7 @@ export const FeaturedGridTile = forwardRef(
       gameData.placeId,
       gameData.name,
       buildEventProperties(gameData, id),
+      gameData.canonicalUrlPath,
     );
 
     const playButtonEventProperties = buildEventProperties(gameData, id) as Record<
@@ -165,6 +169,7 @@ export const FeaturedGridTile = forwardRef(
               placeId={gameData.placeId.toString()}
               playButtonEventProperties={playButtonEventProperties}
               redirectPurchaseUrl={isValidHttpUrl(linkUrl) ? linkUrl : undefined}
+              page={page}
             />
           </div>
           {gameData.creatorName !== null && (

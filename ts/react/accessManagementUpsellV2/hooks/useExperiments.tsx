@@ -7,15 +7,14 @@ const getExperimentsForLayer = async (
 ): Promise<{ [parameter: string]: unknown }> => {
   if (ExperimentationService?.getAllValuesForLayer) {
     const ixpResult = await ExperimentationService.getAllValuesForLayer(experimentLayer);
-
     return ixpResult;
   }
 
   return {};
 };
 
-const useExperiments = (experimentLayer: string): { [experimentName: string]: unknown } => {
-  const [ixpResult, setIxpResult] = useState({});
+const useExperiments = (experimentLayer: string): { [experimentName: string]: unknown } | null => {
+  const [ixpResult, setIxpResult] = useState<{ [key: string]: unknown } | null>(null);
 
   useEffect(() => {
     getExperimentsForLayer(experimentLayer).then(
@@ -25,9 +24,7 @@ const useExperiments = (experimentLayer: string): { [experimentName: string]: un
 
       function error() {
         // return empty object if call to experimentation service fails
-
         // this behaves as if user is not enrolled in any experiment
-
         setIxpResult({});
       }
     );

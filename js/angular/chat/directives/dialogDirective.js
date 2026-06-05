@@ -350,7 +350,6 @@ function dialog(
             scope.toastLayout.isNeeded = true;
             if (!scope.toastLayout.text) {
               scope.toastLayout.text = scope.dialogLayout.memberDisplay.toastText(
-                scope.chatLibrary.renameFriendsToConnections,
                 scope.chatLibrary.quotaOfGroupChatMembers
               );
             }

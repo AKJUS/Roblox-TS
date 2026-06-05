@@ -156,16 +156,6 @@ function gameService(
     return $filter('formatString')(gameUrl, { placeId: place.placeId });
   }
 
-  function buildGameReferralUrl(place, sortName) {
-    const urls = urlService.getGameDetailReferralUrls();
-    const urlInChatTemplate = urls.chat;
-    const formattedUrl = $filter('formatString')(urlInChatTemplate, {
-      sortName,
-      placeId: place.placeId
-    });
-    return urlService.getAbsoluteUrl(formattedUrl);
-  }
-
   return {
     apiSets,
 

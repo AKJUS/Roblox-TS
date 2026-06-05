@@ -5,6 +5,7 @@ import usePlatformSupportsPasskeyAndSecurityKey from '../../../common/hooks/useP
 import useTwoStepVerificationContext from '../hooks/useTwoStepVerificationContext';
 import {
   GetMetadataReturnType,
+  GetUserConfigurationReturnType,
   TwoStepCopyEnrollmentStateCensored,
   TwoStepVerificationError
 } from '../../../../common/request/types/twoStepVerification';
@@ -36,6 +37,7 @@ import QuickSignInInput from './quickSignInInput';
 import { RequestService } from '../../../../common/request';
 import { EventService } from '../services/eventService';
 import RecoveryRedirect from '../components/recoveryRedirect';
+import { DelayParameters } from '../delay';
 
 export type LoadChallengeProps = {
   setPageLoadError: React.Dispatch<React.SetStateAction<string | null>>;
@@ -53,7 +55,78 @@ export type LoadChallengeProps = {
   setHasSentEmailCode: React.Dispatch<React.SetStateAction<boolean>>;
   platformSupportsPasskey: boolean | null;
   platformSupportsSecurityKey: boolean | null;
+  delayParameters?: DelayParameters;
 };
+
+export type CoercePrimaryMediaTypeProps = {
+  userConfiguration: GetUserConfigurationReturnType,
+  originalEnabledMethods: GetUserConfigurationReturnType['methods'],
+  newEnabledMediaTypes: MediaType[],
+  delayParameters?: DelayParameters,
+  platformSupportsPasskey: boolean,
+  platformSupportsSecurityKey: boolean,
+}
+
+export type CoercePrimaryMediaTypeResult = { primaryMediaType: MediaType | null, coerced: boolean }
+
+// The previous logic relied on fall-through which is difficult to maintain as the structure
+// of the code determines the control flow. This function refactors the logic to be explicit.
+export const coercePrimaryMediaType = ({
+  userConfiguration,
+  originalEnabledMethods,
+  newEnabledMediaTypes,
+  delayParameters,
+  platformSupportsPasskey,
+  platformSupportsSecurityKey,
+}: CoercePrimaryMediaTypeProps): CoercePrimaryMediaTypeResult => {
+  // Redirect to QuickSignIn if user has methods configured but none are available on this platform
+  if (originalEnabledMethods.length > 0 && newEnabledMediaTypes.length === 0) {
+    // This is marked as false because technically there **wasn't** a valid primary type to begin with.
+    return { primaryMediaType: MediaType.QuickSignIn, coerced: false };
+  }
+
+  if (delayParameters?.state === 'LOCK_STATE_UNLOCKED' &&
+    delayParameters.eligibleMethods?.some(eligibleMethod => eligibleMethod.bypassable)
+  ) {
+    // If the state is unlocked the user has previously verified with a non-bypassable method.
+    // In those cases, we want to ask the user to continue to verify with bypassable methods.
+    //
+    // TODO: do something if it's unlocked but no bypassable. This shouldn't happen because
+    // the our rules would return blocksession in that case.
+    return { primaryMediaType: null, coerced: true };
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+  const primaryMediaType = userConfiguration.primaryMediaType as MediaType;
+  if (!Object.values(MediaType).includes(primaryMediaType)) {
+    // If someone updates the backend with a new media type that isn't typed properly yet on the
+    // frontend, we want to try our best to render it. This only applies in the specific case where
+    // someone implements the new route but forgets to update the MediaType enum.
+    return { primaryMediaType, coerced: false };
+  }
+
+  // POTENTIAL FOOTGUN:
+  // Safe because there's an implicit assumption that all security key users also have authenticator.
+  // If that policy changes we will need a more explicit check.
+  if (primaryMediaType === MediaType.SecurityKey && !platformSupportsSecurityKey) {
+    return { primaryMediaType: MediaType.Authenticator, coerced: true };
+  }
+
+  if (primaryMediaType === MediaType.Passkey && 
+    !platformSupportsPasskey && 
+    newEnabledMediaTypes.length > 0 &&
+    // Purely here to satisfy the type checker.
+    newEnabledMediaTypes[0] !== undefined) {
+    return { primaryMediaType: newEnabledMediaTypes[0], coerced: true };
+  }
+
+  // Note: this is a slight deviation from the original logic to only mark coercion for when email
+  // would be the new primary media type after coercion. It was previously unmodelled because when
+  // security key is coerced to authenticator, we know implicitly authenticator is always prioritized
+  // over email. This new behaviour covers all coercion cases, if we wanted to do something with it
+  // later. Also it's more logically consistent.
+  return { primaryMediaType, coerced: false };
+}
 
 // This function is extracted as a module export to piece-wise add test coverage to this file.
 // The routing performed in loadChallenge is sufficiently complex that extracting this out of the
@@ -74,7 +147,8 @@ export const loadChallenge = async ({
   eventService,
   setHasSentEmailCode,
   platformSupportsPasskey,
-  platformSupportsSecurityKey
+  platformSupportsSecurityKey,
+  delayParameters,
 }: LoadChallengeProps): Promise<void> => {
   setPageLoadError(null);
   if (metadata !== null) {
@@ -161,10 +235,6 @@ export const loadChallenge = async ({
     metadata: resultMetadata.value
   });
 
-  // Set user configuration state (including inferred media type info).
-  let primaryMediaType =
-    MediaType[resultUserConfiguration.value.primaryMediaType as keyof typeof MediaType] || null;
-
   // Get the user's originally configured methods (before platform filtering)
   const originalEnabledMethods = resultUserConfiguration.value.methods.filter(
     ({ enabled }) => enabled
@@ -191,30 +261,29 @@ export const loadChallenge = async ({
       return true;
     });
 
-  // Redirect to QuickSignIn if user has methods configured but none are available on this platform
-  const shouldRedirectToQuickSignIn =
-    originalEnabledMethods.length > 0 && newEnabledMediaTypes.length === 0;
+  const maybeCoercedPrimaryMediaTypeResult = coercePrimaryMediaType({
+    delayParameters,
+    userConfiguration: resultUserConfiguration.value,
+    originalEnabledMethods,
+    newEnabledMediaTypes,
+    platformSupportsPasskey,
+    platformSupportsSecurityKey,
+  });
 
-  if (shouldRedirectToQuickSignIn) {
-    primaryMediaType = MediaType.QuickSignIn;
-  }
+  const { primaryMediaType, coerced } = maybeCoercedPrimaryMediaTypeResult;
 
-  if (primaryMediaType === MediaType.SecurityKey && !platformSupportsSecurityKey) {
-    primaryMediaType = MediaType.Authenticator;
-  }
+  const shouldDefaultToMediaTypeListForPasswordReset =
+    actionType === ActionType.PasswordReset;
 
-  let primaryMethodChanged = false;
-  if (primaryMediaType === MediaType.Passkey && !platformSupportsPasskey) {
-    if (newEnabledMediaTypes.length > 0) {
-      primaryMethodChanged = true;
-      // eslint-disable-next-line prefer-destructuring
-      primaryMediaType = newEnabledMediaTypes[0]!;
-    }
-  }
-
-  history.replace(mediaTypeToPath(primaryMediaType));
-  if (primaryMediaType === MediaType.Email) {
-    if (primaryMethodChanged) {
+  history.replace(
+    shouldDefaultToMediaTypeListForPasswordReset
+      ? mediaTypeToPath(null)
+      : mediaTypeToPath(primaryMediaType)
+  );
+  // We avoid sending an email code if we default to media type list, since the
+  // user is not explicitly on the email challenge screen..
+  if (primaryMediaType === MediaType.Email && !shouldDefaultToMediaTypeListForPasswordReset) {
+    if (coerced) {
       eventService.sendEmailResendRequestedEvent();
       const emailResult = await requestService.twoStepVerification.sendEmailCode(userId, {
         challengeId,
@@ -232,10 +301,10 @@ export const loadChallenge = async ({
         }
       }
     }
-    setHasSentEmailCode(!primaryMethodChanged);
+    setHasSentEmailCode(!coerced);
   }
   // Track unexpected event where no valid 2SV methods are returned for a user with 2SV enabled.
-  if (newEnabledMediaTypes.length === 0 || !primaryMediaType) {
+  if (newEnabledMediaTypes.length === 0 || primaryMediaType === null || Object.values(MediaType).includes(primaryMediaType)) {
     eventService.sendNoEnabledMethodsReturnedEvent(
       primaryMediaType,
       actionType,
@@ -271,7 +340,8 @@ const TwoStepVerification: React.FC = () => {
       requestService,
       onModalChallengeAbandoned,
       isModalVisible,
-      recoveryParameters
+      recoveryParameters,
+      delayParameters,
     },
     dispatch
   } = useTwoStepVerificationContext();
@@ -348,7 +418,8 @@ const TwoStepVerification: React.FC = () => {
     eventService,
     setHasSentEmailCode,
     platformSupportsPasskey,
-    platformSupportsSecurityKey
+    platformSupportsSecurityKey,
+    delayParameters,
   };
 
   // Effect to retrieve 2SV metadata and user configuration:

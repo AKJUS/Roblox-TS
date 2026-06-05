@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import { withTranslations } from 'react-utilities';
+import { withTranslations, queryClient } from 'react-utilities';
 import { createSystemFeedback } from 'react-style-guide';
 import { paymentFlowAnalyticsService } from 'core-roblox-utilities';
 import { ItemPurchaseUpsellService, CurrentUser, AccountIntegrityChallengeService } from 'Roblox';
 import { uuidService } from 'core-utilities';
+import { QueryClientProvider, useQuery } from '@tanstack/react-query';
 import translationConfig from '../translation.config';
 import { getMetaData } from '../util/itemPurchaseUtil';
 import itemPurchaseConstants from '../constants/itemPurchaseConstants';
@@ -17,6 +18,10 @@ import createTransactionFailureModal from './createTransactionFailureModal';
 import createPriceChangedModal from './createPriceChangedModal';
 import TwoStepVerificationModal from '../components/TwoStepVerificationModal';
 import createUnifiedPurchaseVerificationModal from './createUnifiedPurchaseVerificationModal';
+import {
+  listAvailableSubscriptionProductsV2,
+  ProductType
+} from '../../../../ts/react/services/subscriptionsApiV2Service';
 
 const { resources, errorTypeIds, errorStatusText, events, violationLabels } = itemPurchaseConstants;
 
@@ -112,7 +117,10 @@ export default function createItemPurchase({
           itemUpsellProcessParams.startOriginalFlowCallback,
           customAjaxData,
           itemUpsellProcessParams.shouldShowUnifiedPurchaseModal
-        );
+        ).catch(() => {
+          // startItemUpsellProcess invokes the fallback callback before
+          // rejecting; catch here to prevent unhandled promise rejection.
+        });
         window.EventTracker.fireEvent(events.NEW_UPSELL_FROM_REACT_BUY_BUTTON);
       } catch (e) {
         window.EventTracker.fireEvent(events.NEW_UPSELL_FAILED_DUE_TO_ERROR);
@@ -137,7 +145,6 @@ export default function createItemPurchase({
       hour: timeoutInHours
     });
   };
-
   function ItemPurchase({
     translate,
     assetName,
@@ -165,6 +172,7 @@ export default function createItemPurchase({
     customProps,
     rentalOptionDays = null,
     saleLocationId = null,
+    discountInformation = null,
     // for subscription purchase
     subscriptionTargetKey = null,
     subscriptionPaymentProvider = '',
@@ -189,6 +197,15 @@ export default function createItemPurchase({
     const stopTwoStepVerification = () => setIsTwoStepVerificationActive(false);
     const [enableTwoStepVerificationBanner, setEnableTwoStepVerificationBanner] = useState(false);
     const [shouldShowUnifiedPurchaseModal, setShouldShowUnifiedPurchaseModal] = useState(false);
+
+    const { data: subscriptionProductInfo = null } = useQuery({
+      queryKey: ['list-available-subscription-products', CurrentUser.userId],
+      queryFn: () => listAvailableSubscriptionProductsV2(ProductType.Blackbird, false),
+      select: ({ products }) => products[0] ?? null,
+      enabled: shouldShowUnifiedPurchaseModal,
+      retry: 1,
+      retryDelay: 100
+    });
 
     const getCurrentUserBalance = () => {
       itemDetailsService
@@ -266,7 +283,8 @@ export default function createItemPurchase({
           isLimited,
           buyButtonElementDataset: targetData,
           thumbnail,
-          priceSuffix
+          priceSuffix,
+          discountInformation
         },
         startOriginalFlowCallback: insufficientFundsModalServiceWrapper(
           shortfallPrice,
@@ -774,11 +792,15 @@ export default function createItemPurchase({
           if (data.invalidReason) {
             setLoading(false);
             closeAll();
+            const [, violation, timeoutDurationInMinutes] = data.invalidReason.split('/');
             handleError({
               title: translate(resources.economicRestrictionsErrorHeading),
               errorMsg:
-                getEconomicRestrictionErrorMsg(translate, data.invalidReason, 0) ||
-                translate(resources.generalPurchaseErrorMessage),
+                getEconomicRestrictionErrorMsg(
+                  translate,
+                  violation,
+                  parseInt(timeoutDurationInMinutes, 10)
+                ) || translate(resources.generalPurchaseErrorMessage),
               showDivId: errorTypeIds.transactionFailure
             });
             return;
@@ -882,7 +904,9 @@ export default function createItemPurchase({
             onSecondaryAction: secondaryAction,
             secondaryActionButtonText,
             footerDisclaimerText: subscriptionFooterDisclaimer || undefined,
-            priceSuffix: priceSuffix || undefined
+            priceSuffix: priceSuffix || undefined,
+            subscriptionProductInfo: subscriptionProductInfo || undefined,
+            discountInformation: discountInformation || undefined
           }}
         />
       );
@@ -986,6 +1010,7 @@ export default function createItemPurchase({
     saleLocationId: null,
     rentalOptionDays: null,
     subscriptionTargetKey: null,
+    discountInformation: null,
     subscriptionPaymentProvider: '',
     subscriptionSecondaryPaymentProvider: '',
     subscriptionTitle: '',
@@ -994,7 +1019,9 @@ export default function createItemPurchase({
     subscriptionFooterDisclaimer: '',
     subscriptionCancelPath: '',
     displayPrice: '',
-    priceSuffix: ''
+    priceSuffix: '',
+    subscriptionProductType: null,
+    subscriptionProductId: null
   };
 
   ItemPurchase.propTypes = {
@@ -1031,6 +1058,19 @@ export default function createItemPurchase({
     isLimited: PropTypes.bool,
     saleLocationId: PropTypes.number,
     rentalOptionDays: PropTypes.number,
+    discountInformation: PropTypes.shape({
+      originalPrice: PropTypes.number,
+      totalDiscountAmount: PropTypes.number,
+      totalDiscountPercentage: PropTypes.number,
+      discounts: PropTypes.arrayOf(
+        PropTypes.shape({
+          discountAmount: PropTypes.number,
+          discountPercentage: PropTypes.number,
+          discountCampaign: PropTypes.string,
+          localizedDiscountAttribution: PropTypes.string
+        })
+      )
+    }),
     subscriptionTargetKey: PropTypes.string,
     subscriptionPaymentProvider: PropTypes.string,
     subscriptionSecondaryPaymentProvider: PropTypes.string,
@@ -1040,10 +1080,22 @@ export default function createItemPurchase({
     subscriptionFooterDisclaimer: PropTypes.string,
     subscriptionCancelPath: PropTypes.string,
     displayPrice: PropTypes.string,
-    priceSuffix: PropTypes.string
+    priceSuffix: PropTypes.string,
+    subscriptionProductType: PropTypes.string,
+    subscriptionProductId: PropTypes.string
   };
+  const ItemPurchaseTranslated = withTranslations(
+    ItemPurchase,
+    translationConfig.purchasingResources
+  );
+  const ItemPurchaseWithProvider = props => (
+    <QueryClientProvider client={queryClient}>
+      <ItemPurchaseTranslated {...props} />
+    </QueryClientProvider>
+  );
+
   return [
-    withTranslations(ItemPurchase, translationConfig.purchasingResources),
+    ItemPurchaseWithProvider,
     {
       start: () => {
         // try open verification view or insufficient funds

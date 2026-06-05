@@ -1,9 +1,16 @@
-import { ValidHttpUrl } from "@rbx/core-scripts/util/url";
 import React, { useMemo } from "react";
+import { ValidHttpUrl } from "@rbx/core-scripts/util/url";
 import { Loading } from "@rbx/core-ui";
-import { usePlayabilityStatus, PlayabilityStatus, DefaultPlayButton } from "@rbx/game-play-button";
+import {
+  usePlayabilityStatus,
+  PlayabilityStatus,
+  DefaultPlayButton,
+  type TPlayButtonPageContext,
+} from "@rbx/game-play-button";
 import { ValueOf } from "../utils/typeUtils";
 import useGetAppPolicyData from "../hooks/useGetAppPolicyData";
+import type { PageContext } from "../types/pageContext";
+import { getEventContext } from "../constants/eventStreamConstants";
 
 export const GameTilePlayButtonV2 = ({
   universeId,
@@ -11,16 +18,22 @@ export const GameTilePlayButtonV2 = ({
   playButtonEventProperties,
   disableLoadingState,
   redirectPurchaseUrl,
+  page,
 }: {
   universeId: string;
   placeId: string;
   playButtonEventProperties?: Record<string, string | number | undefined>;
   disableLoadingState?: boolean;
   redirectPurchaseUrl?: ValidHttpUrl;
+  page?: PageContext;
 }): JSX.Element => {
   const { playabilityStatus, refetchPlayabilityData } = usePlayabilityStatus(universeId);
 
   const { shouldShowVpcPlayButtonUpsells, isFetchingPolicy } = useGetAppPolicyData();
+
+  // This is a safe cast because `getEventContext` returns "UNKNOWN" if there's
+  // no matching event context
+  const pageContext = getEventContext(page) as TPlayButtonPageContext;
 
   const isPurchaseRequired = useMemo((): boolean => {
     if (!playabilityStatus) {
@@ -48,6 +61,7 @@ export const GameTilePlayButtonV2 = ({
         eventProperties={playButtonEventProperties}
         hideButtonText
         disableLoadingState={disableLoadingState}
+        pageContext={pageContext}
       />
     );
   }
@@ -67,6 +81,7 @@ export const GameTilePlayButtonV2 = ({
       redirectPurchaseUrl={isPurchaseRequired ? redirectPurchaseUrl : undefined}
       showDefaultPurchaseText={playabilityStatus === PlayabilityStatus.FiatPurchaseRequired}
       shouldShowVpcPlayButtonUpsells={shouldShowVpcPlayButtonUpsells}
+      pageContext={pageContext}
     />
   );
 };

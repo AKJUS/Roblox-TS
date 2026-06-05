@@ -100,12 +100,7 @@ const InterestCatcherGameGrid = ({
           parsedViewedIndexes,
           sort?.topicLayoutData?.componentType,
         ),
-        ...getTileBadgeContextsImpressionsData(
-          gridData,
-          sort.topicId,
-          parsedViewedIndexes,
-          sort?.topicLayoutData?.componentType,
-        ),
+        ...getTileBadgeContextsImpressionsData(gridData, sort.topicId, parsedViewedIndexes),
         [EventStreamMetadata.AbsPositions]: parsedViewedIndexes,
         [EventStreamMetadata.NumberOfLoadedTiles]: gridData?.length,
         [EventStreamMetadata.GameSetTypeId]: sort.topicId,

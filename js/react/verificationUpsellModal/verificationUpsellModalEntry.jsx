@@ -18,7 +18,8 @@ import {
   handleUserEmailUpsellAtPremiumSubscription,
   handleUserEmailUpsellOnHomePage,
   handleUserEmailVerificationRequiredByBan,
-  handleUserEmailVerificationRequiredByPurchaseWarning
+  handleUserEmailVerificationRequiredByPurchaseWarning,
+  openLogoutEmailUpsellModal
 } from './emailUpsellModal/services/emailServices';
 import PhoneUpsellApp from './PhoneUpsellApp';
 
@@ -104,7 +105,8 @@ Roblox.EmailVerificationService = {
   handleUserEmailUpsellOnHomePage,
   handleUserEmailVerificationRequiredByPurchaseWarning,
   handleUserEmailUpsellAtPremiumSubscription,
-  handleUserEmailVerificationRequiredByBan
+  handleUserEmailVerificationRequiredByBan,
+  openLogoutEmailUpsellModal
 };
 
 // TODO: non-hompeage upsells like logout and pre-purchase upsells depend on

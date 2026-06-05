@@ -67,7 +67,7 @@ export const GameGridTile = forwardRef<HTMLDivElement, TGameGridTileProps>(
     ref,
   ) => {
     if (emphasis) {
-      return <FeaturedGridTile ref={ref} componentType={componentType} {...props} />;
+      return <FeaturedGridTile ref={ref} componentType={componentType} page={page} {...props} />;
     }
 
     return (

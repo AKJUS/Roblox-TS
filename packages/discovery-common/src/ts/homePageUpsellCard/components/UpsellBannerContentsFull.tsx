@@ -1,7 +1,8 @@
 import React from "react";
 import { Badge, Button, Icon, IconButton } from "@rbx/foundation-ui";
 import { useTranslation } from "@rbx/core-scripts/react";
-import { TBadgeProps, TButtonProps } from "../types/upsellCardTypes";
+import { DEFAULT_UPSELL_BUTTON_SIZE } from "../constants/upsellCardConstants";
+import { TBadgeProps, TButtonProps, TUpsellBannerTextClass } from "../types/upsellCardTypes";
 
 interface TUpsellBannerContentsFullProps {
   badgePropsArray: TBadgeProps[];
@@ -11,6 +12,8 @@ interface TUpsellBannerContentsFullProps {
   dismissible: boolean;
   onDismiss: () => void;
   buttonPropsArray: TButtonProps[];
+  titleTextClassName: TUpsellBannerTextClass;
+  bodyTextClassName: TUpsellBannerTextClass;
 }
 
 const UpsellBannerContentsFull: React.FC<TUpsellBannerContentsFullProps> = ({
@@ -21,6 +24,8 @@ const UpsellBannerContentsFull: React.FC<TUpsellBannerContentsFullProps> = ({
   dismissible,
   onDismiss,
   buttonPropsArray,
+  titleTextClassName,
+  bodyTextClassName,
 }) => {
   const shouldShowBadges = badgePropsArray.length > 0;
   const { translate } = useTranslation();
@@ -59,15 +64,15 @@ const UpsellBannerContentsFull: React.FC<TUpsellBannerContentsFullProps> = ({
           </div>
         )}
         <div className={`flex flex-col grow-1 ${bodyText ? "gap-xsmall" : "gap-small"}`}>
-          <div className="text-title-medium">{titleText}</div>
+          <div className={titleTextClassName}>{titleText}</div>
           <div className="flex flex-col gap-large">
-            {bodyText && <div className="text-body-medium">{bodyText}</div>}
+            {bodyText && <div className={bodyTextClassName}>{bodyText}</div>}
             <div className="flex flex-row flex-wrap gap-small">
               {buttonPropsArray.map(buttonProps => (
                 <Button
                   onClick={buttonProps.onClick}
                   variant={buttonProps.variant}
-                  size="Small"
+                  size={buttonProps.size ?? DEFAULT_UPSELL_BUTTON_SIZE}
                   aria-label={buttonProps.text}
                   key={buttonProps.text}
                   className="shrink-0"

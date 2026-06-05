@@ -32,6 +32,7 @@ export const PrologueConstants = {
     CheckYourAge: 'Title.CheckYourAge'
   },
   Description: {
+    AddFriendVpc: 'Label.AddFriendVPC',
     Vpc: 'Description.PrologueTextVpc',
     Idv: 'Description.PrologueTextIdv',
     Fae: 'Description.PrologueTextFae',

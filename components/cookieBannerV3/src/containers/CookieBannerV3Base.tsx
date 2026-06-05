@@ -1,14 +1,14 @@
-import React, { useEffect, useState } from 'react';
-import { withTranslations, WithTranslationsProps } from '@rbx/core-scripts/legacy/react-utilities';
-import { getCookie } from '@rbx/core-scripts/cookie';
-import { translation } from '../../component.json';
-import cookieBannerServices from '../services/cookieBannerServices';
-import cookieConstants from '../constants/cookieConstants';
-import bannerConstants from '../constants/bannerConstants';
-import consentCookieHandler from '../utils/consentCookieHandler';
-import { TCookiePolicy, TEssentialCookie } from '../types/cookiePolicyTypes';
-import Banner from './Banner';
-import ConsentTool from './ConsentTool';
+import React, { useEffect, useState } from "react";
+import { withTranslations, WithTranslationsProps } from "@rbx/core-scripts/react";
+import { get } from "@rbx/core-lib/cookie";
+import { translation } from "../../component.json";
+import cookieBannerServices from "../services/cookieBannerServices";
+import cookieConstants from "../constants/cookieConstants";
+import bannerConstants from "../constants/bannerConstants";
+import consentCookieHandler from "../utils/consentCookieHandler";
+import { TCookiePolicy, TEssentialCookie } from "../types/cookiePolicyTypes";
+import Banner from "./Banner";
+import ConsentTool from "./ConsentTool";
 
 const CookieBannerV3Base = ({ translate }: WithTranslationsProps): React.JSX.Element => {
   const [nonEssentialCookieList, updateNonEssentialCookieList] = useState<string[]>([]);
@@ -28,12 +28,12 @@ const CookieBannerV3Base = ({ translate }: WithTranslationsProps): React.JSX.Ele
         // default to accept all cookies
         consentCookieHandler.setUserConsent(
           cookiePolicy.NonEssentialCookieList,
-          cookiePolicy.NonEssentialCookieList
+          cookiePolicy.NonEssentialCookieList,
         );
       }
     };
-    const consentCookie = getCookie(cookieConstants.consentCookieName);
-    if (!consentCookie || consentCookie === '') {
+    const consentCookie = get(cookieConstants.consentCookieName);
+    if (consentCookie == null || consentCookie.value === "") {
       // eslint-disable-next-line no-void
       void updateCookiePolicy();
     }

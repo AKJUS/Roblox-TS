@@ -16,6 +16,7 @@ import {
   TShowAgeVerificationOverlayResponse,
   TUniversePlaceVoiceEnabledSettings,
   ValueOf,
+  type TPlayButtonPageContext,
 } from "../types/playButtonTypes";
 import {
   handleShareLinkEventLogging,
@@ -25,11 +26,12 @@ import {
   startVerificationFlow,
   startVoiceOptInOverlayFlow,
 } from "../utils/playButtonUtils";
+import ExperienceApprovalActionNeededButton from "./ExperienceApprovalActionNeededButton";
 import ParentalControlsActionNeededButton from "./ParentalControlsActionNeededButton";
 import PurchaseButton from "./PurchaseButtonContainer";
-import SeventeenPlusActionNeededButton from "./SeventeenPlusActionNeededButton";
 import UnplayableButton from "./UnplayableButton";
 import useLaunchGameWithPlayableUxTreatment from "../hooks/useLaunchGameWithPlayableUxTreatment";
+import { AgeCheckNeededButton } from "./AgeCheckNeededButton";
 
 const { counterEvents, avatarChatUpsellLayer, avatarChatUpsellLayerU13 } = playButtonConstants;
 
@@ -62,7 +64,7 @@ const getShowIdentityVerificationFlow = async (
     requireExplicitVoiceConsent,
     useCameraU13Design,
     useVoiceUpsellV2Design,
-  } = await playButtonService.getGuacPlayButtonUI();
+  } = await playButtonService.getGuacPlayButtonUI(); // TODO(ACCMAN-4355): migrate to useGuacPlayButtonUI hook for caching
 
   // TODO: remove this check if playButtonOverlayWebFlag is always true
   if (!playButtonOverlayWebFlag && !(voiceOptInWebFlag || cameraOptInWebFlagO13)) {
@@ -146,6 +148,7 @@ export type TPlayButtonProps = {
   buttonText?: string | undefined;
   hideIcon?: boolean;
   analyticsCallback?: () => void;
+  pageContext: TPlayButtonPageContext;
 };
 
 const PlayButtonContents = ({
@@ -164,6 +167,7 @@ const PlayButtonContents = ({
   buttonText = undefined,
   hideIcon = false,
   analyticsCallback = undefined,
+  pageContext,
 }: TPlayButtonProps) => {
   const [isExperienceVoiceEnabled, setIsExperienceVoiceEnabled] = useState<boolean | undefined>(
     undefined,
@@ -251,7 +255,7 @@ const PlayButtonContents = ({
   ]);
 
   const { doGameLaunchWithPlayableUxTreatment, playableUxTreatmentModal } =
-    useLaunchGameWithPlayableUxTreatment(universeId, doGameLaunch);
+    useLaunchGameWithPlayableUxTreatment(universeId, doGameLaunch, pageContext);
 
   if (showVerification === undefined && !disableLoadingState) {
     return <Loading />;
@@ -356,6 +360,7 @@ export type TDefaultPlayButtonProps = {
   redirectPurchaseUrl?: ValidHttpUrl;
   showDefaultPurchaseText?: boolean;
   shouldShowVpcPlayButtonUpsells?: boolean;
+  pageContext: TPlayButtonPageContext;
 };
 
 export const DefaultPlayButton = ({
@@ -374,6 +379,7 @@ export const DefaultPlayButton = ({
   redirectPurchaseUrl,
   showDefaultPurchaseText,
   shouldShowVpcPlayButtonUpsells,
+  pageContext,
 }: TDefaultPlayButtonProps): React.JSX.Element => {
   const { fireEvent } = window.EventTracker ?? {};
   switch (playabilityStatus) {
@@ -394,6 +400,7 @@ export const DefaultPlayButton = ({
           appsFlyerReferralProperties={appsFlyerReferralProperties}
           disableLoadingState={disableLoadingState}
           buttonClassName={buttonClassName}
+          pageContext={pageContext}
         />
       );
     case PlayabilityStatus.Playable:
@@ -410,16 +417,18 @@ export const DefaultPlayButton = ({
           appsFlyerReferralProperties={appsFlyerReferralProperties}
           disableLoadingState={disableLoadingState}
           buttonClassName={buttonClassName}
+          pageContext={pageContext}
         />
       );
     case PlayabilityStatus.ContextualPlayabilityUnverifiedSeventeenPlusUser:
+    case PlayabilityStatus.ContextualPlayabilityAgeCheckRequired:
       fireEvent?.(counterEvents.ActionNeeded);
-
       return (
-        <SeventeenPlusActionNeededButton
+        <AgeCheckNeededButton
           universeId={universeId}
-          hideButtonText={hideButtonText}
           buttonClassName={buttonClassName}
+          playabilityStatus={playabilityStatus}
+          pageContext={pageContext}
         />
       );
     case PlayabilityStatus.PurchaseRequired:
@@ -434,6 +443,7 @@ export const DefaultPlayButton = ({
           redirectPurchaseUrl={redirectPurchaseUrl}
           playabilityStatus={playabilityStatus}
           showDefaultPurchaseText={showDefaultPurchaseText}
+          pageContext={pageContext}
         />
       );
     case PlayabilityStatus.ContextualPlayabilityAgeRecommendationParentalControls:
@@ -443,7 +453,6 @@ export const DefaultPlayButton = ({
         return (
           <ParentalControlsActionNeededButton
             universeId={universeId}
-            hideButtonText={hideButtonText}
             buttonClassName={buttonClassName}
             placeId={placeId}
             rootPlaceId={rootPlaceId}
@@ -451,11 +460,28 @@ export const DefaultPlayButton = ({
             gameInstanceId={gameInstanceId}
             eventProperties={eventProperties}
             appsFlyerReferralProperties={appsFlyerReferralProperties}
+            pageContext={pageContext}
           />
         );
       }
 
       // If policy is false, fall back to unplayable behavior
+      fireEvent?.(counterEvents.Unplayable);
+
+      return <UnplayableButton hideButtonText={hideButtonText} buttonClassName={buttonClassName} />;
+    case PlayabilityStatus.ContextualPlayabilityRequireParentApproval:
+      if (shouldShowVpcPlayButtonUpsells) {
+        fireEvent?.(counterEvents.ActionNeeded);
+
+        return (
+          <ExperienceApprovalActionNeededButton
+            universeId={universeId}
+            buttonClassName={buttonClassName}
+            pageContext={pageContext}
+          />
+        );
+      }
+
       fireEvent?.(counterEvents.Unplayable);
 
       return <UnplayableButton hideButtonText={hideButtonText} buttonClassName={buttonClassName} />;
@@ -477,6 +503,7 @@ export const DefaultPlayButton = ({
     case PlayabilityStatus.ContextualPlayabilityUnrated:
     case PlayabilityStatus.ContextualPlayabilityAgeGatedByDescriptor:
     case PlayabilityStatus.ContextualPlayabilityExperienceBlockedParentalControls:
+    case PlayabilityStatus.ContextualPlayabilityCoreGated:
     default:
       fireEvent?.(counterEvents.Unplayable);
 

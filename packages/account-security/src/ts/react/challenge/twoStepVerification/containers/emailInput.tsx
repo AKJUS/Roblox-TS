@@ -155,7 +155,10 @@ const EmailInput: React.FC<Props> = ({
       <React.Fragment>
         <BodyElement>
           <div className={lockIconClassName} />
-          <p className={marginBottomXLargeClassName}>{userEmailCopy} {maybeDelayedText ?? ''}</p>
+          <p className={marginBottomXLargeClassName}>{userEmailCopy}
+            <br />
+            <br />
+            {maybeDelayedText ?? ''}</p>
 
           <InputControl
             id='two-step-verification-code-input'

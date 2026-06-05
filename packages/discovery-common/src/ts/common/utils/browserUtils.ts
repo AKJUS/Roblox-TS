@@ -10,10 +10,7 @@ import { formatSeoName } from "@rbx/core-scripts/format/string";
 import { url } from "../constants/browserConstants";
 import { TSortDetailReferral, TGameDetailReferral } from "../constants/eventStreamConstants";
 import { PageContext } from "../types/pageContext";
-import {
-  getAbuseReportRevampUrl,
-  loadGuacConfigNonThrowing,
-} from "../constants/abuseReportConstants";
+import { getAbuseReportRevampUrl } from "../constants/abuseReportConstants";
 
 export const buildGameDetailUrl = (
   placeId: number,
@@ -39,33 +36,19 @@ export const buildGamePassDetailUrl = (passId: string, passName: string): string
   return getAbsoluteUrl(`/game-pass/${passId}/${formatSeoName(passName)}`);
 };
 
-export const buildReportAbuseRevampUrl = async ({
+export const buildReportAbuseRevampUrl = ({
   placeId,
-  placeName,
   universeId,
 }: {
   placeId: string;
-  placeName: string;
   universeId: string;
-}): Promise<string> => {
-  const config = await loadGuacConfigNonThrowing();
-  if (config.EnableExperience) {
-    const reportAbuseUrl = getAbuseReportRevampUrl({
-      targetId: placeId,
-      submitterId: authenticatedUser()?.id?.toString()!,
-      abuseVector: "place",
-      universeId,
-    });
-    return reportAbuseUrl;
-  }
-
-  const parsedParams = {
-    id: placeId,
-    RedirectUrl: encodeURIComponent(
-      `${game.getRelativePath(placeId as unknown as number)}/${formatSeoName(placeName)}`,
-    ),
-  };
-  const reportAbuseUrl = getUrlWithQueries("/abusereport/asset", parsedParams);
+}): string => {
+  const reportAbuseUrl = getAbuseReportRevampUrl({
+    targetId: placeId,
+    submitterId: authenticatedUser()?.id?.toString() ?? "",
+    abuseVector: "place",
+    universeId,
+  });
   return reportAbuseUrl;
 };
 

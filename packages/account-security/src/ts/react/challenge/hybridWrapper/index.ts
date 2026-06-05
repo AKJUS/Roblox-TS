@@ -3,10 +3,10 @@
 import { EnvironmentUrls, Hybrid } from 'Roblox';
 import '../../../../css/challenge/captcha/captcha.scss';
 import * as Option from 'fp-ts/Option';
-import * as NewChallengeMiddleware from '@rbx/generic-challenges';
-import * as NewChallengeTypes from '@rbx/generic-challenge-types';
 import * as boolean from 'fp-ts/boolean';
 import { pipe } from 'fp-ts/lib/function';
+import * as NewChallengeMiddleware from '@rbx/generic-challenges';
+import * as NewChallengeTypes from '@rbx/generic-challenge-types';
 import { withContinueMode } from '@rbx/generic-challenges';
 import * as Captcha from '../captcha';
 import * as DeviceIntegrity from '../deviceIntegrity';

@@ -1,6 +1,7 @@
 import React from "react";
 import classNames from "classnames";
-import { TGameTilePillData, TGameTileBadgeComponentType } from "../types/bedev1Types";
+import { Icon } from "@rbx/foundation-ui";
+import { TGameTileBadgeComponentType, TGameTilePillData } from "../types/bedev1Types";
 import { componentTypeClassMap } from "../constants/genericTileConstants";
 
 export interface GameTilePillWithAnimationProps extends TGameTilePillData {
@@ -28,10 +29,15 @@ const GameTilePillWithAnimation = ({
           })}
         >
           {icons?.length &&
-            icons.map((iconClass, index) => (
-              // eslint-disable-next-line react/no-array-index-key
-              <span key={index} className={`game-card-pill-icon ${iconClass}`} />
-            ))}
+            icons.map((icon, index) =>
+              icon.type === "foundation" ? (
+                // eslint-disable-next-line react/no-array-index-key
+                <Icon key={index} name={icon.class} size="Small" className="game-card-pill-icon" />
+              ) : (
+                // eslint-disable-next-line react/no-array-index-key
+                <span key={index} className={`game-card-pill-icon ${icon.class}`} />
+              ),
+            )}
           {text && <div className="game-card-pill-text">{text}</div>}
         </div>
       </div>

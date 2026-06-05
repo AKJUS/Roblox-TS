@@ -9,6 +9,7 @@ import { withTranslations } from "@rbx/core-scripts/react";
 import { createSystemFeedback } from "@rbx/core-ui/legacy/react-style-guide";
 import { localStorageService } from "@rbx/core-scripts/legacy/core-roblox-utilities";
 import navigationService from "../services/navigationService";
+import DownloadAppNavItem from "../components/DownloadAppNavItem";
 import NotificationStreamPopover from "../components/NotificationStreamPopover";
 import SettingsPopover from "../components/SettingsPopover";
 import BuyRobuxPopover from "../components/robux-popover/BuyRobuxPopover";
@@ -201,6 +202,7 @@ function HeaderIconsGroup({ translate, toggleUniverseSearch }) {
   return (
     <ul className="nav navbar-right rbx-navbar-icon-group">
       <SystemFeedback />
+      <DownloadAppNavItem translate={translate} />
       <AgeBracketDisplay />
       <UniverseSearchIcon translate={translate} toggleUniverseSearch={toggleUniverseSearch} />
       {canAccessStream && notificationStream}

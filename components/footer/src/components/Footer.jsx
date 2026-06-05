@@ -7,15 +7,16 @@ import FooterLinks from "./FooterLinks";
 import LanguageSelector from "../containers/LanguageSelector";
 
 function Footer(props) {
-  const isLandingPage = pageName.PageNameProvider && pageName.PageNameProvider.isLandingPage();
+  const page = pageName.PageNameProvider.getInternalPageName();
+  const isSignUpOrLandingPage = page === "CreateAccount" || page === "Landing";
   const isAuthenticatedUser = authenticatedUser?.isAuthenticated;
   const deviceMeta = DeviceMeta && new DeviceMeta();
   const isPortableDevice = deviceMeta && (deviceMeta.isPhone || deviceMeta.isTablet);
-  const showLanguageSelector = isAuthenticatedUser || isLandingPage;
+  const showLanguageSelector = isAuthenticatedUser || isSignUpOrLandingPage;
 
   const handleLanguageChange = supportedLocale => {
     const { locale, language } = supportedLocale;
-    if (isLandingPage && locale) {
+    if (isSignUpOrLandingPage && locale) {
       const queryParameters = Object.fromEntries(new URLSearchParams(window.location.search));
       const urlFormatObject = {
         pathname: language.languageCode,
@@ -42,7 +43,7 @@ function Footer(props) {
               onLanguageChange={handleLanguageChange}
               isAuthenticatedUser={isAuthenticatedUser}
               showWarningMessageForUnsupportedLocale={false}
-              hideSeoUnsupportedLocales={isLandingPage}
+              hideSeoUnsupportedLocales={isSignUpOrLandingPage}
               isNative={isPortableDevice}
             />
           )}

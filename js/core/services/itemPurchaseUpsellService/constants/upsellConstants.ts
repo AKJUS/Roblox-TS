@@ -37,7 +37,8 @@ export const ASSET_TYPE_ENUM = {
   BUNDLE: 'Bundle',
   BUNDLE_ALIAS: 'Package',
   PRIVATE_SERVER: 'Private Server',
-  DEVELOPER_PRODUCT: 'Product'
+  DEVELOPER_PRODUCT: 'Product',
+  SUBSCRIPTION: 'Subscription'
   // the itemType of bundle item is Bundle, the assetType is Package in the cshtml
   // but in the product API, the asset type of bundle item is Bundle...
   // not gonna dig into it why, just check both for the bundle items whenever it's a package

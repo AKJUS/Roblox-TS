@@ -5,11 +5,23 @@ export const getGameLayoutData = (
   gameData: TGameData,
   topicId?: string,
 ): TLayoutMetadata | undefined => {
-  if (gameData.layoutDataBySort && topicId !== undefined && gameData.layoutDataBySort[topicId]) {
-    return gameData.layoutDataBySort[topicId];
+  const baseLayoutData =
+    gameData.layoutDataBySort && topicId !== undefined && gameData.layoutDataBySort[topicId]
+      ? gameData.layoutDataBySort[topicId]
+      : gameData.defaultLayoutData;
+
+  // gameData.tileBadgesByPosition comes from the game data's contentMetadata
+  // and is used to override the badge data in layoutDataBySort/defaultLayoutData
+  // to support the ads usecase where the same game could appear twice in the
+  // same sort (once sponsored and once not).
+  if (gameData.tileBadgesByPosition) {
+    return {
+      ...(baseLayoutData ?? {}),
+      tileBadgesByPosition: gameData.tileBadgesByPosition,
+    };
   }
 
-  return gameData.defaultLayoutData;
+  return baseLayoutData;
 };
 
 const useGetGameLayoutData = (

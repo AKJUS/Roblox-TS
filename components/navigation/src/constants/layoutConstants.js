@@ -72,4 +72,7 @@ export default {
     accountSwitchedFlag: "RBXASAccountSwitched",
     accountSwitchedMessage: "Description.AccountSwitchedConfirmationBannerText",
   },
+  passkeyUpgradeConfirmationKeys: {
+    passkeyUpgradeSuccessMessage: "Label.PasskeyUpgradeSuccess",
+  },
 };

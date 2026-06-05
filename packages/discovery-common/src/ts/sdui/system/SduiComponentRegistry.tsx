@@ -25,12 +25,14 @@ import SduiAttributionRow from "../components/SduiAttributionRow";
 import SduiTextPill from "../components/SduiTextPill";
 import SduiText from "../components/SduiText";
 import SduiWebText from "../components/SduiWebText";
+import SduiSongThumbnail from "../components/SduiSongThumbnail";
 
 export enum SduiRegisteredComponents {
   SingleItemCollection = "SingleItemCollection",
   HeroUnit = "HeroUnit",
   HeroUnitBottomRow = "HeroUnitBottomRow",
   PlayButton = "PlayButton",
+  SongThumbnail = "SongThumbnail",
   TextIconRow = "TextIconRow",
   TileFooter = "TileFooter",
   GameTileActiveFriendsFooter = "GameTileActiveFriendsFooter",
@@ -67,6 +69,10 @@ export const SduiComponentMapping: Record<
   },
   [SduiRegisteredComponents.PlayButton]: {
     component: wrapComponentForSdui(PlayButtonComponent),
+    propParsers: {},
+  },
+  [SduiRegisteredComponents.SongThumbnail]: {
+    component: wrapComponentForSdui(SduiSongThumbnail),
     propParsers: {},
   },
   [SduiRegisteredComponents.HeroUnit]: {

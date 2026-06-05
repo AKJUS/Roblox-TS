@@ -24,6 +24,8 @@ type TGameCarouselContainerHeaderProps = {
   shouldShowSeparateSubtitleLink: boolean;
   isSortLinkOverrideEnabled: boolean;
   buildNavigateToSortLinkEventProperties?: TBuildNavigateToSortLinkEventProperties;
+  // subtitleAction takes precedence over the subtitleLink
+  subtitleAction?: () => void;
   shouldShowSponsoredTooltip: boolean | undefined;
   tooltipInfoText?: string;
   titleContainerClassName: string;
@@ -45,6 +47,7 @@ const GameCarouselContainerHeader = ({
   shouldShowSeparateSubtitleLink,
   isSortLinkOverrideEnabled,
   buildNavigateToSortLinkEventProperties,
+  subtitleAction,
   shouldShowSponsoredTooltip,
   tooltipInfoText,
   titleContainerClassName,
@@ -121,11 +124,23 @@ const GameCarouselContainerHeader = ({
     );
   }, [hideSeeAll, seeAllLink, useRouterLink, seeAllButtonText, handleSeeAllLinkClick]);
 
+  // URL.canParse is used here because we want to detect absolute URLs that are already directly navigable.
+  // These should use a standard anchor tag downstream rather than RouterLink, which is only appropriate for relative URLs.
+  const getRouterLink = (
+    link: string | undefined | null,
+  ): ComponentType<TLinkComponentProps> | undefined => {
+    if (!useRouterLink || !link || URL.canParse(link)) {
+      return undefined;
+    }
+    return RouterLink as ComponentType<TLinkComponentProps>;
+  };
+
   if (isNewSortHeaderEnabled) {
     return (
       <HomeSortHeader
         titleText={sortTitle}
         sendNavigateToSortLinkEvent={handleSeeAllLinkClick}
+        subtitleAction={subtitleAction}
         titleLink={seeAllLink}
         isSortLinkOverrideEnabled={isSortLinkOverrideEnabled}
         subtitleText={sortSubtitle}
@@ -134,9 +149,8 @@ const GameCarouselContainerHeader = ({
         hasBackgroundMural={!!backgroundImageAssetId}
         tooltipText={tooltipText}
         hideSeeAll={hideSeeAll}
-        linkComponent={
-          useRouterLink ? (RouterLink as ComponentType<TLinkComponentProps>) : undefined
-        }
+        titleLinkComponent={getRouterLink(seeAllLink)}
+        subtitleLinkComponent={getRouterLink(subtitleLink)}
         permitLinkClickPropagation={permitLinkClickPropagation}
       />
     );

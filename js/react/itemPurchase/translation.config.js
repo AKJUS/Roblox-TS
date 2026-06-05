@@ -1,6 +1,6 @@
 export default {
   purchasingResources: {
-    common: ['IAPExperience.PurchaseError', 'Feature.NotApproved'],
+    common: ['IAPExperience.PurchaseError', 'Feature.NotApproved', 'Feature.RobloxSubscription'],
     feature: 'Purchasing.PurchaseDialog'
   },
   itemResources: {

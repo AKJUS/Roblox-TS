@@ -152,8 +152,8 @@ function chatController(
           if (data) {
             const { count } = data;
             if (count > 0) {
-              $scope.chatViewModel.unreadConversationCount = ' ✦ ';
-              $window.document.title = `( ✦ ) ${$scope.chatLibrary.currentTabTitle}`;
+              $scope.chatViewModel.unreadConversationCount = count;
+              $window.document.title = `(${count}) ${$scope.chatLibrary.currentTabTitle}`;
             } else {
               $scope.chatViewModel.unreadConversationCount = 0;
               $window.document.title = $scope.chatLibrary.currentTabTitle;
@@ -2782,7 +2782,7 @@ function chatController(
 
   // need to combine this with setup function after we rollout chat app site
   $scope.initializeChatLibrary = function (data) {
-    const { metadataResponse, chatUiPoliciesResponse, renameFriendsPoliciesResponse } = data;
+    const { metadataResponse, chatUiPoliciesResponse } = data;
     const { domain } = EnvironmentUrls;
     $scope.parseChatSettingsResponsesForChatEnabled(data);
     $scope.chatLibrary.chatLayout.languageForPrivacySettingUnavailable =
@@ -2824,11 +2824,6 @@ function chatController(
     $scope.chatLibrary.isWebChatTcEnabled = chatUiPoliciesResponse.isWebChatTcEnabled;
     $scope.chatLibrary.useOneToOneOsaContextCards =
       $scope.chatLibrary.userId % 100 <= (chatUiPoliciesResponse.useOneToOneOsaContextCards ?? 0);
-    $scope.chatLibrary.renameFriendsToConnections =
-      renameFriendsPoliciesResponse.renameFriendsToConnections ?? false;
-    $scope.chatLibrary.connectionsToFriendsRenameEnabled =
-      renameFriendsPoliciesResponse.connectionsToFriendsRenameEnabled ??
-      !$scope.chatLibrary.renameFriendsToConnections;
     $scope.chatLibrary.rtnFetchConversationDelayMs =
       chatUiPoliciesResponse.rtnFetchConversationDelayMs ?? 3000;
     $scope.chatLibrary.username = CurrentUser.name;
@@ -2910,21 +2905,14 @@ function chatController(
   };
 
   $scope.fetchAllWebChatSettings = function (shouldBypassCache) {
-    const promises = [
-      chatService.getMetaData(shouldBypassCache),
-      guacService.getChatUiPolicies(),
-      guacService.getRenameFriendsPolicies()
-    ];
+    const promises = [chatService.getMetaData(shouldBypassCache), guacService.getChatUiPolicies()];
 
-    return Promise.allSettled(promises).then(
-      ([metadataResult, chatUiPoliciesResult, renameFriendsPoliciesResult]) => {
-        return {
-          metadataResponse: getPromiseResultOrEmptyObject(metadataResult),
-          chatUiPoliciesResponse: getPromiseResultOrEmptyObject(chatUiPoliciesResult),
-          renameFriendsPoliciesResponse: getPromiseResultOrEmptyObject(renameFriendsPoliciesResult)
-        };
-      }
-    );
+    return Promise.allSettled(promises).then(([metadataResult, chatUiPoliciesResult]) => {
+      return {
+        metadataResponse: getPromiseResultOrEmptyObject(metadataResult),
+        chatUiPoliciesResponse: getPromiseResultOrEmptyObject(chatUiPoliciesResult)
+      };
+    });
   };
 
   $scope.initialize = function () {

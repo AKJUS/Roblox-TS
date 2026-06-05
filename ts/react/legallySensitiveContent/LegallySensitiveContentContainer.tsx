@@ -13,8 +13,17 @@ export const LegallySensitiveContentContainer = ({
 }): JSX.Element => {
   useEffect(() => {
     Roblox.LegallySensitiveContentService = {
-      useLegallySensitiveContentAndActions: (consentName: ConsentName, surface: string) =>
-        useTranslatedLegallySensitiveContentAndActions(translate, consentName, surface)
+      useLegallySensitiveContentAndActions: (
+        consentName: ConsentName,
+        surface: string,
+        translationArgs?: Record<string, unknown>
+      ) =>
+        useTranslatedLegallySensitiveContentAndActions(
+          translate,
+          consentName,
+          surface,
+          translationArgs
+        )
     };
   }, [translate]);
 

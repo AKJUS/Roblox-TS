@@ -1,6 +1,7 @@
 import { TranslateFunction, withTranslations } from "@rbx/core-scripts/legacy/react-utilities";
 import { translations } from "../constants/translations";
-import { PlayabilityStatus, FeatureExperienceDetails } from "../constants/playButtonConstants";
+import { FeatureExperienceDetails } from "../constants/playButtonConstants";
+import { PlayabilityStatus } from "../constants/playabilityStatus";
 import { TPlayabilityStatus } from "../types/playButtonTypes";
 import UnplayableError from "./UnplayableError";
 import { shouldShowUnplayableButton } from "../utils/playButtonUtils";

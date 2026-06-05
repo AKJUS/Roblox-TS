@@ -1,17 +1,17 @@
-import * as React from 'react';
-import Intl from '@rbx/core-scripts/intl';
-import { TranslateFunction } from '@rbx/core-scripts/legacy/react-utilities';
-import { Button } from '@rbx/core-ui/legacy/react-style-guide';
-import { urlService } from '@rbx/core-scripts/legacy/core-utilities';
-import consentCookieHandler from '../utils/consentCookieHandler';
-import cookieConstants from '../constants/cookieConstants';
-import urlConstants from '../constants/urlConstants';
+import * as React from "react";
+import Intl from "@rbx/core-scripts/intl";
+import { TranslateFunction } from "@rbx/core-scripts/legacy/react-utilities";
+import { Button } from "@rbx/core-ui/legacy/react-style-guide";
+import { urlService } from "@rbx/core-scripts/legacy/core-utilities";
+import consentCookieHandler from "../utils/consentCookieHandler";
+import cookieConstants from "../constants/cookieConstants";
+import urlConstants from "../constants/urlConstants";
 
 const Banner = ({
   nonEssentialCookieList,
   closeBanner,
   showConsentTool,
-  translate
+  translate,
 }: {
   nonEssentialCookieList: string[];
   closeBanner: () => void;
@@ -23,8 +23,8 @@ const Banner = ({
   const content = translate(cookieConstants.cookieBannerContent);
   const privacyPolicyLinkIndex = content.indexOf(cookieConstants.privacyPolicyLinkPlaceholder);
   const privacyPolicyUrl = urlService.getUrlWithLocale(
-    typeof urlConstants.privacyPolicyUrl === 'string' ? urlConstants.privacyPolicyUrl : '',
-    locale
+    typeof urlConstants.privacyPolicyUrl === "string" ? urlConstants.privacyPolicyUrl : "",
+    locale,
   );
   const content1 = <span className="text">{content.substring(0, privacyPolicyLinkIndex)}</span>;
   const privacyPolicyLinkPlaceholderlength = cookieConstants.privacyPolicyLinkPlaceholder.length;
@@ -62,7 +62,7 @@ const Banner = ({
               <Button
                 className="btn-secondary-lg cookie-btn"
                 onClick={() => {
-                  btnOnClick(['']);
+                  btnOnClick([""]);
                 }}
               >
                 {translate(cookieConstants.declineBtnText)}
@@ -82,7 +82,7 @@ const Banner = ({
       <div
         className="cookie-banner-bg"
         onClick={() => {
-          btnOnClick(['']);
+          btnOnClick([""]);
         }}
         aria-hidden="true"
       />

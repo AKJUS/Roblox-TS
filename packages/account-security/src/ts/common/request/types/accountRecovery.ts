@@ -37,6 +37,8 @@ export type RequestedRecoveryType = 'twostepverification' | 'password';
 
 export type RequestRecoveryMetadata = {
   userID: number;
+  shouldResetPassword?: boolean;
+  shouldRecover2sv?: boolean;
 };
 
 export type RequestRecoveryReturnType = {

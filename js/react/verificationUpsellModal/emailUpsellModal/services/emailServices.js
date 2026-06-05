@@ -1,3 +1,4 @@
+import { eventStreamService } from 'core-roblox-utilities';
 import { httpService } from 'core-utilities';
 import {
   getEmailUrlConfig,
@@ -9,6 +10,14 @@ import {
 import verificationUpsellConstants from '../constants/verificationUpsellConstants';
 import getErrorCodeFromRequestError from '../../common/utils/requestUtils';
 import getSettingsUIPolicy from '../../common/services/universalAppConfigurationService';
+
+// Telemetry constants for the prompts-service-gated logout email upsell path.
+// Kept inline (not in eventsConstants.ts) so the legacy file stays
+// self-contained; the workspace package emits its own `authClientError`s with
+// the same `logoutUpsell` context.
+const LOGOUT_UPSELL_AUTH_CLIENT_ERROR = 'authClientError';
+const LOGOUT_UPSELL_CONTEXT = 'logoutUpsell';
+const LOGOUT_UPSELL_EXPERIMENT_PARAMS_FAILED = 'logoutExperimentParamsFetchFailed';
 
 export const sendEmailVerification = () => {
   const urlConfig = getEmailVerificationUrlConfig();
@@ -99,6 +108,48 @@ export const handleUserEmailUpsellAtLogout = async skipCallback => {
     experimentParameters: experimentParameters?.data,
     skipCallback
   });
+};
+
+// Variant of handleUserEmailUpsellAtLogout for callers (e.g. the prompts
+// service-driven logout flow in `@rbx/authentication`) that have already
+// resolved eligibility upstream. Skips:
+//   - The `IsEmailUpsellAtLogoutEnabled` metadata check (caller's gate
+//     replaces it).
+//   - The "does the user already have an email" GET (caller's gate guarantees
+//     the user is in the no-email/unverified target audience).
+// Still fetches Settings UI policy + IXP copy params (needed for rendering)
+export const openLogoutEmailUpsellModal = async skipCallback => {
+  const settingsUiPolicy = await getSettingsUIPolicy();
+  let experimentParameters = {};
+  try {
+    experimentParameters = await getLogoutContactMethodModalExperimentParameters();
+  } catch (ex) {
+    // Fail open, render upsell with default strings
+    try {
+      eventStreamService.sendEventWithTarget(
+        LOGOUT_UPSELL_AUTH_CLIENT_ERROR,
+        LOGOUT_UPSELL_CONTEXT,
+        { state: LOGOUT_UPSELL_EXPERIMENT_PARAMS_FAILED }
+      );
+    } catch (_) {
+      // ignore telemetry errors
+    }
+  }
+  const { Logout } = verificationUpsellConstants;
+  const event = new CustomEvent('OpenVerificationModal', {
+    detail: {
+      origin: Logout,
+      skipCallback,
+      // Caller has already verified the user has no usable email; tell the
+      // modal to render the "add email" page rather than "verify".
+      isEmailVerified: false,
+      email: undefined,
+      requireVerification: false,
+      experimentParameters: experimentParameters?.data,
+      settingsUiPolicy
+    }
+  });
+  window.dispatchEvent(event);
 };
 
 export const handleUserEmailUpsellAtBuyRobux = skipCallback => {

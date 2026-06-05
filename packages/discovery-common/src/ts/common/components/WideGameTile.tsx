@@ -155,13 +155,14 @@ const WideGameTile = React.forwardRef(
         referralPlaceId,
         gameData.name,
         buildEventProperties(gameData, id),
+        gameData.canonicalUrlPath,
       );
     }, [gameData, buildEventProperties, id, referralPlaceId]);
 
-    const playButtonEventProperties = buildEventProperties(gameData, id) as Record<
-      string,
-      string | number | undefined
-    >;
+    const playButtonEventProperties = useMemo(
+      () => buildEventProperties(gameData, id) as Record<string, string | number | undefined>,
+      [buildEventProperties, gameData, id],
+    );
 
     const friendsInGame = useMemo(
       () => getInGameFriends(friendData, gameData.universeId),
@@ -182,7 +183,7 @@ const WideGameTile = React.forwardRef(
 
     const shouldShowVideo = videoAssetId && isFocused;
 
-    const showPlayButton = (): boolean => {
+    const isPlayButtonVisible = useMemo((): boolean => {
       if (
         wideTileType === TComponentType.GridTile &&
         // HACK: This is a temporary fix to disable the play button on grid tiles by default
@@ -197,19 +198,18 @@ const WideGameTile = React.forwardRef(
       ) {
         return false;
       }
-      // InterestTiles are only presentational, so we hide the play button
       if (wideTileType === TComponentType.InterestTile) {
         return false;
       }
       return true;
-    };
+    }, [wideTileType, playButtonStyle]);
 
-    const getHoverTileMetadata = (): JSX.Element | null => {
+    const hoverTileMetadata = useMemo((): JSX.Element | null => {
       if (
         gameData.minimumAge &&
         gameData.ageRecommendationDisplayName &&
         wideTileType !== TComponentType.EventTile &&
-        showPlayButton()
+        isPlayButtonVisible
       ) {
         return (
           <div className="game-card-info" data-testid="game-tile-hover-age-rating">
@@ -218,10 +218,14 @@ const WideGameTile = React.forwardRef(
         );
       }
       return null;
-    };
+    }, [
+      gameData.minimumAge,
+      gameData.ageRecommendationDisplayName,
+      wideTileType,
+      isPlayButtonVisible,
+    ]);
 
-    const getBaseTileMetadata = (): JSX.Element => {
-      const hoverTileMetadata = getHoverTileMetadata();
+    const baseTileMetadata = useMemo((): JSX.Element => {
       if (isFocused && hoverStyle === THoverStyle.imageOverlay && hoverTileMetadata) {
         return hoverTileMetadata;
       }
@@ -287,16 +291,38 @@ const WideGameTile = React.forwardRef(
         );
       }
       return <GameTileRatingFooter ratingElement={ratingElement} />;
-    };
+    }, [
+      isFocused,
+      hoverStyle,
+      hoverTileMetadata,
+      hideTileMetadata,
+      gameData.totalUpVotes,
+      gameData.totalDownVotes,
+      gameData.isShowSponsoredLabel,
+      gameData.isSponsored,
+      gameData.friendVisitedString,
+      gameData.playerCount,
+      translate,
+      isSponsoredFooterAllowed,
+      isSponsoredRatingFooterAllowed,
+      sponsoredFooterAdLabelText,
+      sponsoredFooterAdLabelFirst,
+      sponsoredFooterIncludeRatingContent,
+      gameLayoutData,
+      friendsInGame,
+      friendVisits,
+      playerCountStyle,
+    ]);
 
-    const getGameTileMetadata = (): JSX.Element => {
-      return (
+    const tileMetadata = useMemo(
+      () => (
         <div className="wide-game-tile-metadata">
-          <div className="base-metadata">{getBaseTileMetadata()}</div>
-          <div className="hover-metadata">{getHoverTileMetadata()}</div>
+          <div className="base-metadata">{baseTileMetadata}</div>
+          <div className="hover-metadata">{hoverTileMetadata}</div>
         </div>
-      );
-    };
+      ),
+      [baseTileMetadata, hoverTileMetadata],
+    );
 
     const gameTitle = useMemo((): string => {
       if (gameLayoutData?.title) {
@@ -442,9 +468,9 @@ const WideGameTile = React.forwardRef(
                   >
                     {gameTitle}
                   </div>
-                  {getGameTileMetadata()}
+                  {tileMetadata}
                 </div>
-                {isFocused && hoverStyle === THoverStyle.imageOverlay && showPlayButton() && (
+                {isFocused && hoverStyle === THoverStyle.imageOverlay && isPlayButtonVisible && (
                   <div
                     data-testid="game-tile-hover-game-tile-contents"
                     className="play-button-container"
@@ -457,12 +483,13 @@ const WideGameTile = React.forwardRef(
                       purchaseIconClassName="icon-robux-white"
                       clientReferralUrl={clientReferralUrl}
                       shouldPurchaseNavigateToDetails
+                      page={page}
                     />
                   </div>
                 )}
               </div>
             </WideGameTileLinkWrapper>
-            {isFocused && hoverStyle !== THoverStyle.imageOverlay && showPlayButton() && (
+            {isFocused && hoverStyle !== THoverStyle.imageOverlay && isPlayButtonVisible && (
               <div data-testid="game-tile-hover-game-tile-contents" className="game-card-contents">
                 <GameTilePlayButton
                   universeId={gameData.universeId.toString()}
@@ -472,6 +499,7 @@ const WideGameTile = React.forwardRef(
                   purchaseIconClassName="icon-robux-white"
                   clientReferralUrl={clientReferralUrl}
                   shouldPurchaseNavigateToDetails
+                  page={page}
                 />
               </div>
             )}

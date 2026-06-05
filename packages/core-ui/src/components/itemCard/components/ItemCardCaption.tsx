@@ -3,7 +3,6 @@ import { TranslateFunction } from "@rbx/core-scripts/react";
 import ItemCardPrice from "./ItemCardPrice";
 import ItemCardCreatorName from "./ItemCardCreatorName";
 import ItemCardName from "./ItemCardName";
-import { TTimedOption } from "../constants/itemCardTypes";
 
 function ItemCardCaption({
   name,
@@ -18,7 +17,6 @@ function ItemCardCaption({
   translate,
   iconToRender,
   enableThumbnailPrice,
-  timedOptions,
 }: {
   name: string;
   creatorName: string;
@@ -32,7 +30,6 @@ function ItemCardCaption({
   translate: TranslateFunction;
   iconToRender?: JSX.Element;
   enableThumbnailPrice?: boolean;
-  timedOptions?: TTimedOption[];
 }): JSX.Element {
   // TODO: old, migrated code
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
@@ -63,8 +60,6 @@ function ItemCardCaption({
           premiumPricing={premiumPricing}
           unitsAvailableForConsumption={unitsAvailableForConsumption}
           enableThumbnailPrice={enableThumbnailPrice ?? false}
-          timedOptions={timedOptions}
-          translate={translate}
         />
       )}
     </div>

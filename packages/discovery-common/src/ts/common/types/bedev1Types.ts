@@ -1,3 +1,4 @@
+import type { TIconProps } from "@rbx/foundation-ui";
 import Presence from "@rbx/presence";
 
 // Common Types
@@ -109,10 +110,20 @@ export type TGameTilePillComponent = {
   types: string[];
 };
 
+export type TGameTileIconClass =
+  | {
+      class: string;
+      type: "core-ui";
+    }
+  | {
+      class: TIconProps["name"];
+      type: "foundation";
+    };
+
 export type TGameTilePillData = {
   id: string;
   text?: string;
-  icons?: string[];
+  icons?: TGameTileIconClass[];
   animationClass?: string | null;
   componentType?: TGameTileBadgeComponentType;
 };
@@ -135,6 +146,7 @@ export type TTileBadgesByPosition = {
 export enum TGameTileBadgeType {
   Text = "Text",
   Icon = "Icon",
+  IconWithText = "IconWithText",
 }
 
 export enum TGameTileBadgeComponentType {
@@ -181,8 +193,19 @@ export type TGameData = {
   primaryMediaAsset?: TMediaAssetInfo;
   defaultLayoutData?: TLayoutMetadata;
   layoutDataBySort?: TLayoutDataBySort;
+  contentMetadataMediaAsset?: TMediaAssetInfo;
   navigationUid?: string;
   canonicalUrlPath?: string;
+  tileBadgesByPosition?: TTileBadgesByPosition;
+  /**
+   * contentMetadata is a field returned by APIs, but it is not a field
+   * that should be used client-side, except for utils and mapper functions that
+   * convert the API response to a client-side model (refer to tileBadgesByPosition)
+   *
+   * TODO: Clean up as part of https://roblox.atlassian.net/browse/CLIGROW-3785
+   * @deprecated - This should only be used when converting server-side models to client-side models
+   */
+  contentMetadata?: Record<string, string>;
 };
 
 export type TPresence = {

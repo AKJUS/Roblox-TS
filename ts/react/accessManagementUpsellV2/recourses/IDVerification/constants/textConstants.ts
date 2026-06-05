@@ -76,7 +76,8 @@ export const getPageStateConstants = (page: VerificationViewState, bodyTextList:
 
 export const HeadingConstants = {
   VerifyYourAge: 'Heading.VerifyYourAge',
-  CheckYourAge: 'Heading.CheckYourAge'
+  CheckYourAge: 'Heading.CheckYourAge',
+  CheckAgeOnMobileApp: 'Heading.CheckAgeOnMobileApp'
 };
 
 export const ActionConstants = {
@@ -100,5 +101,9 @@ export const LabelConstants = {
   FAEModal: 'Label.FAEModal',
   IDVModal: 'Label.IDVModal',
   IDVModalDisclaimer: 'Label.IDVModalDisclaimer',
-  FAEModalDisclaimer: 'Label.FAEModalDisclaimer'
+  FAEModalDisclaimer: 'Label.FAEModalDisclaimer',
+  AgeCheckBenefit: 'Label.AgeCheckBenefit',
+  ScanQRCodeToAgeCheck: 'Label.ScanQRCodeToAgeCheck',
+  NotScanning: 'Label.NotScanning',
+  DownloadAppFallback: 'Label.DownloadAppFallback'
 };

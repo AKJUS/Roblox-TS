@@ -28,7 +28,11 @@ export enum UserSetting {
   allowEnableExperienceNotifications = 'allowEnableExperienceNotifications',
   whoCanOneOnOnePartyWithMe = 'whoCanOneOnOnePartyWithMe',
   whoCanGroupPartyWithMe = 'whoCanGroupPartyWithMe',
-  phoneNumberDiscoverabilityV2 = 'phoneNumberDiscoverabilityV2'
+  phoneNumberDiscoverabilityV2 = 'phoneNumberDiscoverabilityV2',
+  whoCanPartyWithMe = 'whoCanPartyWithMe',
+  whoCanUsePartyChatWithMe = 'whoCanUsePartyChatWithMe',
+  whoCanUsePartyVoiceWithMe = 'whoCanUsePartyVoiceWithMe',
+  allowFacialAgeEstimation = 'allowFacialAgeEstimation'
 }
 
 export default UserSetting;

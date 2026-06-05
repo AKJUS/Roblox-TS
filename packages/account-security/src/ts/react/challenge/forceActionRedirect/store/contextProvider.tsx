@@ -1,6 +1,8 @@
-import React, { createContext, ReactChild, ReactElement, useReducer, useState } from 'react';
+import React, { createContext, ReactChild, ReactElement, useMemo, useReducer, useState } from 'react';
 import { TranslateFunction } from 'react-utilities';
 import { ForceActionRedirect } from '@rbx/generic-challenge-types';
+import { DelayParameters } from '../../twoStepVerification/delay';
+import { useMaybeConditionalDynamicBody } from '../app.config';
 import { ForceActionRedirectAction } from './action';
 import { ForceActionRedirectState } from './state';
 import forceActionStateReducer from './stateReducer';
@@ -31,6 +33,8 @@ type Props = {
   translate: TranslateFunction;
   onModalChallengeAbandoned: ForceActionRedirect.OnModalChallengeAbandonedCallback | null;
   onChallengeAbandoned: ForceActionRedirect.OnChallengeAbandonedCallback | null;
+  delayParameters?: DelayParameters;
+  bodyTranslationKey?: string;
   children: ReactChild;
 };
 
@@ -45,19 +49,36 @@ export const ForceActionRedirectContextProvider = ({
   translate,
   onModalChallengeAbandoned,
   onChallengeAbandoned,
+  delayParameters,
+  bodyTranslationKey,
   children
 }: Props): ReactElement => {
-  // We declare these variables as lazy-initialized state variables since they
-  // do not need to be re-computed if this component re-renders.
-  const [resources] = useState(() =>
+  const definedKey = (bodyTranslationKey ?? 'Denied.Body');
+  const definedNonEmptyKey = definedKey === '' ? 
+    'Denied.Body' : definedKey;
+  const dynamicBody = useMaybeConditionalDynamicBody(
+    definedNonEmptyKey,
+    translate,
+    delayParameters,
+  );
+
+  // Base resources are computed once; the Body field is overridden reactively
+  // by the hook above when trusted session count resolves.
+  const [baseResources] = useState(() =>
     forceActionRedirectChallengeConfig.getTranslationResources(translate)
   );
+  const resources = useMemo(() => ({
+    ...baseResources,
+    Body: dynamicBody,
+  }), [baseResources, dynamicBody]);
+
   const [initialState] = useState<ForceActionRedirectState>(() => ({
     // Immutable parameters:
     renderInline,
 
     // Immutable state:
-    resources,
+    resources: baseResources,
+    delayParameters,
     redirectURLSignifier: forceActionRedirectChallengeConfig.redirectURLSignifier,
     onModalChallengeAbandoned,
     onChallengeAbandoned,
@@ -67,7 +88,14 @@ export const ForceActionRedirectContextProvider = ({
   }));
 
   // Components will access and mutate state via these variables:
-  const [state, dispatch] = useReducer(forceActionStateReducer, initialState);
+  const [reducerState, dispatch] = useReducer(forceActionStateReducer, initialState);
+
+  // Override resources.Body with the reactive hook result so it updates
+  // when the trusted session count resolves.
+  const state = useMemo(() => ({
+    ...reducerState,
+    resources,
+  }), [reducerState, resources]);
 
   return (
     <ForceActionRedirectContext.Provider value={{ state, dispatch }}>

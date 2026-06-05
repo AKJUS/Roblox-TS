@@ -1,3 +1,4 @@
+import type { EventContext } from "@rbx/unified-logging";
 import { PlayabilityStatus } from "../constants/playabilityStatus";
 import { IgrsRating } from "../constants/igrsRating";
 
@@ -10,12 +11,16 @@ export type TPlayabilityStatusWithUnplayableError = Exclude<
   | TPlayabilityStatuses["GuestProhibited"]
   | TPlayabilityStatuses["PurchaseRequired"]
   | TPlayabilityStatuses["ContextualPlayabilityUnverifiedSeventeenPlusUser"]
+  | TPlayabilityStatuses["ContextualPlayabilityAgeCheckRequired"]
+  | TPlayabilityStatuses["ContextualPlayabilityCoreGated"]
   | TPlayabilityStatuses["FiatPurchaseRequired"]
 >;
 
 export type TPlayabilityStatusPurchaseRequired =
   | TPlayabilityStatuses["PurchaseRequired"]
   | TPlayabilityStatuses["FiatPurchaseRequired"];
+
+export type TPlayButtonPageContext = EventContext | "UNKNOWN";
 
 type TFiatPurchaseData = {
   localizedFiatPrice: string;
@@ -62,12 +67,26 @@ export type TPlayableUxTreatment = {
   data?: Record<string, string>;
 };
 
+export const UpsellUxTreatmentEnum = {
+  AgeCheckUpsell: "ageCheckUpsell",
+} as const;
+
+export type TUpsellUxTreatmentData = {
+  bodyText: string;
+};
+
+export type TUpsellUxTreatment = {
+  treatment: string;
+  data?: Record<string, string>;
+};
+
 export type TGetPlayabilityStatus = {
   playabilityStatus: TPlayabilityStatus;
   isPlayable: boolean;
   universeId: number;
-  unplayableDisplayText?: string;
+  unplayableDisplayText: string | null;
   playableUxTreatment?: TPlayableUxTreatment;
+  upsellUxTreatment?: TUpsellUxTreatment;
 };
 
 export type TGuacPlayButtonUIResponse = {
@@ -78,6 +97,7 @@ export type TGuacPlayButtonUIResponse = {
   requireExplicitVoiceConsent: boolean;
   useCameraU13Design: boolean;
   useVoiceUpsellV2Design: boolean;
+  useExperienceApprovalForParentalConsent: boolean;
 };
 
 export type TUniversePlaceVoiceEnabledSettings = {

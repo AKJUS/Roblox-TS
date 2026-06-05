@@ -4,7 +4,7 @@ import { authenticatedUser } from "@rbx/core-scripts/legacy/header-scripts";
 
 const gameSearchLink = {
   url: getAbsoluteUrl("/discover/?Keyword="),
-  label: "Label.Experience",
+  label: "Label.Games",
   pageSort: ["home", "games", "discover"],
   icon: "icon-menu-games-off",
 };
@@ -145,7 +145,7 @@ export default {
     },
     {
       url: getAbsoluteUrl("/discover/?Keyword="),
-      label: "Label.Experience",
+      label: "Label.Games",
       pageSort: ["home", "games", "discover"],
     },
     {

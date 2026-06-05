@@ -1,4 +1,3 @@
-import React from "react";
 import PropTypes from "prop-types";
 import classNames from "classnames";
 import { withTranslations } from "@rbx/core-scripts/react";
@@ -26,6 +25,7 @@ const AvatarCaption = ({
   hasMenu,
   truncateFirstLine,
   verifiedBadgeData,
+  isRobloxPlus,
   isTrustedConnection,
   translate,
 }) => {
@@ -40,25 +40,15 @@ const AvatarCaption = ({
       })}
     >
       <span>
-        {/* TODO: type and/or migrate `window.Roblox.DisplayNames` */}
-        {window.Roblox.DisplayNames.Enabled() ? (
-          <React.Fragment>
-            <AvatarCaptionTitle
-              title={displayName}
-              titleLink={nameLink}
-              verifiedBadgeData={verifiedBadgeData}
-            />
-            <div className={cardLabelClassNames}>
-              {constructUsernameLabel(name, isTrustedConnection, translate)}
-            </div>
-          </React.Fragment>
-        ) : (
-          <AvatarCaptionTitle
-            title={name}
-            titleLink={nameLink}
-            verifiedBadgeData={verifiedBadgeData}
-          />
-        )}
+        <AvatarCaptionTitle
+          title={displayName}
+          titleLink={nameLink}
+          verifiedBadgeData={verifiedBadgeData}
+          isRobloxPlus={isRobloxPlus}
+        />
+        <div className={cardLabelClassNames}>
+          {constructUsernameLabel(name, isTrustedConnection, translate)}
+        </div>
         <AvatarCaptionFirstLine
           firstLine={labelFirstLine}
           firstLineLink={labelFirstLineLink}
@@ -88,6 +78,7 @@ AvatarCaption.defaultProps = {
   hasMenu: false,
   truncateFirstLine: false,
   verifiedBadgeData: {},
+  isRobloxPlus: false,
   isTrustedConnection: false,
   translate: key => key,
 };
@@ -107,6 +98,8 @@ AvatarCaption.propTypes = {
     hasVerifiedBadge: PropTypes.bool,
     titleText: PropTypes.string,
   }),
+  /** SUBS-5048: when true, render the Roblox Plus subscriber badge after the title. */
+  isRobloxPlus: PropTypes.bool,
   isTrustedConnection: PropTypes.bool,
   translate: PropTypes.func,
 };

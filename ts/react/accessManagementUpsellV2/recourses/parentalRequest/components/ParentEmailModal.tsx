@@ -3,7 +3,6 @@ import { useSelector } from 'react-redux';
 import { WithTranslationsProps } from 'react-utilities';
 import useParentEmailModal from '../hooks/useParentEmailModal';
 import RequestType from '../enums/RequestType';
-import ExpNewChildModal from '../../../enums/ExpNewChildModal';
 import { sendInitialUpsellPageLoadEvent } from '../../../accessManagement/constants/eventConstants';
 import { selectFeatureName } from '../../../accessManagement/accessManagementSlice';
 import parentalRequestConstants from '../constants/parentalRequestConstants';
@@ -15,7 +14,6 @@ const ParentEmailModal = ({
   onHidecallback,
   isPrologueUsed,
   value,
-  expChildModalType = null,
   source
 }: {
   translate: WithTranslationsProps['translate'];
@@ -24,7 +22,6 @@ const ParentEmailModal = ({
   onHidecallback: () => any;
   isPrologueUsed: boolean;
   value: Record<string, unknown> | null;
-  expChildModalType?: ExpNewChildModal;
   source?: string;
 }): JSX.Element => {
   const featureName = useSelector(selectFeatureName);
@@ -34,7 +31,6 @@ const ParentEmailModal = ({
     successCallback,
     onHidecallback,
     value,
-    expChildModalType,
     source
   );
   useEffect(() => {

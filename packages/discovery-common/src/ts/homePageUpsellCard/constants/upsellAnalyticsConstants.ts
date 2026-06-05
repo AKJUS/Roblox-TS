@@ -1,6 +1,7 @@
 // Analytics constants for upsell banner tracking
 export const UpsellEntrySurface = {
   Homepage: "Homepage",
+  ExperienceDetails: "ExperienceDetails",
 } as const;
 
 export const UpsellStage = {
@@ -9,6 +10,7 @@ export const UpsellStage = {
 
 export const UpsellComponent = {
   Banner: "Banner",
+  Carousel: "Carousel",
 } as const;
 
 export const UpsellPurpose = {

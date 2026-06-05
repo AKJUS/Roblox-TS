@@ -2,6 +2,7 @@ import * as z from 'zod';
 import * as Captcha from '../captcha/interface';
 import * as Rostile from '../rostile/interface';
 import { ActionType } from '../twoStepVerification/interface';
+import { DelayState } from '../twoStepVerification/delay/types';
 import { ChallengeType } from './interface';
 import * as Metadata from './interface/metadata/interface';
 import * as ProofOfSpace from '../proofOfSpace/interface';
@@ -19,7 +20,12 @@ const SharedChallengeMetadataValidator = z.object({
         eligibleMethods: z.array(z.object({
           method: z.string(),
           bypassable: z.boolean()
-        }))
+        })).nullish(),
+        // Zod string union types are soooo ugly.
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+        state: z.string() as unknown as z.ZodType<DelayState>,
+        metadata: z.string(),
+        updatedAt: z.string().optional()
       }).nullish()
     })
     .optional()

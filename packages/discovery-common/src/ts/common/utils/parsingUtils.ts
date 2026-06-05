@@ -160,6 +160,13 @@ export const getThumbnailOverrideAssetId = (
     return null;
   };
 
+  const contentMetadataAssetId = getAssetIdFromMediaLayoutData({
+    primaryMediaAsset: gameData.contentMetadataMediaAsset,
+  });
+  if (contentMetadataAssetId) {
+    return contentMetadataAssetId;
+  }
+
   let assetId;
 
   // If a layout data exists for this sort, use that set
@@ -178,6 +185,11 @@ const getThumbnailOverrideListId = (
   gameData: TGameData,
   topicId: string | undefined,
 ): string | undefined => {
+  const contentMetadataListId = gameData.contentMetadataMediaAsset?.wideImageListId;
+  if (contentMetadataListId) {
+    return contentMetadataListId;
+  }
+
   if (gameData.layoutDataBySort && topicId && gameData.layoutDataBySort[topicId]) {
     return gameData.layoutDataBySort[topicId].primaryMediaAsset?.wideImageListId;
   }
@@ -200,12 +212,19 @@ const getVideoAssetIdFromMediaLayoutData = (layoutData: TMediaLayoutData): numbe
 
 /**
  * Extract the video asset ID from game data, following the same priority chain
- * as getThumbnailOverrideAssetId: sort-specific layout -> default layout -> root primaryMediaAsset.
+ * as getThumbnailOverrideAssetId: contentMetadataMediaAsset -> sort-specific layout -> default layout -> root primaryMediaAsset.
  */
 export const getVideoOverrideAssetId = (
   gameData: TGameData,
   topicId: string | undefined,
 ): number | null => {
+  const contentMetadataVideoId = getVideoAssetIdFromMediaLayoutData({
+    primaryMediaAsset: gameData.contentMetadataMediaAsset,
+  });
+  if (contentMetadataVideoId) {
+    return contentMetadataVideoId;
+  }
+
   let assetId;
 
   if (gameData.layoutDataBySort && topicId && gameData.layoutDataBySort[topicId]) {
@@ -340,31 +359,20 @@ export const getTileBadgeContext = (
   gameData: TGameData,
   topicId: string | undefined,
 ): string | undefined => {
-  let tileBadgeContext: string | undefined;
-
-  if (gameData.layoutDataBySort && topicId && gameData.layoutDataBySort[topicId]) {
-    tileBadgeContext = getAnalyticsIdFromLayoutData(gameData.layoutDataBySort[topicId]);
-  } else if (gameData.defaultLayoutData) {
-    tileBadgeContext = getAnalyticsIdFromLayoutData(gameData.defaultLayoutData);
-  }
-
-  return tileBadgeContext;
+  const layoutData = getGameLayoutData(gameData, topicId);
+  return layoutData ? getAnalyticsIdFromLayoutData(layoutData) : undefined;
 };
 
 export const getTileBadgeContextsImpressionsData = (
   gameData: TGameData[],
-  topicId: number | string,
+  topicId: number | string | undefined,
   impressedIndexes: number[],
-  componentType?: TComponentType,
-): TGameImpressionsEventTileBadgeContextsData | {} => {
-  if (isWideTileComponentType(componentType)) {
-    return {
-      [EventStreamMetadata.TileBadgeContexts]: impressedIndexes.map(
-        index => getTileBadgeContext(gameData[index]!, topicId.toString()) ?? "0",
-      ),
-    };
-  }
-  return {};
+): TGameImpressionsEventTileBadgeContextsData => {
+  return {
+    [EventStreamMetadata.TileBadgeContexts]: impressedIndexes.map(
+      index => getTileBadgeContext(gameData[index]!, topicId?.toString()) ?? "0",
+    ),
+  };
 };
 
 const calculateAbsoluteRowData = (

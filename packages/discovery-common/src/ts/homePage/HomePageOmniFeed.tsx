@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { withTranslations, WithTranslationsProps } from "@rbx/core-scripts/react";
 import { useSystemFeedback } from "@rbx/core-ui";
 import dataStores from "@rbx/core-scripts/data-store";
@@ -12,6 +12,7 @@ import { TPageType } from "../common/types/bedev1Types";
 import {
   TContentType,
   TOmniRecommendationsContentMetadata,
+  TRequestIntent,
   TSduiTreatmentType,
   TTreatmentType,
 } from "../common/types/bedev2Types";
@@ -19,7 +20,11 @@ import { ContentMetadataContext } from "../omniFeed/utils/contentMetadataContext
 import useApportionGridRecommendationsWithResize from "../omniFeed/hooks/useApportionGridRecommendationsWithResize";
 import { PageContext } from "../common/types/pageContext";
 import { useVerticalScrollTracker } from "../common/components/useVerticalScrollTracker";
-import { usePageSession, withPageSession } from "../common/utils/PageSessionContext";
+import {
+  usePageSession,
+  useRotatePageSession,
+  withPageSession,
+} from "../common/utils/PageSessionContext";
 import useFriendsPresence from "../common/hooks/useFriendsPresence";
 import { logOmniFeedStats } from "../sdui/utils/logSduiError";
 import personalizationTranslationConfig from "./translation.config";
@@ -35,6 +40,8 @@ const { maxTilesPerCarouselPage } = homePage;
 
 export const HomePageOmniFeed = ({ translate }: WithTranslationsProps): JSX.Element => {
   const homePageSessionInfo = usePageSession();
+  const initialSessionRef = useRef(homePageSessionInfo);
+  const rotateSessionId = useRotatePageSession();
   const friendsPresenceData = useFriendsPresence();
   const { SystemFeedbackComponent } = useSystemFeedback();
 
@@ -65,34 +72,43 @@ export const HomePageOmniFeed = ({ translate }: WithTranslationsProps): JSX.Elem
   }, []);
 
   const fetchRecommendations = useCallback(
-    (interestedUniverses?: number[]) => {
+    (sessionId: string, interestedUniverses?: number[], requestIntent?: TRequestIntent) => {
       setRecommendations(undefined);
       setError(false);
       bedev2Services
         .getOmniRecommendations(
           TPageType.Home,
-          homePageSessionInfo,
+          sessionId,
           deviceFeatures,
           authIntentFeatures,
           interestedUniverses,
           [TSduiTreatmentType.Carousel, TSduiTreatmentType.HeroUnit],
+          requestIntent,
         )
         .then(data => {
           setRecommendations(data);
           window.EventTracker?.fireEvent(homePage.omniRecommendationEndpointSuccessEvent);
 
-          logOmniFeedStats(data, homePageSessionInfo);
+          logOmniFeedStats(data, sessionId);
         })
         .catch(() => {
           setError(true);
           window.EventTracker?.fireEvent(homePage.omniRecommendationEndpointErrorEvent);
         });
     },
-    [homePageSessionInfo, deviceFeatures, authIntentFeatures],
+    [deviceFeatures, authIntentFeatures],
+  );
+
+  const refreshFeed = useCallback(
+    (requestIntent?: TRequestIntent, interestedUniverses?: number[]) => {
+      const sessionId = rotateSessionId();
+      fetchRecommendations(sessionId, interestedUniverses, requestIntent);
+    },
+    [fetchRecommendations, rotateSessionId],
   );
 
   useEffect(() => {
-    fetchRecommendations();
+    fetchRecommendations(initialSessionRef.current);
   }, [fetchRecommendations]);
 
   const isDynamicLayoutSizingEnabled = true;
@@ -165,7 +181,7 @@ export const HomePageOmniFeed = ({ translate }: WithTranslationsProps): JSX.Elem
         <h2>{translate(CommonGameSorts.LabelGames)}</h2>
         <ErrorContainer
           errorSubtext={translate(CommonGameSorts.LabelApiError)}
-          onRefresh={() => fetchRecommendations()}
+          onRefresh={() => refreshFeed()}
         />
       </div>
     );
@@ -199,7 +215,7 @@ export const HomePageOmniFeed = ({ translate }: WithTranslationsProps): JSX.Elem
               <InterestCatcher
                 sort={interestCatcherSort}
                 itemsPerRow={itemsPerRowMap.get(interestCatcherSortIndex)}
-                fetchRecommendations={fetchRecommendations}
+                refreshFeed={refreshFeed}
                 translate={translate}
               />
             </ContentMetadataContext.Provider>
@@ -246,6 +262,7 @@ export const HomePageOmniFeed = ({ translate }: WithTranslationsProps): JSX.Elem
                 sduiRoot={recommendations.sdui}
                 hiddenUniverses={hiddenUniverses}
                 setHiddenUniverses={setHiddenUniverses}
+                refreshFeed={refreshFeed}
               />
             </React.Fragment>
           ))}

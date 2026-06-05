@@ -4,6 +4,7 @@ import { IModalService } from 'react-style-guide';
 import { useSelector } from 'react-redux';
 import { TFeatureSpecificData } from 'Roblox';
 import { Recourse, UpsellStage } from '../../enums';
+import UserSetting from '../../../legallySensitiveContent/enums/UserSetting';
 import ExpNewChildModal from '../../enums/ExpNewChildModal';
 import { setStage, selectFeatureAccess } from '../accessManagementSlice';
 import { useAppDispatch } from '../../store';

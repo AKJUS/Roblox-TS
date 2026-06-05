@@ -56,6 +56,7 @@ export type TTimedOption = {
   days: number;
   price: number;
   selected?: boolean;
+  discountInformation?: TDiscountInformation;
 };
 
 export type TDetailEntry = {
@@ -94,6 +95,7 @@ export type TDetailEntry = {
   collectibleItemDetailsLoading: boolean;
   purchaseInfo?: THydratedMarketplacePurchaseInfo;
   timedOptions?: TTimedOption[];
+  discountInformation?: TDiscountInformation;
 };
 
 export type THydratedMarketplacePurchaseInfo = {
@@ -140,6 +142,20 @@ export type TAwaitedHyrdatedItemDetails = {
 export type TAwaitedHydratedCollectibleDetails = {
   hydratedCollectibleIds: Array<string>;
   nonHydratedCollectibleIds: Array<string>;
+};
+
+export type TDiscount = {
+  robuxDiscountAmount: number;
+  robuxDiscountPercentage: number;
+  discountCampaign: string;
+  localizedDiscountAttribution: string;
+};
+
+export type TDiscountInformation = {
+  originalPrice: number;
+  totalDiscountPercentage: number;
+  totalDiscountAmount: number;
+  discounts: TDiscount[];
 };
 
 export const retriesForHydration = 3;

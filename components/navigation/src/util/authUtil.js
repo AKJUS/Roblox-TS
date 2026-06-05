@@ -4,8 +4,8 @@ import angular from "angular";
 import { localStorageService } from "@rbx/core-scripts/legacy/core-roblox-utilities";
 import { urlService, httpService } from "@rbx/core-scripts/legacy/core-utilities";
 import { authenticatedUser } from "@rbx/core-scripts/legacy/header-scripts";
-import { EmailVerificationService, AccountSwitcherService } from "@rbx/core-scripts/legacy/Roblox";
-import ExperimentationService from "@rbx/experimentation";
+import { AccountSwitcherService } from "@rbx/core-scripts/legacy/Roblox";
+import { handleLogoutUpsell } from "@rbx/authentication";
 import cacheConstants from "../constants/cacheConstants";
 import layoutConstants from "../constants/layoutConstants";
 import urlConstants from "../constants/urlConstants";
@@ -28,7 +28,6 @@ const {
 } = urlConstants;
 
 const { logoutEvent, loginEvent, signupEvent } = layoutConstants;
-const VNG_LANDING_LAYER = "Website.LandingPage";
 const getReturnUrl = () => {
   // return from the current page if there is no returnUrl param, except it is from login page or the signup page.
   let returnUrl = getQueryParam("returnUrl") || window.location.href;
@@ -91,16 +90,9 @@ const navigateToLoginWithRedirect = () => {
   window.location.href = getLoginLinkUrl();
 };
 
-const logoutUser = e => {
-  e.stopPropagation();
-  e.preventDefault();
+const logoutUser = async () => {
   sendLogoutButtonClickEvent();
-  EmailVerificationService?.handleUserEmailUpsellAtLogout(logoutAndRedirect).then(data => {
-    // if user is not in test group or has email on file already, logout directly
-    if (!data || data.emailAddress) {
-      logoutAndRedirect();
-    }
-  });
+  await handleLogoutUpsell({ onLogout: logoutAndRedirect });
 };
 
 const refreshCurrentSession = async () => {
@@ -165,13 +157,8 @@ const isLoginLinkAvailable = () => {
 
 const getIsVNGLandingRedirectEnabled = async () => {
   try {
-    const [ixp, intAuth] = await Promise.all([
-      ExperimentationService.getAllValuesForLayer(VNG_LANDING_LAYER),
-      getIntAuthCompliancePolicy(),
-    ]);
-    const isIXPEnabled = ixp.IsVngLandingPageRedirectEnabled ?? false;
-    const isFeatureEnabled = intAuth.isVNGComplianceEnabled ?? false;
-    return isFeatureEnabled && isIXPEnabled;
+    const intAuth = await getIntAuthCompliancePolicy();
+    return intAuth.isVNGComplianceEnabled ?? false;
   } catch {
     return false;
   }
@@ -179,7 +166,12 @@ const getIsVNGLandingRedirectEnabled = async () => {
 
 const cacheUserId = () => {
   const currentUserId = window.Roblox?.CurrentUser?.userId ?? null;
-  const cachedUserId = localStorageService.getLocalStorage(cacheConstants.userCacheKey) ?? null;
+  let cachedUserId = null;
+  try {
+    cachedUserId = localStorageService.getLocalStorage(cacheConstants.userCacheKey) ?? null;
+  } catch {
+    // ignore error
+  }
   if (cachedUserId != null && currentUserId != null && cachedUserId !== currentUserId) {
     sendCacheUserChangedAuthClientErrorEvent(
       `${currentUserId},${cachedUserId}`,
@@ -190,12 +182,18 @@ const cacheUserId = () => {
 
   // listen for login event
   window.addEventListener(loginEvent.name, e => {
-    localStorageService.setLocalStorage(cacheConstants.userCacheKey, e?.detail?.userId);
+    const userId = e?.detail?.userId;
+    if (userId != null) {
+      localStorageService.setLocalStorage(cacheConstants.userCacheKey, userId);
+    }
   });
 
   // listen for signup event
   window.addEventListener(signupEvent.name, e => {
-    localStorageService.setLocalStorage(cacheConstants.userCacheKey, e?.detail?.userId);
+    const userId = e?.detail?.userId;
+    if (userId != null) {
+      localStorageService.setLocalStorage(cacheConstants.userCacheKey, userId);
+    }
   });
 };
 

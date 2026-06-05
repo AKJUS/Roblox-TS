@@ -32,6 +32,8 @@ import useExperiments from '../hooks/useExperiments';
 import vpcUpsellExperimentLayer from './constants/experimentConstants';
 import ExpNewChildModal from '../enums/ExpNewChildModal';
 import UpdateSettingsContainer from '../recourses/settings/UpdateSettingsContainer';
+import UserSetting from '../../legallySensitiveContent/enums/UserSetting';
+import VPCForFAETransformContainer from '../recourses/parentalRequest/VPCForFAETransformContainer';
 
 function AccessManagementContainer({
   translate
@@ -56,7 +58,7 @@ function AccessManagementContainer({
   const [shouldSetStagePrologue, setshouldSetStagePrologue] = useState<boolean>(false);
 
   const expChildModalType =
-    (useExperiments(vpcUpsellExperimentLayer).expNewChildModal as ExpNewChildModal) ??
+    (useExperiments(vpcUpsellExperimentLayer)?.expNewChildModal as ExpNewChildModal) ??
     ExpNewChildModal.control;
   async function onAccessManagementCustomEvent(
     event: CustomEvent<AccessManagementUpsellEventParams>
@@ -93,6 +95,7 @@ function AccessManagementContainer({
     if (ampRecourseData) {
       setRecourseParameters(ampRecourseData);
     }
+
     if (featureSpecificData) {
       setFeatureSpecificParams(featureSpecificData);
     }
@@ -197,13 +200,26 @@ function AccessManagementContainer({
               translate={translate}
               onHidecallback={onHideFunction}
               value={recourseParameters}
-              expChildModalType={expChildModalType}
               isPrologueUsed={isPrologueUsed}
               source={featureSpecificParams?.source}
             />
           );
         }
         case Recourse.UserSettings: {
+          if (
+            verificationStageRecourse.userSettings?.settingName ===
+            UserSetting.allowFacialAgeEstimation
+          ) {
+            return (
+              <VPCForFAETransformContainer
+                translate={translate}
+                onHidecallback={onHideFunction}
+                value={recourseParameters}
+                isPrologueUsed={isPrologueUsed}
+                source={featureSpecificParams?.source}
+              />
+            );
+          }
           return (
             <UpdateSettingsContainer
               translate={translate}
@@ -264,6 +280,8 @@ function AccessManagementContainer({
   return (
     <React.Fragment>
       <Modal
+        backdrop='static'
+        keyboard={false}
         show={showUpsellModal}
         onHide={onHide}
         size='sm'

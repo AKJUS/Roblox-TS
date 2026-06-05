@@ -7,14 +7,10 @@ import NavLinks from "./NavLinks";
 const LeftNavigation = ({ user }: { user: AuthenticatedUser }) => {
   // Changes the value of a CSS variable for the left nav width.
   useEffect(() => {
-    const e = document.getElementById("wrap");
-    if (e != null) {
-      e.classList.add("left-nav-new-width");
-    }
+    const e = document.getElementById("wrap") ?? document.body;
+    e.classList.add("left-nav-new-width");
     return () => {
-      if (e != null) {
-        e.classList.remove("left-nav-new-width");
-      }
+      e.classList.remove("left-nav-new-width");
     };
   });
 

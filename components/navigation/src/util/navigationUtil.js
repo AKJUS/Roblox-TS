@@ -58,7 +58,7 @@ const getUniversalSearchLinks = () => {
   const linksCopy = [...universalSearchUrls];
   linksCopy.sort(({ pageSort }) => {
     const isRelevant = pageSort.reduce(
-      (r, keyword) => r || window.location.href.indexOf(keyword) > -1,
+      (r, keyword) => r || window.location.href.includes(keyword),
       false,
     );
     if (isRelevant) {
@@ -72,16 +72,16 @@ const getUniversalSearchLinks = () => {
 const getNewUniversalSearchLinks = () => {
   const urls = [...newUniversalSearchUrls];
   const relevantUrls = urls.filter(({ pageSort }) =>
-    pageSort.some(keyword => window.location.pathname.indexOf(keyword) > -1),
+    pageSort.some(keyword => window.location.pathname.includes(keyword)),
   );
   const unRelevantUrls = urls.filter(({ pageSort }) =>
-    pageSort.every(keyword => window.location.pathname.indexOf(keyword) === -1),
+    pageSort.every(keyword => !window.location.pathname.includes(keyword)),
   );
   return [...relevantUrls, ...unRelevantUrls];
 };
 
 const getAvatarAutocompleteSearchLinks = () =>
-  avatarSearchLink.pageSort.some(keyword => window.location.pathname.indexOf(keyword) > -1);
+  avatarSearchLink.pageSort.some(keyword => window.location.pathname.includes(keyword));
 
 const getThemeClass = () =>
   document.getElementById("navigation-container") &&

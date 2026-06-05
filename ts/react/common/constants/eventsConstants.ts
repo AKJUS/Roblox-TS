@@ -29,12 +29,11 @@ const EVENT_CONSTANTS = {
     loginPage: 'loginPage',
     loginForm: 'LoginForm',
     schematizedLoginForm: 'loginForm',
+    lrLoginForm: 'lrLoginForm',
     landingPage: 'Multiverse',
-    ssoLtiInit: 'ssoLtiInit',
-    ssoLtiLaunch: 'ssoLtiLaunch',
-    ssoError: 'ssoError',
     signupForm: 'MultiverseSignupForm',
     schematizedSignupForm: 'signupForm',
+    lrSignupForm: 'lrSignupForm',
     sendOTP: 'sendOTP',
     schematizedSendOTP: 'sendOtp',
     enterOTP: 'enterOTP',
@@ -54,8 +53,14 @@ const EVENT_CONSTANTS = {
     accountSwitcherLocalStorageFailure: 'accountSwitcherLocalStorageFailure',
     accountSwitcherVpcLogin: 'accountSwitcherVpcLogin',
     accountSwitcherVpcSignup: 'accountSwitcherVpcSignup',
+    platformAuthenticatorSupport: 'platformAuthenticatorSupport',
     passkeyLogin: 'passkeyLogin',
-    hba: 'hba'
+    silentPasskeyUpgradeWebLogin: 'handleSilentPasskeyUpgradeWebLogin',
+    silentPasskeyUpgradeWebLoginImmediate: 'handleSilentPasskeyUpgradeWebLoginImmediate',
+    silentPasskeyUpgradeWebLoginDelayed: 'handleSilentPasskeyUpgradeWebLoginDelayed',
+    silentPasskeyUpgradeWebSignupDelayed: 'handleSilentPasskeyUpgradeWebSignupDelayed',
+    hba: 'hba',
+    resetPasswordPage: 'resetPasswordPage'
   },
   verifiedParentalConsentContext: {
     chargeback: {
@@ -69,6 +74,14 @@ const EVENT_CONSTANTS = {
     changeBirthdayContext: {
       finishParentalSignup: 'finishParentalSignupAgeChange',
       homepage: 'homepageAgeChange'
+    },
+    linkToChild: {
+      finishParentalSignup: 'finishParentalSignupLinking',
+      homepage: 'homePageLinking'
+    },
+    updateUserSetting: {
+      finishParentalSignup: 'finishParentalSignupSettings',
+      homepage: 'homePageSettings'
     }
   },
   aType: {
@@ -112,7 +125,9 @@ const EVENT_CONSTANTS = {
     birthday: 'birthday',
     accountSwitcher: 'accountSwitcher',
     logoutPopup: 'logoutPopup',
-    hasAuthIntent: 'hasAuthIntent'
+    hasAuthIntent: 'hasAuthIntent',
+    tosCheckbox: 'tosCheckbox',
+    exitSignupConfirmation: 'exitSignupConfirmation'
   },
   btn: {
     cancel: 'cancel',
@@ -120,6 +135,9 @@ const EVENT_CONSTANTS = {
     resendCode: 'resendCode',
     resend: 'resend',
     login: 'login',
+    xdl: 'xdl',
+    forgotCredentials: 'forgotCredentials',
+    createAccount: 'createAccount',
     logoutAll: 'logoutAll',
     signup: 'signup',
     continue: 'continue',
@@ -128,6 +146,8 @@ const EVENT_CONSTANTS = {
     parentalConsentCheckbox: 'pc_checkbox',
     termsOfServiceCheckbox: 'tos_checkbox',
     privacyPolicyCheckbox: 'pp_checkbox',
+    termsOfServiceLink: 'tos_link',
+    privacyPolicyLink: 'pp_link',
     submitRevertAccount: 'submitRevertAccount',
     dismiss: 'dismiss',
     switch: 'switch',
@@ -135,7 +155,13 @@ const EVENT_CONSTANTS = {
     primaryButton: 'primaryButton',
     secondaryButton: 'secondaryButton',
     usernameSuggestion: 'usernameSuggestion',
-    launchSsoDeeplink: 'launchSsoDeeplink',
+    signIn: 'signIn',
+    lrSignInButton: 'lrSignInButton',
+    signupSubmit: 'signupSubmit',
+    genderMale: 'genderMale',
+    genderFemale: 'genderFemale',
+    showPassword: 'showPassword',
+    hidePassword: 'hidePassword',
     koreaConsentAllCheckbox: 'koreaConsentAll',
     koreaTosAndPrivacyPolicyCheckbox: 'koreaToS1',
     koreaThirdPartyPersonalInfoCheckbox: 'koreaToS2',
@@ -143,7 +169,12 @@ const EVENT_CONSTANTS = {
     koreaPersonalInfoCheckbox: 'koreaToS4',
     koreaOptionalPersonalInfoCheckbox: 'koreaToS5Optional',
     koreaAgreeTermsOfService: 'koreaAgreeToS',
-    logoutPopupLogout: 'logoutPopupLogout'
+    logoutPopupLogout: 'logoutPopupLogout',
+    addPasskeyInlineCTA: 'addPasskeyInlineCTA',
+    addPasskeyModal: 'addPasskeyModal',
+    skipPasskey: 'skipPasskey',
+    exitSignupConfirmYes: 'exitSignupConfirmYes',
+    exitSignupConfirmCancel: 'exitSignupConfirmCancel'
   },
   input: {
     redacted: '[Redacted]'
@@ -166,6 +197,24 @@ const EVENT_CONSTANTS = {
     localStorageGetFailure: 'localStorageGetFailure',
     localStorageRemoveFailure: 'localStorageRemoveFailure',
     logoutAllAccountSwitcherAccounts: 'logoutAllAccountSwitcherAccounts'
+  },
+  state: {
+    focused: 'focused',
+    unfocused: 'unfocused',
+    selected: 'selected',
+    unselected: 'unselected',
+    passkeyUpselling: {
+      passkeyRegistrationSuccess: 'passkeyRegistrationSuccess',
+      passkeyRegistrationFailure: 'passkeyRegistrationFailure',
+      passkeyOsDialogue: 'passkeyOsDialogue',
+      passkeyUpsellModal: 'passkeyUpsellModal',
+      passkeyUpsellShown: 'passkeyUpsellShown',
+      passkeyNotSupported: 'passkeyNotSupported',
+      passkeyUpsellFilteredByInAppTraffic: 'passkeyUpsellFilteredByInAppTraffic',
+      filteredByNoPasskeySupport: 'filteredByNoPasskeySupport',
+      filteredByNoSilentUpgradeSupport: 'filteredByNoSilentUpgradeSupport',
+      unclearedWebSessionFlag: 'unclearedWebSessionFlag'
+    }
   }
 } as const;
 

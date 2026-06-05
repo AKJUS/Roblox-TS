@@ -1,11 +1,11 @@
 import fpjs from '@fingerprintjs/fingerprintjs';
+import * as Option from 'fp-ts/Option';
+import Roblox from 'Roblox';
+import * as z from 'zod';
 import {
   ParseChallengeSpecificProperties as NewParseChallengeSpecificProperties,
   ForceActionRedirect as ForceActionRedirectInterface
 } from '@rbx/generic-challenge-types';
-import * as Option from 'fp-ts/Option';
-import Roblox from 'Roblox';
-import * as z from 'zod';
 import { RequestServiceDefault } from '../../../common/request';
 import '../../../../css/challenge/biometric/biometric-overlay.scss';
 import * as Captcha from '../captcha';
@@ -626,7 +626,8 @@ export const renderChallenge: RenderChallenge = async ({
         forceActionRedirectChallengeType:
           ForceActionRedirectInterface.ForceActionRedirectChallengeType.BlockSession,
         ...challengeBaseProperties,
-        ...challengeMetadata
+        ...challengeMetadata,
+        delayParameters: sharedParameters?.delayParameters
       };
       const success = ForceActionRedirect.renderChallenge(fullParameters);
       if (success && challengeBaseProperties.onChallengeDisplayed !== undefined) {

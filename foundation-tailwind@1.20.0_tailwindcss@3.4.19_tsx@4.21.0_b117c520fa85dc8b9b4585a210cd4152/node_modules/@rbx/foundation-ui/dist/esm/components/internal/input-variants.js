@@ -1,0 +1,1 @@
+const t=["Standard","Contrast","Utility"],n={Standard:"bg-none",Contrast:"bg-shift-200",Utility:"bg-none"},o={Standard:"stroke-standard",Contrast:"stroke-none",Utility:"stroke-none"};export{n as INPUT_BACKGROUND_BY_VARIANT,o as INPUT_STROKE_BY_VARIANT,t as INPUT_VARIANTS};

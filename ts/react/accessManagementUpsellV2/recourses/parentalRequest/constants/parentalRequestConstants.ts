@@ -2,25 +2,15 @@ import { EnvironmentUrls } from 'Roblox';
 
 const parentalRequestConstants = {
   privacyPolicyUrl: `${EnvironmentUrls.websiteUrl}/info/privacy`,
-  chargebackWizardSessionTokenLocalStorageKey: 'Roblox.ChargebackWizardSessionToken',
   defaultCooldownTimeInMs: 900000, // 15 minutes,
   emailRegex: '^\\w+([-+.]\\w+)*@\\w+([-.]\\w+)*\\.\\w+([-.]\\w+)*$',
   isChildSubjectToPCFeatureName: 'IsChildSubjectToParentalControls',
   translationKeys: {
     gatherParentEmail: {
       title: 'Title.EnterParentEmailV2',
-      permissionNeededTitle: 'Title.PermissionNeeded',
-      askYourParentTitle: 'Title.AskYourParent',
-      body: 'Description.EnterParentEmailV4',
       bodyWithPC: 'Description.EnterParentEmailV5',
-      combinedBody: 'Description.EnterParentEmailExp',
       bodyWithoutPC: 'Description.EnterParentEmailWithoutParentalControl',
       bodyForTeens: 'Description.EnterParentEmailWithoutParentalControlV2',
-      combinedBodyWithoutPC: 'Description.EnterParentEmailExpWithoutParentalControl',
-      combinedBodyExpT1: 'Description.EnterParentEmailExpT1',
-      combinedBodyWithoutPCExpT1: 'Description.EnterParentEmailWithoutParentalControlExpT1',
-      combinedBodyExpT3: 'Description.EnterParentEmailExpT3',
-      combinedBodyWithoutPCExpT3: 'Description.EnterParentEmailWithoutParentalControlExpT3',
       footer: 'Description.ParentalEmailFooter',
       unknownError: 'Message.SomethingWentWrong',
       invalidEmailError: 'Message.InvalidEmail',
@@ -69,6 +59,11 @@ const parentalRequestConstants = {
       parentalEntry: 'parentalEntrySettings',
       settingsAge: 'settingsAgeSettings',
       settingsRequestSent: 'settingsRequestSent'
+    },
+    addTrustedFriendVpcContext: {
+      parentalEntry: 'parentalEntryAddTrustedFriendVpc',
+      settingsAge: 'settingsAgeAddTrustedFriendVpc',
+      settingsRequestSent: 'settingsAddTrustedFriendVpcRequestSent'
     },
     eventName: {
       authPageLoad: 'authPageload',

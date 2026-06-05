@@ -2,7 +2,7 @@ import React, { useCallback, useMemo, useState } from "react";
 import { Button } from "@rbx/core-ui";
 import { sendEvent } from "@rbx/core-scripts/event-stream";
 import { TranslateFunction } from "@rbx/core-scripts/react";
-import { TOmniRecommendationGameSort } from "../../common/types/bedev2Types";
+import { TOmniRecommendationGameSort, TRequestIntent } from "../../common/types/bedev2Types";
 import InterestCatcherGameGrid from "./InterestCatcherGameGrid";
 import { FeaturePlacesList } from "../../common/constants/translationConstants";
 import "../../../css/homePage/_interestCatcher.scss";
@@ -18,14 +18,14 @@ import { PageContext } from "../../common/types/pageContext";
 type TInterestCatcherProps = {
   sort: TOmniRecommendationGameSort;
   itemsPerRow: number | undefined;
-  fetchRecommendations: (interestedUniverses?: number[]) => void;
+  refreshFeed: (requestIntent?: TRequestIntent, interestedUniverses?: number[]) => void;
   translate: TranslateFunction;
 };
 
 const InterestCatcher = ({
   sort,
   itemsPerRow,
-  fetchRecommendations,
+  refreshFeed,
   translate,
 }: TInterestCatcherProps): JSX.Element => {
   const [interestedUniverses, setInterestedUniverses] = useState<Set<number>>(new Set<number>());
@@ -56,14 +56,14 @@ const InterestCatcher = ({
   );
 
   const handleSkipClick = useCallback(() => {
-    fetchRecommendations([]);
+    refreshFeed(undefined, []);
     sendHeaderButtonClickEvent(TInterestCatcherButton.Skip);
-  }, [fetchRecommendations, sendHeaderButtonClickEvent]);
+  }, [refreshFeed, sendHeaderButtonClickEvent]);
 
   const handleSubmitClick = useCallback(() => {
-    fetchRecommendations(Array.from(interestedUniverses));
+    refreshFeed(undefined, Array.from(interestedUniverses));
     sendHeaderButtonClickEvent(TInterestCatcherButton.Continue);
-  }, [interestedUniverses, fetchRecommendations, sendHeaderButtonClickEvent]);
+  }, [interestedUniverses, refreshFeed, sendHeaderButtonClickEvent]);
 
   const toggleInterest = (universeId: number) => {
     setInterestedUniverses(prevInterestedUniverses => {

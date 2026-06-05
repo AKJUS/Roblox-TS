@@ -7,18 +7,20 @@ import {
   TGetPlayabilityStatus,
   TPlayabilityStatus,
   TPlayableUxTreatment,
+  TUpsellUxTreatment,
 } from "../types/playButtonTypes";
 
 const { counterEvents } = playButtonConstants;
 
-const PLAYABILITY_QUERY_KEY = "playabilityStatus";
+export const PLAYABILITY_QUERY_KEY = "playabilityStatus";
 const STALE_TIME_MS = 30000; // 30 seconds
 
 type TPlayabilityData = {
   playabilityStatus: TPlayabilityStatus;
   isPlayable: boolean | undefined;
-  unplayableDisplayText: string | undefined;
+  unplayableDisplayText: string | undefined | null;
   playableUxTreatment: TPlayableUxTreatment | undefined;
+  upsellUxTreatment: TUpsellUxTreatment | undefined;
 };
 
 const failedPlayabilityData: TPlayabilityData = {
@@ -26,6 +28,7 @@ const failedPlayabilityData: TPlayabilityData = {
   isPlayable: undefined,
   unplayableDisplayText: undefined,
   playableUxTreatment: undefined,
+  upsellUxTreatment: undefined,
 };
 
 /**
@@ -42,6 +45,7 @@ const failedPlayabilityData: TPlayabilityData = {
  *   - `playabilityStatus` - The current playability status (undefined while loading)
  *   - `isPlayable` - Whether the experience is playable (undefined while loading or on error)
  *   - `unplayableDisplayText` - Optional user-facing message explaining why the experience is unplayable
+ *   - `upsellUxTreatment` - Optional contextual upsell to surface for this experience (e.g. ageCheckUpsell)
  *   - `isFetchingPlayability` - Whether a fetch is currently in progress
  *   - `refetchPlayabilityData` - Function to manually trigger a refetch
  */
@@ -50,8 +54,9 @@ export const usePlayabilityStatus = (
 ): {
   playabilityStatus: TPlayabilityStatus | undefined;
   isPlayable: boolean | undefined;
-  unplayableDisplayText: string | undefined;
+  unplayableDisplayText: string | undefined | null;
   playableUxTreatment: TPlayableUxTreatment | undefined;
+  upsellUxTreatment: TUpsellUxTreatment | undefined;
   isFetchingPlayability: boolean;
   refetchPlayabilityData: () => void;
 } => {
@@ -83,6 +88,7 @@ export const usePlayabilityStatus = (
         isPlayable: response.isPlayable,
         unplayableDisplayText: response.unplayableDisplayText,
         playableUxTreatment: response.playableUxTreatment,
+        upsellUxTreatment: response.upsellUxTreatment,
       };
     },
     staleTime: STALE_TIME_MS,
@@ -115,6 +121,7 @@ export const usePlayabilityStatus = (
         isPlayable: failedPlayabilityData.isPlayable,
         unplayableDisplayText: failedPlayabilityData.unplayableDisplayText,
         playableUxTreatment: failedPlayabilityData.playableUxTreatment,
+        upsellUxTreatment: failedPlayabilityData.upsellUxTreatment,
         isFetchingPlayability: isFetching,
         refetchPlayabilityData,
       };
@@ -125,6 +132,7 @@ export const usePlayabilityStatus = (
       isPlayable: data?.isPlayable,
       unplayableDisplayText: data?.unplayableDisplayText,
       playableUxTreatment: data?.playableUxTreatment,
+      upsellUxTreatment: data?.upsellUxTreatment,
       isFetchingPlayability: isFetching,
       refetchPlayabilityData,
     };

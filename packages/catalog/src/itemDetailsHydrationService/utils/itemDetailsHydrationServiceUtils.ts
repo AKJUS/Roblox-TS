@@ -7,7 +7,8 @@ import {
   itemTypes,
   TCollectibleDetailEntry,
   THydratedMarketplacePurchaseInfo,
-  TTimedOption
+  TTimedOption,
+  TDiscountInformation
 } from '../constants/itemDetailsHydrationConstants';
 
 const getLocalStorageKey = (id: number, itemType: string): string => {
@@ -197,6 +198,19 @@ export const getOwnershipLimit = (
   return 1;
 };
 
+const getDiscountedPrice = (
+  price: number | undefined,
+  discountInformation?: TDiscountInformation
+): number | undefined => {
+  if (price === undefined) {
+    return undefined;
+  }
+  if (discountInformation) {
+    return price - discountInformation.totalDiscountAmount;
+  }
+  return price;
+};
+
 export const getPurchasePrice = (
   itemDetail: TDetailEntry,
   collectibleItemDetail?: TCollectibleDetailEntry
@@ -233,7 +247,7 @@ export const getPurchasePrice = (
     }
     return collectibleItemDetail.price;
   }
-  return itemDetail.price;
+  return getDiscountedPrice(itemDetail.price, itemDetail.discountInformation);
 };
 
 export const getPurchaseFromReseller = (
@@ -282,16 +296,17 @@ export const getTimedOptions = (itemDetail: TDetailEntry): Array<TTimedOption> |
   ) {
     return undefined;
   }
-  const { timedOptions } = itemDetail;
+  const { timedOptions, discountInformation } = itemDetail;
   const timedOptionSelected = timedOptions.find(timedOption => timedOption.selected);
-  return [
-    {
-      days: 0,
-      price: itemDetail.price ?? 0,
-      selected: !timedOptionSelected
-    },
-    ...timedOptions
-  ];
+  const permanentOption: TTimedOption = {
+    days: 0,
+    price: itemDetail.price ?? 0,
+    selected: !timedOptionSelected
+  };
+  if (discountInformation) {
+    permanentOption.discountInformation = discountInformation;
+  }
+  return [permanentOption, ...timedOptions];
 };
 
 export default {

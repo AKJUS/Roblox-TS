@@ -8,15 +8,8 @@ import {
 } from "@rbx/generic-challenges";
 import { getToken, setToken } from "../auth/xsrfToken";
 import * as endpoints from "../endpoints";
-import {
-  apiSiteRequestValidator,
-  inject,
-  instrumentation,
-  isTracerEnabled,
-  logs,
-  tags,
-  tracerConstants,
-} from "../tracing";
+import { isTestSite } from "../meta/environment";
+import { setMrRouterHeaders } from "../mrRouter";
 import {
   ErrorResponse,
   HttpRequestMethods,
@@ -24,7 +17,7 @@ import {
   ResponseConfig,
   UrlConfig,
 } from "./types";
-import { duplicationCount, retryAttemptHeader, shouldDuplicate } from "./util";
+import { retryAttemptHeader } from "./util";
 
 const CSRF_TOKEN_HEADER = "x-csrf-token";
 const CSRF_INVALID_RESPONSE_CODE = HttpResponseCodes.forbidden;
@@ -40,11 +33,6 @@ const RETRY_ATTEMPT_HEADER = "x-retry-attempt";
 
 // Trace propagation targets for Sentry
 const tracePropagationTargets = [/roblox\.com/, /robloxlabs\.com/];
-
-// TODO: figure out how to get theres from data attr on page #http-retry-dat
-// const HTTP_RETRY_BASE_TIMEOUT = 1000;
-// const HTTP_RETRY_MAX_TIMEOUT = 8000;
-// const HTTP_RETRY_MAX_TIMES = 3;
 
 let currentToken = getToken();
 
@@ -116,45 +104,9 @@ axios.interceptors.request.use((config: UrlConfig) => {
     newConfig.sentrySpan = sentrySpan;
   }
 
-  // instrument roblox tracer
-  if (isTracerEnabled && apiSiteRequestValidator.isApiSiteAvailableForTracing(url)) {
-    const fields = {
-      tags: {
-        isDuplicate: config.isDuplicate?.toString() ?? "false",
-      },
-    };
-
-    const requestSpan = instrumentation.createAndGetSpan(
-      tracerConstants.operationNames.httpRequest,
-      fields,
-    );
-    // TODO: old, migrated code
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    tags.setXHRRequestTags(requestSpan, { component: `axios`, method: method!, url });
-    logs.setXHRRequestLogs(requestSpan);
-    const headerCarriers = inject.httpRequestCarrier(requestSpan);
-    Object.entries(headerCarriers).forEach(([key, val]) => {
-      newConfig.headers[key] = val;
-    });
-    newConfig.tracerConfig = {
-      requestSpan,
-    };
-  }
-
-  // request duplication
-  if (shouldDuplicate(url, config.isDuplicate)) {
-    const duplicateConfig = { ...config };
-    duplicateConfig.isDuplicate = true;
-
-    const count = duplicationCount();
-    for (let i = 0; i < count; i += 1) {
-      axios.request(duplicateConfig).catch((e: unknown) => {
-        // log error from duplicated request, then swallow it
-        // TODO: old, migrated code
-        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions, no-console
-        console.log(`~~~~ duplicated request failed ~~~~ ${e}`);
-      });
-    }
+  // MrRouter MEM headers (sitetest / non-production only; see ENGEFF MEM guide)
+  if (isTestSite()) {
+    setMrRouterHeaders(newConfig.headers);
   }
 
   return newConfig;
@@ -164,7 +116,7 @@ axios.interceptors.response.use(
   (response: ResponseConfig) => {
     const {
       status,
-      config: { url, tracerConfig, sentrySpan },
+      config: { sentrySpan },
     } = response;
 
     // End Sentry span if it exists
@@ -174,18 +126,6 @@ axios.interceptors.response.use(
       sentrySpan.end();
     }
 
-    // TODO: old, migrated code
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    if (tracerConfig && apiSiteRequestValidator.isApiSiteAvailableForTracing(url!)) {
-      // TODO: old, migrated code
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const requestSpan = tracerConfig.requestSpan!;
-      tags.setXHRResponseTags(requestSpan, {
-        status,
-      });
-      logs.setXHRResponseSuccessLogs(requestSpan);
-      instrumentation.finalizeSpan(requestSpan);
-    }
     return response;
   },
   (error: ErrorResponse): AxiosPromise => {
@@ -208,29 +148,13 @@ axios.interceptors.response.use(
         setToken(newToken);
         return axios.request(config);
       }
-      if (retryAttemptHeader()) {
+      if (retryAttemptHeader) {
         // Set retry attempt header before all service failure retries.
         let retryAttempt = 1;
         if (config.headers[RETRY_ATTEMPT_HEADER]) {
           retryAttempt = Number(config.headers[RETRY_ATTEMPT_HEADER]) + 1;
         }
         config.headers[RETRY_ATTEMPT_HEADER] = String(retryAttempt);
-      }
-
-      if (
-        config.tracerConfig != null &&
-        // TODO: old, migrated code
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        apiSiteRequestValidator.isApiSiteAvailableForTracing(config.url!)
-      ) {
-        // TODO: old, migrated code
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        const requestSpan = config.tracerConfig.requestSpan!;
-        tags.setXHRResponseErrorTags(requestSpan, {
-          status,
-        });
-        logs.setXHRResponseErrorLogs(requestSpan);
-        instrumentation.finalizeSpan(requestSpan);
       }
 
       // Handle Generic Challenge headers (keep this logic LAST in this handler
@@ -248,6 +172,7 @@ axios.interceptors.response.use(
         challengeId !== undefined &&
         challengeTypeRaw !== undefined &&
         challengeMetadataJsonBase64 !== undefined;
+
       if (challengeAvailable) {
         const retryRequest = (challengeIdInner: string, redemptionMetadataJsonBase64: string) => {
           config.headers ??= {};

@@ -33,6 +33,7 @@ export default {
     GooglePlayExclusive: "GooglePlayExclusive",
     IosExclusive: "IosExclusive",
     SaleTimer: "SaleTimer",
+    IsFae: "IsFAE",
   },
   itemStatusClasses: {
     New: "status-new",
@@ -42,9 +43,10 @@ export default {
     GooglePlayExclusive: "status-default has-text",
     IosExclusive: "status-default has-text",
   },
-  itemStatusHasIcons: ["SaleTimer"],
+  itemStatusHasIcons: ["SaleTimer", "IsFAE"],
   itemStatusIcons: {
     SaleTimer: "icon-clock",
+    IsFae: "icon-filled-lock-closed",
   },
   itemStatusLabels: {
     Sale: "Label.Sale",

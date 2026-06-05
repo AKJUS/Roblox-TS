@@ -5,8 +5,6 @@ abstract class EntityUrl {
   // Each inheriting class for an entity should implement this abstract method
   abstract getRelativePath(id: number): string;
 
-  abstract getReferralPath(): string;
-
   getAbsoluteUrl(id: number): string | null {
     if (typeof id !== "number") {
       return null;

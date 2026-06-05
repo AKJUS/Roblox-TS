@@ -51,6 +51,7 @@ export default function generateCookieForAutoPurchase(
   autoPurchaseRequiredData += `,${itemPurchaseObj.collectibleItemInstanceId || ''}`;
   autoPurchaseRequiredData += `,${itemPurchaseObj.collectibleProductId || ''}`;
   autoPurchaseRequiredData += `,${itemPurchaseObj.subscriptionTargetKey || ''}`;
+  autoPurchaseRequiredData += `,${encodeURIComponent(itemPurchaseObj.itemName || '')}`;
   const cookieData = `${upsellUuid},${assetUrl},${CurrentUser.userId},${purchaseMetadata},${autoPurchaseRequiredData}`;
   const expires = new Date();
   expires.setHours(expires.getHours() + 1);

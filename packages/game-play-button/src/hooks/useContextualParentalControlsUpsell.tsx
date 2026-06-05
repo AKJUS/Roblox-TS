@@ -5,16 +5,18 @@ import {
   TAppsFlyerReferralProperties,
   TContentMaturityRating,
   TAgeRestrictionSettingOptionValue,
+  type TPlayButtonPageContext,
 } from "../types/playButtonTypes";
 import {
   launchGame,
-  startAccessManagementUpsellFlow,
+  startAgeCheckAccessManagementUpsellFlow,
   sendUnlockPlayIntentEvent,
 } from "../utils/playButtonUtils";
 import playButtonConstants from "../constants/playButtonConstants";
 import { PlayabilityStatus } from "../constants/playabilityStatus";
+import useGuacPlayButtonUI from "./useGuacPlayButtonUI";
 
-const { counterEvents, unlockPlayIntentConstants } = playButtonConstants;
+const { counterEvents, unlockPlayIntentConstants, playButtonUpsellContexts } = playButtonConstants;
 
 type TContextualParentalControlUpsell = {
   launchPlayButtonUpsell: (
@@ -37,12 +39,15 @@ type TContextualParentalControlUpsell = {
 const useContextualParentalControlsUpsell = (
   placeId: string,
   universeId: string,
+  pageContext: TPlayButtonPageContext,
   rootPlaceId?: string,
   privateServerLinkCode?: string,
   gameInstanceId?: string,
   eventProperties?: Record<string, string | number | undefined>,
   appsFlyerReferralProperties?: TAppsFlyerReferralProperties,
 ): TContextualParentalControlUpsell => {
+  const { data: guacData } = useGuacPlayButtonUI();
+
   const [isSelfUpdateSettingModalOpen, setIsSelfUpdateSettingModalOpen] = useState<boolean>(false);
 
   const [isRestrictedUnplayableModalOpen, setIsRestrictedUnplayableModalOpen] =
@@ -78,6 +83,7 @@ const useContextualParentalControlsUpsell = (
           universeId,
           upsellName,
           PlayabilityStatus.ContextualPlayabilityAgeRecommendationParentalControls,
+          pageContext,
         );
       };
 
@@ -142,20 +148,38 @@ const useContextualParentalControlsUpsell = (
             break;
           }
           case "ParentalConsent": {
+            fireEvent?.(counterEvents.PlayButtonUpsellAskYourParentTriggered);
+
+            sendUnlockPlayIntent(requirement);
+
+            if (!window.Roblox.AccessManagementUpsellV2Service) {
+              fireEvent?.(counterEvents.PlayButtonUpsellParentalConsentError);
+              break;
+            }
+
             try {
-              fireEvent?.(counterEvents.PlayButtonUpsellAskYourParentTriggered);
+              const upsellParams = guacData?.useExperienceApprovalForParentalConsent
+                ? {
+                    featureName: "CanApproveExperience",
+                    isAsyncCall: false,
+                    usePrologue: true,
+                    ampRecourseData: {
+                      universeId,
+                      experienceManagementAction: "Approve",
+                    },
+                  }
+                : {
+                    featureName: "CanChangeSetting",
+                    isAsyncCall: false,
+                    usePrologue: true,
+                    ampRecourseData: {
+                      contentAgeRestriction: requestedOption.option.optionValue,
+                    },
+                  };
 
-              sendUnlockPlayIntent(requirement);
-
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              await window.Roblox.AccessManagementUpsellV2Service!.startAccessManagementUpsell({
-                featureName: "CanChangeSetting",
-                isAsyncCall: false,
-                usePrologue: true,
-                ampRecourseData: {
-                  contentAgeRestriction: requestedOption.option.optionValue,
-                },
-              });
+              await window.Roblox.AccessManagementUpsellV2Service.startAccessManagementUpsell(
+                upsellParams,
+              );
             } catch {
               launchGameFallback();
 
@@ -172,13 +196,16 @@ const useContextualParentalControlsUpsell = (
 
               sendUnlockPlayIntent(requirement);
 
-              // result can be used for success/failure callback cases in the future
-              // eslint-disable-next-line @typescript-eslint/no-unused-vars
-              const success = await startAccessManagementUpsellFlow();
+              const success = await startAgeCheckAccessManagementUpsellFlow({
+                context: playButtonUpsellContexts.gameJoinContentMaturityLock,
+                pageContext,
+              });
+
+              if (success) {
+                window.location.reload();
+              }
             } catch {
               launchGameFallback();
-
-              fireEvent?.(counterEvents.PlayButtonUpsellAgeRestrictionVerificationError);
 
               sendUnlockPlayIntent(unlockPlayIntentConstants.gameLaunchFallbackUpsellName);
             }
@@ -201,7 +228,7 @@ const useContextualParentalControlsUpsell = (
         sendUnlockPlayIntent(unlockPlayIntentConstants.restrictedUnplayableUpsellName);
       }
     },
-    [launchGameFallback, universeId],
+    [guacData, launchGameFallback, universeId, pageContext],
   );
 
   const closeSelfUpdateSettingModal = useCallback(() => {

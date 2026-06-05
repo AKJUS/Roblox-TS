@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { ReactNode, useEffect, useRef, useState } from 'react';
 import { useHistory } from 'react-router';
 import { Modal } from 'react-style-guide';
 import { Icon, ListItem } from '@rbx/foundation-ui';
@@ -10,10 +10,13 @@ import {
   mapTwoStepVerificationErrorToResource
 } from '../constants/resources';
 import { mediaTypeToPath } from '../hooks/useActiveMediaType';
+import { useTrustedSessionCount } from '../hooks/useSessionsQuery';
 import useTwoStepVerificationContext from '../hooks/useTwoStepVerificationContext';
 import { TwoStepVerificationActionType } from '../store/action';
-import { MediaType } from '../interface';
-import { getDelayTextFromDates } from '../delay/text';
+import { ActionType, MediaType } from '../interface';
+import { calculateDelayByTranslations, getAlternateMethodDelayTextOrDefault, getDelayTextFromDates } from '../delay/text';
+import SupportHelp from './supportHelp';
+import { hasBypassableMethod } from '../delay/filter';
 
 type Props = {
   hasSentEmailCode: boolean;
@@ -221,6 +224,11 @@ const MediaTypeList: React.FC<Props> = ({
     }    
 
     const isDelayEnabled = metadata?.isDelayedUiEnabled ?? false;
+    if (isDelayEnabled && 
+      delayParameters?.state === 'LOCK_STATE_UNLOCKED' &&
+      !hasBypassableMethod(mediaType, delayParameters)) {
+      return null; // If delays are enabled, skip non-bypassable methods.
+    }
 
     // This will filter to undefined if no delay is defined.
     const maybeDelayText = 
@@ -242,6 +250,9 @@ const MediaTypeList: React.FC<Props> = ({
         return;
       }
 
+      // Reset the modal title to the default always.
+      setModalTitleText(resources.Label.TwoStepVerification);
+
       // eslint-disable-next-line no-void
       void transitionToMediaType(mediaType)
     }
@@ -253,7 +264,7 @@ const MediaTypeList: React.FC<Props> = ({
     const item = <ListItem
       key={key}
       title={mediaTypeLabel}
-      text={gatedDelayText}
+      metadata={gatedDelayText}
       leading={icon}
       divider='None'
       trailing={trailingIcon}
@@ -266,11 +277,47 @@ const MediaTypeList: React.FC<Props> = ({
     return item;
   };
 
+  const trustedSessionCount = useTrustedSessionCount() ?? 0;
+  const getModalText = (): { title: string, body: ReactNode } => {
+    const defaultBodyText =
+      actionType === ActionType.PasswordReset
+        ? resources.Label.ChooseAMediaType
+        : resources.Label.ChooseAlternateMediaType;
+    const defaultText = { 
+      title: resources.Label.TwoStepVerification,
+      body: defaultBodyText
+    };
+    // Do not compute delay text if the delay is locked; it's just normal 2SV at this point.
+    if (delayParameters?.state !== 'LOCK_STATE_UNLOCKED') {
+      return defaultText;
+    }
+    const maybeSimpleDelayText = calculateDelayByTranslations({
+      timestamp: delayParameters?.delayUntil ?? '0',
+      dayTranslation: resources.Label.SimpleDay,
+      hourTranslation: resources.Label.SimpleHour,
+      minuteTranslation: resources.Label.SimpleMinute,
+    });
+    if (!maybeSimpleDelayText) {
+      return defaultText;
+    }
+    const maybeDelayedBodyText = getAlternateMethodDelayTextOrDefault(
+      resources,
+      defaultBodyText,
+      delayParameters,
+      trustedSessionCount
+    );
+    return {
+      title: resources.Label.WeNeedYouToWait(maybeSimpleDelayText),
+      body: maybeDelayedBodyText
+    };
+  }
+  
   /*
    * Render Properties
    */
+  const { title, body } = getModalText();
+  setModalTitleText(title);
 
-  setModalTitleText(resources.Label.TwoStepVerification);
   const BodyElement = renderInline ? InlineChallengeBody : Modal.Body;
   const lockIconClassName = renderInline
     ? 'inline-challenge-protection-shield-icon'
@@ -282,6 +329,9 @@ const MediaTypeList: React.FC<Props> = ({
   const errorTextMarginClassName = renderInline
     ? 'inline-challenge-margin-top-large'
     : 'modal-margin-bottom-large';
+  const marginBottomClassName = renderInline
+    ? 'inline-challenge-margin-bottom'
+    : 'modal-margin-bottom';
 
   const rowRef = useRef<HTMLLIElement>(null);
   useEffect(() => {
@@ -294,7 +344,7 @@ const MediaTypeList: React.FC<Props> = ({
   return (
     <BodyElement data-testid='media-type-list'>
       <div className={lockIconClassName} />
-      <p className={marginBottomXLargeClassName}>{resources.Label.ChooseAlternateMediaType}</p>
+      <p className={marginBottomXLargeClassName}>{body}</p>
       <table className={`table table-striped media-type-list ${tableMarginClassName}`}>
         <tbody className='[&>*:nth-child(even)]:bg-surface-300'>
           {enabledMediaTypes.map((mediaType, index) =>
@@ -306,6 +356,8 @@ const MediaTypeList: React.FC<Props> = ({
         <p className={`text-error xsmall ${errorTextMarginClassName}`}>{sendCodeError}</p>
       ) : null}
       {children}
+      {/* TODO: update SupportHelp to allow conditional rendering of copy text */}
+      <SupportHelp className={marginBottomClassName} />
     </BodyElement>
   );
 };

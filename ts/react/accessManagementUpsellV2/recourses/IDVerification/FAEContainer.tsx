@@ -2,9 +2,12 @@ import Persona from 'persona';
 import React, { useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { useTheme, TranslateFunction } from 'react-utilities';
-import { DeviceMeta, TFeatureSpecificData, Intl } from 'Roblox';
+import { DeviceMeta, ExperimentationService, TFeatureSpecificData, Intl } from 'Roblox';
 import openVerificationLink from '../../utils/verificationUtils';
 import VerificationCompletePage from './components/VerificationCompletePage';
+import FAEQRCodeContainer from './FAEQRCodeContainer';
+import useExperiments from '../../hooks/useExperiments';
+import { faeQrCodeExperimentLayer } from '../../accessManagement/constants/experimentConstants';
 import {
   fetchFeatureAccess,
   selectAmpFeatureCheckData,
@@ -43,7 +46,7 @@ const FAERecourse = 'AgeEstimation';
 const FEATURE_ACCESS_POLLING_INTERVAL = 1000; // 1 seconds
 const FEATURE_ACCESS_POLLING_TIMEOUT = 10000; // 10 seconds
 
-function FAEContainer({
+function FAEPersonaFlow({
   translate,
   onHidecallback,
   ageEstimation,
@@ -351,6 +354,55 @@ function FAEContainer({
 
   // FAE page will only show loading page. No success or error page.
   return <React.Fragment>{getFAEComponent()}</React.Fragment>;
+}
+
+function FAEContainer({
+  translate,
+  onHidecallback,
+  ageEstimation,
+  featureSpecificParams
+}: {
+  translate: TranslateFunction;
+  onHidecallback: () => void;
+  ageEstimation: boolean;
+  featureSpecificParams: TFeatureSpecificData;
+}): React.ReactElement {
+  const isWebview = (DeviceMeta && DeviceMeta().isInApp) ?? false;
+  const ixpValues = useExperiments(faeQrCodeExperimentLayer);
+  const isExperimentLoaded = ixpValues !== null;
+  const isFaeQrCodeEnabled = Boolean(ixpValues?.isFaeQrCodeEnabled);
+  const isFromAccountInfo = featureSpecificParams?.source === 'accountInfo';
+
+  const showQrCodeFlow = !isWebview && isFaeQrCodeEnabled && isFromAccountInfo;
+
+  useEffect(() => {
+    if (isExperimentLoaded && ExperimentationService?.logLayerExposure) {
+      ExperimentationService.logLayerExposure(faeQrCodeExperimentLayer);
+    }
+  }, [isExperimentLoaded]);
+
+  if (!isExperimentLoaded) {
+    return <LoadingPage />;
+  }
+
+  if (showQrCodeFlow) {
+    return (
+      <FAEQRCodeContainer
+        translate={translate}
+        onHidecallback={onHidecallback}
+        featureSpecificParams={featureSpecificParams}
+      />
+    );
+  }
+
+  return (
+    <FAEPersonaFlow
+      translate={translate}
+      onHidecallback={onHidecallback}
+      ageEstimation={ageEstimation}
+      featureSpecificParams={featureSpecificParams}
+    />
+  );
 }
 
 export default FAEContainer;

@@ -95,7 +95,6 @@ export function ItemCard({
             translate={translate}
             iconToRender={iconToRender}
             enableThumbnailPrice={enableThumbnailPrice}
-            timedOptions={timedOptions}
           />
         </a>
       </div>

@@ -39,6 +39,10 @@ export enum PathPart {
   Fae = "fae",
   Messages = "messages",
   BuyRobux = "buy_robux",
+  CurrencyTransfer = "currency_transfer",
+  ProfileCard = "profile_card",
+  AmpWizard = "amp_wizard",
+  SupportCenter = "support_center",
 }
 
 export enum ItemType {
@@ -112,6 +116,7 @@ export const UrlPart = {
   ContentPost: "/content_posts",
   Avatar: "/my/avatar",
   SecurityAlert: "/security-feedback",
+  SupportCenter: "/support-center",
 };
 
 export const buildResolveLinkEvent = (

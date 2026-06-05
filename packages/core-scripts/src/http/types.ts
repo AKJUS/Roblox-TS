@@ -1,5 +1,4 @@
 import { AxiosResponse, AxiosRequestConfig } from "axios";
-import { Span } from "opentracing";
 import { Span as SentrySpan } from "@sentry/browser";
 
 export enum HttpResponseCodes {
@@ -33,7 +32,6 @@ export interface ResponseConfig extends AxiosResponse {
   headers: Record<string, string>;
   config: {
     url?: string;
-    tracerConfig?: Record<string, Span>;
     sentrySpan?: SentrySpan;
     headers?: Record<string, string>;
   };
@@ -48,7 +46,6 @@ export interface UrlConfig extends AxiosRequestConfig {
   noPragma?: boolean;
   authBearerToken?: string;
   headers?: Record<string, string | number | undefined>;
-  tracerConfig?: Record<string, Span>;
   sentrySpan?: SentrySpan;
   isDuplicate?: boolean;
 }

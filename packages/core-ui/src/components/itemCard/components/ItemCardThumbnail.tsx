@@ -1,8 +1,10 @@
 import React, { JSX } from "react";
 import { TranslateFunction } from "@rbx/core-scripts/react";
+// import { Badge } from "@rbx/foundation-ui";
 import ItemCardStatus from "./ItemCardStatus";
 import ItemCardRestrictions from "./ItemCardRestrictions";
 import ItemCardPrice from "./ItemCardPrice";
+import itemCardConstants from "../constants/itemCardConstants";
 import { ItemCardShoppingCardProps, TTimedOption } from "../constants/itemCardTypes";
 
 // Re-export for backward compatibility
@@ -47,8 +49,12 @@ function ItemCardThumbnail({
   unitsAvailableForConsumption,
   timedOptions,
 }: ItemCardThumbnailProps): JSX.Element {
-  let shoppingCartButtons = null;
-  if (shoppingCartProps && isHovered) {
+  let shoppingCartButtons: JSX.Element | null = null;
+  // Items that require Facial Age Estimation can't be added to the cart —
+  // they go through the FAE unlock flow on the item details page instead, so
+  // hide the add/remove buttons here.
+  const isFaeItem = itemStatus?.includes(itemCardConstants.itemStatusTypes.IsFae) === true;
+  if (shoppingCartProps && isHovered && !isFaeItem) {
     const { isItemInCart, addItemToCart, removeItemFromCart } = shoppingCartProps;
     shoppingCartButtons = (
       <React.Fragment>
@@ -90,9 +96,34 @@ function ItemCardThumbnail({
     );
   }
 
+  // const selectedTimedOption = timedOptions?.find(option => option.selected);
+
   return (
     <div className="item-card-link">
       <div className="item-card-thumb-container">
+        {/*
+          Timed-options clock badge is intentionally disabled while we run
+          experiments to determine whether to keep it on the thumbnail. Kept
+          here (commented) so it can be re-enabled once the experiment
+          concludes; the `Badge` import and `selectedTimedOption` lookup above
+          are commented for the same reason.
+        */}
+        {/* {timedOptions && timedOptions.length > 0 && (
+          <div className="timed-options-container">
+            <Badge
+              variant="Neutral"
+              icon="icon-regular-clock"
+              className="bg-surface-0"
+              label={
+                selectedTimedOption?.days
+                  ? translate("Label.TimedOptionDaysAbbreviation", {
+                      days: selectedTimedOption.days,
+                    })
+                  : ""
+              }
+            />
+          </div>
+        )} */}
         {enableThumbnailPrice && (
           <ItemCardPrice
             price={price}
@@ -102,8 +133,6 @@ function ItemCardThumbnail({
             premiumPricing={premiumPricing}
             unitsAvailableForConsumption={unitsAvailableForConsumption}
             enableThumbnailPrice={enableThumbnailPrice}
-            timedOptions={timedOptions}
-            translate={translate}
           />
         )}
         <div className="item-card-thumb-container-inner">{thumbnail2d}</div>

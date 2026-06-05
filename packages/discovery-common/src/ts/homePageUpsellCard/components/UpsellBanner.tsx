@@ -1,7 +1,17 @@
 import React, { useCallback, useMemo } from "react";
+import classnames from "classnames";
 import { TIconProps } from "@rbx/foundation-ui";
 import UpsellBannerContentsCompact from "./UpsellBannerContentsCompact";
-import { TAnalyticsProps, TBadgeProps, TButtonProps } from "../types/upsellCardTypes";
+import {
+  DEFAULT_UPSELL_BODY_TEXT_CLASS,
+  DEFAULT_UPSELL_TITLE_TEXT_CLASS,
+} from "../constants/upsellCardConstants";
+import {
+  TAnalyticsProps,
+  TBadgeProps,
+  TButtonProps,
+  TUpsellBannerTextClass,
+} from "../types/upsellCardTypes";
 import UpsellBannerContentsFull from "./UpsellBannerContentsFull";
 import isCompactUpsellBannerConfig from "../utils/isCompactUpsellBannerConfig";
 import useUpsellAnalytics from "../hooks/useUpsellAnalytics";
@@ -15,6 +25,9 @@ interface TUpsellBannerProps {
   onDismiss: () => void;
   buttonPropsArray: TButtonProps[];
   analyticsConfig?: TAnalyticsProps;
+  titleTextClassName?: TUpsellBannerTextClass;
+  bodyTextClassName?: TUpsellBannerTextClass;
+  hideBackground?: boolean;
 }
 
 const UpsellBanner: React.FC<TUpsellBannerProps> = ({
@@ -26,6 +39,9 @@ const UpsellBanner: React.FC<TUpsellBannerProps> = ({
   buttonPropsArray,
   onDismiss,
   analyticsConfig,
+  titleTextClassName = DEFAULT_UPSELL_TITLE_TEXT_CLASS,
+  bodyTextClassName = DEFAULT_UPSELL_BODY_TEXT_CLASS,
+  hideBackground = false,
 }) => {
   // Use custom hook to manage all analytics logic
   const { logDismissed, logButtonClick } = useUpsellAnalytics(analyticsConfig);
@@ -63,12 +79,18 @@ const UpsellBanner: React.FC<TUpsellBannerProps> = ({
 
   return (
     <div className="flex margin-bottom-medium">
-      <div className="flex grow-1 radius-medium padding-large stroke-standard stroke-default bg-shift-100">
+      <div
+        className={classnames(
+          "flex grow-1 radius-medium padding-large stroke-standard stroke-default",
+          { "bg-shift-100": !hideBackground },
+        )}
+      >
         {shouldShowCompactBanner ? (
           <UpsellBannerContentsCompact
             buttonProps={buttonPropsArrayWithTelemetry[0]}
             titleText={titleText}
             iconClassName={iconClassName}
+            titleTextClassName={titleTextClassName}
           />
         ) : (
           <UpsellBannerContentsFull
@@ -79,6 +101,8 @@ const UpsellBanner: React.FC<TUpsellBannerProps> = ({
             dismissible={dismissible}
             onDismiss={handleDismiss}
             buttonPropsArray={buttonPropsArrayWithTelemetry}
+            titleTextClassName={titleTextClassName}
+            bodyTextClassName={bodyTextClassName}
           />
         )}
       </div>

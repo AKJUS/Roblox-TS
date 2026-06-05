@@ -52,7 +52,7 @@ function IDVerification({
   const hostedFlowTimeoutRef = useRef<NodeJS.Timeout | null>(null); // For hosted flow timeout ID
   const isWebview = (DeviceMeta && DeviceMeta().isInApp) ?? false;
 
-  const { vendorVerificationData } = IDVState;
+  const { vendorVerificationData, error: verificationError } = IDVState;
   const { sessionIdentifier, verificationLink } = vendorVerificationData;
 
   const theme = useTheme();
@@ -173,6 +173,10 @@ function IDVerification({
       });
     }
   }, [sessionIdentifier]);
+
+  if (verificationError && !loading) {
+    return <VerificationCompletePage translate={translate} onHide={onHide} />;
+  }
 
   // IDVPage.Complete will be shown for both webview/non-webview to show completion/error state after IDV flow.
   // Loading is only for embedded flow to show loader when embedded flow component is loading as well as transitioning post IDV completion.

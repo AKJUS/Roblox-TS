@@ -6,6 +6,11 @@ export const enum EVENT_NAME {
   USER_PURCHASE_STATUS = "UserPurchaseStatus",
 }
 
+/**
+ * IMPORTANT: When adding values in this enum, update the corresponding
+ * data pipeline context_to_flow_and_client_mapping in powerhouse-pipelines repo:
+ * k8s/economy/payfrud/purchase_funnels/purchase_funnel_constants.py for flow attribution.
+ */
 export enum TRIGGERING_CONTEXT {
   WEB_ROBUX_PURCHASE = "WebRobuxPurchase",
   MOBILE_WEB_ROBUX_PURCHASE = "MobileWebRobuxPurchase",
@@ -27,6 +32,16 @@ export enum TRIGGERING_CONTEXT {
   WEB_GIFT_CARD_PURCHASE = "WebGiftCardPurchase",
   WEB_REDEEM_PAGE = "WebRedeemPage",
   WEB_PAYMENT_METHODS_SETTING = "WebPaymentMethodsSetting",
+  WEB_ROBLOX_PLUS_PURCHASE = "WebRobloxPlusPurchase",
+  MOBILE_WEB_ROBLOX_PLUS_PURCHASE = "MobileWebRobloxPlusPurchase",
+  WEBVIEW_ROBLOX_PLUS_PURCHASE = "WebViewRobloxPlusPurchase",
+  WEB_CATALOG_SINGLE_ITEM_PLUS_UPSELL = "WebCatalogSingleItemPlusUpsell",
+  WEB_CATALOG_COLLECTIVE_ITEM_PLUS_UPSELL = "WebCatalogCollectiveItemPlusUpsell",
+  WEB_CATALOG_BUNDLE_ITEM_PLUS_UPSELL = "WebCatalogBundleItemPlusUpsell",
+  WEB_DEVELOPER_SUBSCRIPTION_PLUS_UPSELL = "WebDeveloperSubscriptionPlusUpsell",
+  WEB_GAME_PASS_PLUS_UPSELL = "WebGamePassPlusUpsell",
+  WEB_DEVELOPER_PRODUCT_PLUS_UPSELL = "WebDeveloperProductPlusUpsell",
+  WEB_PRIVATE_SERVER_PLUS_UPSELL = "WebPrivateServerPlusUpsell",
 }
 
 export enum VIEW_NAME {
@@ -104,6 +119,11 @@ export enum VIEW_NAME {
   ROBUX_GIFT_MODAL = "RobuxGiftModal",
   POST_PURCHASE = "PostPurchase",
   FIRST_TIME_PURCHASE_CONSENT_MODAL = "FirstTimePurchaseConsentModal",
+  ROBLOX_PLUS_LANDING = "RobloxPlusLanding",
+  ROBLOX_PLUS_UPSELL_BANNER = "RobloxPlusUpsellBanner",
+  ROBLOX_PLUS_BUY_ROBUX = "RobloxPlusBuyRobux",
+  ROBUX_SEND_TRANSFERS = "RobuxSendTransfers",
+  ROBUX_PENDING_TRANSFERS = "RobuxPendingTransfers",
 }
 
 export enum PURCHASE_EVENT_TYPE {
@@ -177,6 +197,17 @@ export enum VIEW_MESSAGE {
   BUY = "Buy",
   PURCHASE_SUCCESS = "Purchase Success",
   CONFIRM = "Confirm",
+  ROBLOX_PLUS_FREE_TRIAL = "RobloxPlusFreeTrial",
+  ROBLOX_PLUS_SUBSCRIBE = "RobloxPlusSubscribe",
+  ROBLOX_PLUS_BUNDLE_SHEET_OPENED = "RobloxPlusBundleSheetOpened",
+  ROBLOX_PLUS_BUNDLE_TIER_SELECTED = "RobloxPlusBundleTierSelected",
+  ROBLOX_PLUS_LEARN_MORE = "RobloxPlusLearnMore",
+  TRANSFER_SEND_BUTTON = "TransferSendButton",
+  TRANSFER_SEND_SHEET = "TransferSendSheet",
+  TRANSFER_SEND_USER_SELECTED = "TransferSendUserSelected",
+  TRANSFER_PENDING_BUTTON = "TransferPendingButton",
+  TRANSFER_PENDING_SHEET = "TransferPendingSheet",
+  TRANSFER_PENDING_ACCEPT_CLICK = "TransferPendingAcceptClick",
 }
 
 export enum PURCHASE_STATUS {
@@ -211,6 +242,7 @@ export const enum ASSET_TYPE {
   PACKAGE = "Package",
   PLACE = "Place",
   DEVELOPER_PRODUCT = "Product",
+  SUBSCRIPTION = "Subscription",
 }
 
 const COUNTER_PREFIX = "UserPaymentFlow";

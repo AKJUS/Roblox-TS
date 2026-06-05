@@ -7,7 +7,7 @@ import * as CaptchaInterface from '../../../captcha/interface';
 import * as ProofOfSpaceInterface from '../../../proofOfSpace/interface';
 import * as RostileInterface from '../../../rostile/interface';
 import * as TwoStepVerificationInterface from '../../../twoStepVerification/interface';
-import * as DelayInterface from '../../../delay';
+import * as DelayInterface from '../../../twoStepVerification/delay';
 
 /**
  * The challenge metadata type that all other metadata types share in common.
@@ -17,7 +17,7 @@ export type Shared = {
     shouldAnalyze?: boolean;
     genericChallengeId?: string;
     useContinueMode?: boolean;
-    delayParameters?: DelayInterface.DelayParameters
+    delayParameters?: DelayInterface.DelayParameters | null
   };
 };
 

@@ -232,6 +232,33 @@ function startGameWithDeepLinkUrl(deepLinkUrl, placeId) {
   setLocationHref(deepLinkUrl);
 }
 
+function startDeepLinkFlow(deepLinkUrl) {
+  const container = getDialogContainer();
+  const unmount = () => ReactDOM.unmountComponentAtNode(container);
+  renderWithErrorBoundary(
+    <TranslationProvider config={translations}>
+      <QueryClientProvider client={queryClient}>
+        <DownloadDialog
+          download={async () => {
+            $(GameLauncher).trigger(GameLauncher.beginInstallEvent, {
+              launchMethod: "Protocol",
+              params: {},
+            });
+            ProtocolHandlerClientInterface.isInstalling = true;
+            await startDownload();
+          }}
+          launchGame={async () => {
+            setLocationHref(deepLinkUrl);
+          }}
+          unmount={unmount}
+        />
+      </QueryClientProvider>
+    </TranslationProvider>,
+    container,
+  );
+  setLocationHref(deepLinkUrl);
+}
+
 function openDesktopUniversalApp() {
   const DUALaunchParams = {};
   const protocol = ProtocolHandlerClientInterface.protocolNameForClient;
@@ -589,6 +616,7 @@ Object.assign(ProtocolHandlerClientInterface, {
   startDownload,
   setLocationHref, // this is used by automated tests to intercept the protocol handler URL for verification.  Do not remove.
   openDesktopUniversalApp,
+  startDeepLinkFlow,
   // test overrides
   showDialog,
   showLaunchFailureDialog,

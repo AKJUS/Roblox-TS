@@ -8,6 +8,7 @@ import {
   startSpan,
   getActiveSpan,
   flush,
+  captureException,
 } from "@sentry/browser";
 import { authenticatedUser } from "@rbx/core-scripts/legacy/header-scripts";
 import { buildTracesSampler } from "./src/utils/tracesSampler";
@@ -22,6 +23,7 @@ declare global {
       startSpan: typeof startSpan;
       getActiveSpan: typeof getActiveSpan;
       flush: typeof flush;
+      captureException: typeof captureException;
     };
   }
 }
@@ -32,19 +34,22 @@ if (typeof window !== "undefined") {
     startSpan,
     getActiveSpan,
     flush,
+    captureException,
   };
 }
 
 const metaTag = document.querySelector<HTMLMetaElement>('meta[name="sentry-meta"]');
 const environmentMetaTag = document.querySelector<HTMLMetaElement>('meta[name="environment-meta"]');
-const { dsn, envName, sampleRate } = metaTag?.dataset ?? {};
+const { dsn, envName, sampleRate, tracesSampleRate } = metaTag?.dataset ?? {};
 const otelEndpoint = getOtelCollectorTracesEndpoint(
   window.location.hostname,
   environmentMetaTag?.dataset,
 );
 
 const parsedSampleRate = sampleRate == null ? 0.001 : parseFloat(sampleRate);
-const perfBase = Math.min(parsedSampleRate, 0.0005);
+const parsedTracesSampleRate = tracesSampleRate == null ? 0 : parseFloat(tracesSampleRate);
+const isTransactionOff = parsedTracesSampleRate === 0;
+const perfBase = Math.min(parsedTracesSampleRate, 0.0005);
 
 initSentry({
   dsn:
@@ -58,7 +63,7 @@ initSentry({
   /// Keep a base perf rate visible (docs/telemetry). If tracesSampler is present,
   tracesSampleRate: perfBase,
   // Cut noise: only trace XHR/fetch calls to our own API and page loads.
-  tracesSampler: buildTracesSampler(perfBase),
+  tracesSampler: isTransactionOff ? undefined : buildTracesSampler(perfBase),
   sampleRate: buildSampleRate(parsedSampleRate),
   replaysOnErrorSampleRate: parsedSampleRate,
   beforeSendTransaction: event => {

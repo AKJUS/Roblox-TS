@@ -3,7 +3,7 @@ import { usePlayabilityStatus, PlayabilityStatus, PlayButton } from "@rbx/game-p
 import { EventStreamMetadata, TPlayGameClicked } from "../../common/constants/eventStreamConstants";
 import { buildCommonReferralParams } from "../system/actions/openGameDetailsParser";
 import { TSduiCommonProps } from "../system/SduiTypes";
-import { parseMaybeStringNumberField } from "../utils/analyticsParsingUtils";
+import { getEventContext, parseMaybeStringNumberField } from "../utils/analyticsParsingUtils";
 import { SduiActionType, TSduiActionConfig } from "../system/SduiActionParserRegistry";
 import { parseCallback } from "../system/SduiParsers";
 
@@ -95,6 +95,7 @@ const SduiPlayButton = ({
         eventProperties={playButtonEventProperties}
         status={playabilityStatus}
         disableLoadingState
+        pageContext={getEventContext(sduiContext.pageContext) ?? "UNKNOWN"}
         buttonText={playableText}
         hideIcon={hidePlayableIcon}
         analyticsCallback={reportActionEvent}

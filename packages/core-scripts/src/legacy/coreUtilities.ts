@@ -70,7 +70,6 @@ export const urlService = {
   // eslint-disable-next-line @typescript-eslint/no-deprecated
   formatUrl: url.formatUrl,
   getAbsoluteUrl: url.getAbsoluteUrl,
-  getGameDetailReferralUrls: url.getGameDetailReferralUrls,
   getHelpDeskUrl: url.getHelpDeskUrl,
   getQueryParam: url.getQueryParam,
   getUrlWithLocale: url.getUrlWithLocale,

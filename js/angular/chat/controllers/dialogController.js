@@ -2,6 +2,12 @@ import { AbuseReportDispatcher, CurrentUser, Endpoints, EventStream } from 'Robl
 import angular from 'angular';
 import chatModule from '../chatModule';
 
+const defaultAbuseReportNavigation = {
+  navigate(url) {
+    window.location.href = url;
+  }
+};
+
 function dialogController(
   $scope,
   $log,
@@ -20,7 +26,8 @@ function dialogController(
   eventNames,
   diagActionList,
   guacService,
-  languageResource
+  languageResource,
+  abuseReportNavigation
 ) {
   'ngInject';
 
@@ -413,13 +420,16 @@ function dialogController(
         const params = new URLSearchParams({
           targetId: $scope.dialogLayout.userIdForAbuseReport,
           submitterId: CurrentUser.userId,
-          abuseVector: 'chat',
+          abuseVector: 'web_chat',
           custom: JSON.stringify({
             conversationId: $scope.dialogData.id
           })
         });
         const url = `/report-abuse/?${params.toString()}`;
-        window.location.href = url;
+        $scope.dialogLayout.userIdForAbuseReport = null;
+        $scope.dialogLayout.isAbuseReportConfirmationOn = false;
+        $scope.saveIntoDialogsLayout();
+        abuseReportNavigation.navigate(url);
         return;
       }
 
@@ -923,6 +933,7 @@ function dialogController(
   $scope.init();
 }
 
+chatModule.value('abuseReportNavigation', defaultAbuseReportNavigation);
 chatModule.controller('dialogController', dialogController);
 
 export default dialogController;

@@ -1,10 +1,12 @@
 import openGameDetailsParser from "./actions/openGameDetailsParser";
+import openMusicAssetParser from "./actions/openMusicAssetParser";
 import openSeeAllParser from "./actions/openSeeAllParser";
 import openSignupParser from "./actions/openSignupParser";
 import { TAnalyticsContext, TSduiContext } from "./SduiTypes";
 
 export enum SduiActionType {
   OpenGameDetails = "OpenGameDetails",
+  OpenSongDetails = "OpenSongDetails",
   OpenSeeAll = "OpenSeeAll",
   PlayButtonClick = "PlayButtonClick",
   OpenSignup = "OpenSignup",
@@ -52,6 +54,7 @@ const emptyActionParser = (): TSduiParsedActionConfig => {
 
 export const SduiActionParserRegistry: Record<keyof typeof SduiActionType, TSduiActionParser> = {
   [SduiActionType.OpenGameDetails]: openGameDetailsParser,
+  [SduiActionType.OpenSongDetails]: openMusicAssetParser,
   [SduiActionType.OpenSeeAll]: openSeeAllParser,
   [SduiActionType.OpenSignup]: openSignupParser,
 

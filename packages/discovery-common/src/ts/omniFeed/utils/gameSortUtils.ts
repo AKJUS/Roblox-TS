@@ -22,6 +22,11 @@ import {
   TTreatmentType,
 } from "../../common/types/bedev2Types";
 import { sortDetailPage } from "../../common/constants/configConstants";
+import {
+  TOmniRecommendationAnalyticsData,
+  TUniverseIdToAnalyticsDataMap,
+} from "../../common/types/analyticsTypes";
+import { extractTileBadgesByPositionFromContentMetadata } from "../../common/utils/gameTileLayoutUtils";
 
 export const hydrateOmniRecommendationGames = (
   recommendations: TOmniRecommendationGame[] | null,
@@ -53,6 +58,25 @@ export const hydrateOmniRecommendationGames = (
             gameData.launchDataOverride = recommendationContentMetadata.LaunchDataOverride;
           }
 
+          const primaryWideImageAssetId = recommendationContentMetadata?.PrimaryWideImageAssetId;
+          const primaryWideImageListId = recommendationContentMetadata?.PrimaryWideImageListId;
+          const primaryWideVideoAssetId = recommendationContentMetadata?.PrimaryWideVideoAssetId;
+
+          if (primaryWideImageAssetId || primaryWideImageListId || primaryWideVideoAssetId) {
+            gameData.contentMetadataMediaAsset = {
+              ...(primaryWideImageAssetId ? { wideImageAssetId: primaryWideImageAssetId } : {}),
+              ...(primaryWideImageListId ? { wideImageListId: primaryWideImageListId } : {}),
+              ...(primaryWideVideoAssetId ? { wideVideoAssetId: primaryWideVideoAssetId } : {}),
+            };
+          }
+
+          const tileBadgesByPosition = extractTileBadgesByPositionFromContentMetadata(
+            recommendationContentMetadata,
+          );
+          if (tileBadgesByPosition) {
+            gameData.tileBadgesByPosition = tileBadgesByPosition;
+          }
+
           return gameData;
         }
 
@@ -65,7 +89,7 @@ export const hydrateOmniRecommendationGames = (
     );
 };
 
-const isOmniRecommendationGameSort = (
+export const isOmniRecommendationGameSort = (
   gameSort: TGameSort,
 ): gameSort is TOmniRecommendationGameSort => {
   return "recommendationList" in gameSort;
@@ -143,9 +167,13 @@ export const mapExploreApiGameSortResponse = (
     topicId: sort.gameSetTypeId,
     treatmentType: sort.treatmentType,
     games: sort.games.map(game => {
+      const tileBadgesByPosition = extractTileBadgesByPositionFromContentMetadata(
+        game.contentMetadata,
+      );
       return {
         ...game,
         placeId: game.placeId ?? game.rootPlaceId,
+        ...(tileBadgesByPosition ? { tileBadgesByPosition } : {}),
       };
     }),
     sortId: sort.sortId,
@@ -224,10 +252,7 @@ export const mapExploreApiSortResponse = (sort: TExploreApiSortResponse): TExplo
   return mapExploreApiFiltersSortResponse(sort);
 };
 
-export const mapExploreApiSortsResponse = (
-  data: TExploreApiSortsResponse,
-  isSearchQueryPillsEnabled?: boolean,
-): TExploreApiSorts => {
+export const mapExploreApiSortsResponse = (data: TExploreApiSortsResponse): TExploreApiSorts => {
   return {
     header: data.header?.sorts
       ? {
@@ -235,15 +260,7 @@ export const mapExploreApiSortsResponse = (
           layoutData: data.header.layoutData,
         }
       : undefined,
-    sorts: data.sorts
-      .filter(sort => {
-        // Filter out search pills sorts if the isSearchQueryPillsEnabled IXP variable is not true
-        if (isExploreApiSearchPillsSortResponse(sort) && isSearchQueryPillsEnabled !== true) {
-          return false;
-        }
-        return true;
-      })
-      .map(sort => mapExploreApiSortResponse(sort)),
+    sorts: data.sorts.map(sort => mapExploreApiSortResponse(sort)),
     nextSortsPageToken: data.nextSortsPageToken,
   };
 };
@@ -395,6 +412,29 @@ export const parseAppliedFilters = (sort: TGameSort): Record<string, string> => 
   }
 
   return {};
+};
+
+/**
+ * Builds a structured analytics data object that preserves the separation between
+ * sort-level and item-level analytics data. This separation is important because
+ * sort-level data and item-level data are only merged for events for specific experiences.
+ * If the event is for a group of experiences (e.g. game impressions), then the sort-level data
+ * is sent as a separate key while the item-level data for each experience is
+ * aggregated into arrays.
+ */
+export const buildOmniRecommendationAnalyticsData = (
+  recommendationList: TOmniRecommendationGame[],
+  sortAnalyticsData?: Record<string, string>,
+): TOmniRecommendationAnalyticsData => {
+  const itemLevel: TUniverseIdToAnalyticsDataMap = {};
+  recommendationList.forEach(item => {
+    itemLevel[item.contentId] = item.analyticsData;
+  });
+
+  return {
+    sortLevel: sortAnalyticsData ?? {},
+    itemLevel,
+  };
 };
 
 export default {
